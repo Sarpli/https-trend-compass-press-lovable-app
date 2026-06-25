@@ -108,8 +108,22 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const preview = value.trim() || trendImage(trend);
+  // Score whatever is currently typed; fall back to saved value, then preview.
+  const candidate = value.trim() || trend.image_url || preview;
+  const validation = validateImage(candidate, trend);
 
   async function save(next: string | null) {
+    if (next) {
+      const v = validateImage(next, trend);
+      if (v.verdict === "off-topic") {
+        const ok = window.confirm(
+          `This image scored ${v.score}/100 (likely off-topic for "${trend.term}").\n\n` +
+          v.reasons.join("\n") +
+          `\n\nSave anyway?`
+        );
+        if (!ok) return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase
       .from("trends")
@@ -167,6 +181,14 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
             <div className="text-[10px] ui small-caps text-muted-foreground">{trend.category ?? "uncategorized"} · {trend.slug}</div>
           </div>
           <Link to="/trends/$slug" params={{ slug: trend.slug }} className="text-[11px] ui small-caps underline">View</Link>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-[10px] ui small-caps px-2 py-0.5 ${verdictColor(validation.verdict)}`}>
+            {verdictLabel(validation.verdict)} · {validation.score}/100
+          </span>
+          <span className="text-[10px] text-muted-foreground leading-snug">
+            {validation.reasons.join(" ")}
+          </span>
         </div>
         <input
           ref={fileRef}
