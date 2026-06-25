@@ -1,49 +1,74 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Row = {
-  trend_id: string | null;
-  slug: string | null;
-  term: string | null;
-  base_price: number | null;
-  net_votes: number | null;
-  price: number | null;
+  trend_id: string;
+  slug: string;
+  term: string;
+  base_price: number;
+  net_votes: number;
+  price: number;
 };
 
 async function fetchScores(): Promise<Row[]> {
-  const { data, error } = await supabase
-    .from("trend_scores")
-    .select("*")
-    .order("price", { ascending: false });
+  const { data, error } = await supabase.rpc("get_trend_scores");
   if (error) throw error;
-  return (data ?? []) as Row[];
+  return ((data ?? []) as Row[])
+    .map((r) => ({ ...r, price: Number(r.price), net_votes: Number(r.net_votes) }))
+    .sort((a, b) => b.price - a.price);
 }
 
 export function TickerBar() {
   const qc = useQueryClient();
-  const { data: rows = [] } = useQuery({ queryKey: ["ticker"], queryFn: fetchScores, refetchInterval: 15000 });
-  const [prev, setPrev] = useState<Record<string, number>>({});
+  const { data: rows = [] } = useQuery({
+    queryKey: ["ticker"],
+    queryFn: fetchScores,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+  const prevRef = useRef<Record<string, number>>({});
+  const [deltas, setDeltas] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const ch = supabase
       .channel("ticker-votes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "votes" }, () => {
-        qc.invalidateQueries({ queryKey: ["ticker"] });
-        qc.invalidateQueries({ queryKey: ["leaderboard"] });
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "votes" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["ticker"] });
+          qc.invalidateQueries({ queryKey: ["leaderboard"] });
+        },
+      )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [qc]);
 
+  // Track per-trend price deltas so we can flash arrows green/red on change.
   useEffect(() => {
+    if (rows.length === 0) return;
     const next: Record<string, number> = {};
-    rows.forEach((r) => { if (r.trend_id) next[r.trend_id] = Number(r.price ?? 0); });
-    setPrev((p) => (Object.keys(p).length === 0 ? next : p));
-    const id = setTimeout(() => setPrev(next), 200);
-    return () => clearTimeout(id);
+    const changed: Record<string, number> = {};
+    rows.forEach((r) => {
+      next[r.trend_id] = r.price;
+      const last = prevRef.current[r.trend_id];
+      if (last !== undefined && last !== r.price) changed[r.trend_id] = r.price - last;
+    });
+    prevRef.current = next;
+    if (Object.keys(changed).length > 0) {
+      setDeltas((d) => ({ ...d, ...changed }));
+      const id = setTimeout(() => {
+        setDeltas((d) => {
+          const copy = { ...d };
+          Object.keys(changed).forEach((k) => delete copy[k]);
+          return copy;
+        });
+      }, 2500);
+      return () => clearTimeout(id);
+    }
   }, [rows]);
 
   if (rows.length === 0) return <div className="bg-ink text-newsprint h-8" />;
@@ -57,24 +82,34 @@ export function TickerBar() {
           Live · Trend Tape
         </div>
         <div className="flex-1 overflow-hidden relative">
-          <div className="ticker-track py-2">
+          <div className="ticker-track py-2 whitespace-nowrap">
             {items.map((r, i) => {
-              const price = Number(r.price ?? 0);
-              const last = prev[r.trend_id ?? ""] ?? price;
-              const delta = price - last;
-              const dir = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+              const delta = deltas[r.trend_id] ?? 0;
+              const dir = delta > 0 ? "up" : delta < 0 ? "down" : r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
+              const flashing = delta !== 0;
               return (
                 <Link
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
-                  params={{ slug: r.slug ?? "" }}
-                  className="inline-flex items-center gap-2 hover:text-accent-red"
+                  params={{ slug: r.slug }}
+                  className={`inline-flex items-center gap-2 mx-4 transition-colors ${
+                    flashing
+                      ? dir === "up"
+                        ? "text-ticker-up"
+                        : "text-ticker-down"
+                      : "hover:text-accent-red"
+                  }`}
                 >
                   <span className="small-caps font-bold tracking-wider">{r.term}</span>
-                  <span className="tabular-nums">{price.toFixed(0)}</span>
-                  {dir === "up" && <ArrowUp className="w-3 h-3 text-ticker-up" />}
-                  {dir === "down" && <ArrowDown className="w-3 h-3 text-ticker-down" />}
+                  <span className="tabular-nums">{r.price.toFixed(0)}</span>
+                  {(dir === "up" || dir === "up-static") && <ArrowUp className="w-3 h-3 text-ticker-up" />}
+                  {(dir === "down" || dir === "down-static") && <ArrowDown className="w-3 h-3 text-ticker-down" />}
                   {dir === "flat" && <span className="text-newsprint/40">—</span>}
+                  {flashing && (
+                    <span className={`tabular-nums text-[10px] ${dir === "up" ? "text-ticker-up" : "text-ticker-down"}`}>
+                      {delta > 0 ? "+" : ""}{delta.toFixed(0)}
+                    </span>
+                  )}
                 </Link>
               );
             })}
