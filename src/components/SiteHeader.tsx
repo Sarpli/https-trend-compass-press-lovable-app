@@ -31,6 +31,9 @@ export function SiteHeader() {
             <div className="text-[10px] ui small-caps mt-1 text-muted-foreground">
               The Daily Edition of Internet Culture
             </div>
+            <div className="display italic text-sm md:text-base mt-2 text-ink/80">
+              "Finally in the loop."
+            </div>
           </Link>
           <div className="flex justify-end gap-3 items-center text-sm ui">
             {user ? (
