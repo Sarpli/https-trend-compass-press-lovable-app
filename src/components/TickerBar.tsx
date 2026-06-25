@@ -69,6 +69,7 @@ function TickerBarInner() {
           qc.invalidateQueries({ queryKey: ["leaderboard"] });
           qc.invalidateQueries({ queryKey: ["trend-score"] });
           qc.invalidateQueries({ queryKey: ["myvote"] });
+          qc.invalidateQueries({ queryKey: ["trend-history"] });
         },
       )
       .subscribe();
