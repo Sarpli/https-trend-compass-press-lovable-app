@@ -248,6 +248,13 @@ export type Database = {
       }
     }
     Functions: {
+      get_trend_price_history: {
+        Args: { _trend_id: string }
+        Returns: {
+          price: number
+          t: string
+        }[]
+      }
       get_trend_scores: {
         Args: never
         Returns: {
