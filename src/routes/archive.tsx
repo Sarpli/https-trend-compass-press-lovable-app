@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
+import { trendImage } from "@/lib/trend-image";
 
 export const Route = createFileRoute("/archive")({
   head: () => ({ meta: [{ title: "Trend Archive — Trenslate" }] }),
@@ -93,6 +94,14 @@ function Archive() {
       <ul className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trends.map((t) => (
           <li key={t.id} className="rule-top pt-3">
+            <Link to="/trends/$slug" params={{ slug: t.slug }}>
+              <img
+                src={trendImage(t, 600, 360)}
+                alt={t.term}
+                loading="lazy"
+                className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
+              />
+            </Link>
             <div className="ui small-caps text-[10px] text-accent-red">{t.category}</div>
             <Link to="/trends/$slug" params={{ slug: t.slug }}>
               <h3 className="display text-2xl font-bold hover:text-accent-red">{t.term}</h3>
