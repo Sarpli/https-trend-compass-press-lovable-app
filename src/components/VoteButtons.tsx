@@ -57,12 +57,45 @@ export function VoteButtons({ trendId, category, compact }: Props) {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onMutate: async (direction: "up" | "down") => {
+      const weight = isAnnual ? 2 : 1;
+      // Compute the net-vote delta this click produces.
+      let delta = 0;
+      if (myVote) {
+        if (myVote.direction === direction) {
+          // Toggling off: remove previous contribution.
+          delta = myVote.direction === "up" ? -weight : weight;
+        } else {
+          // Flipping sides: remove old + add new.
+          delta = direction === "up" ? 2 * weight : -2 * weight;
+        }
+      } else {
+        delta = direction === "up" ? weight : -weight;
+      }
+
+      await qc.cancelQueries({ queryKey: ["ticker"] });
+      const prevTicker = qc.getQueryData<Array<{ trend_id: string; price: number; net_votes: number }>>(["ticker"]);
+      qc.setQueryData(["ticker"], (old: typeof prevTicker) => {
+        if (!old) return old;
+        return old
+          .map((r) =>
+            r.trend_id === trendId
+              ? { ...r, net_votes: Number(r.net_votes) + delta, price: Number(r.price) + delta }
+              : r,
+          )
+          .sort((a, b) => Number(b.price) - Number(a.price));
+      });
+      return { prevTicker };
+    },
+    onError: (e: Error, _vars, ctx) => {
+      if (ctx?.prevTicker) qc.setQueryData(["ticker"], ctx.prevTicker);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["ticker"] });
       qc.invalidateQueries({ queryKey: ["leaderboard"] });
       qc.invalidateQueries({ queryKey: ["myvote", trendId] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   if (locked) {
