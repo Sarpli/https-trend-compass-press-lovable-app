@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { trendImage } from "@/lib/trend-image";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -68,11 +69,19 @@ function AdminTrends() {
     !filter || t.term.toLowerCase().includes(filter.toLowerCase()) || t.slug.includes(filter.toLowerCase())
   );
 
+  const flagged = (trends ?? []).filter((t) => {
+    const v = validateImage(t.image_url, t).verdict;
+    return v === "off-topic" || v === "maybe";
+  }).length;
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Editor's Desk</div>
       <h1 className="display text-4xl font-black mb-2">Trend image editor</h1>
-      <p className="text-sm text-muted-foreground mb-6">Paste a URL to override the auto-pulled image, or clear it to fall back to the default.</p>
+      <p className="text-sm text-muted-foreground mb-2">Paste a URL to override the auto-pulled image, or clear it to fall back to the default.</p>
+      <p className="text-xs ui small-caps text-accent-red mb-6">
+        {flagged} of {trends?.length ?? 0} current images flagged as possibly off-topic.
+      </p>
 
       <input
         value={filter}
@@ -99,8 +108,22 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const preview = value.trim() || trendImage(trend);
+  // Score whatever is currently typed; fall back to saved value, then preview.
+  const candidate = value.trim() || trend.image_url || preview;
+  const validation = validateImage(candidate, trend);
 
   async function save(next: string | null) {
+    if (next) {
+      const v = validateImage(next, trend);
+      if (v.verdict === "off-topic") {
+        const ok = window.confirm(
+          `This image scored ${v.score}/100 (likely off-topic for "${trend.term}").\n\n` +
+          v.reasons.join("\n") +
+          `\n\nSave anyway?`
+        );
+        if (!ok) return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase
       .from("trends")
@@ -158,6 +181,14 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
             <div className="text-[10px] ui small-caps text-muted-foreground">{trend.category ?? "uncategorized"} · {trend.slug}</div>
           </div>
           <Link to="/trends/$slug" params={{ slug: trend.slug }} className="text-[11px] ui small-caps underline">View</Link>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-[10px] ui small-caps px-2 py-0.5 ${verdictColor(validation.verdict)}`}>
+            {verdictLabel(validation.verdict)} · {validation.score}/100
+          </span>
+          <span className="text-[10px] text-muted-foreground leading-snug">
+            {validation.reasons.join(" ")}
+          </span>
         </div>
         <input
           ref={fileRef}
