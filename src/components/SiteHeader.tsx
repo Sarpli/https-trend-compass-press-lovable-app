@@ -34,7 +34,7 @@ export function SiteHeader() {
             <div className="text-[10px] ui small-caps mt-1 text-muted-foreground">
               The Daily Edition of Internet Culture
             </div>
-            <div className="display italic text-sm md:text-base mt-2 text-ink/80">
+            <div className="display italic text-sm md:text-base mt-2 text-foreground/80">
               "Finally in the loop."
             </div>
           </Link>
@@ -68,7 +68,7 @@ export function SiteHeader() {
             )}
           </div>
         </div>
-        <nav className="border-t border-ink/80 border-b border-ink/30 bg-background">
+        <nav className="border-t border-foreground/80 border-b border-foreground/30 bg-background">
           <div className="max-w-7xl mx-auto px-6 flex justify-center gap-8 py-3 text-sm ui small-caps overflow-x-auto">
             {NAV.map((n) => (
               <Link
