@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { trendImage } from "@/lib/trend-image";
+import { aiSearchTrends } from "@/lib/ai-search.functions";
 
 export const Route = createFileRoute("/archive")({
   head: () => ({ meta: [{ title: "Trend Archive — Trenslate" }] }),
@@ -20,6 +22,8 @@ function Archive() {
   const { q: initialQ } = Route.useSearch();
   const [q, setQ] = useState(initialQ ?? "");
   const [submitted, setSubmitted] = useState(initialQ ?? "");
+  const [useAI, setUseAI] = useState(true);
+  const aiSearch = useServerFn(aiSearchTrends);
 
   useEffect(() => {
     if (initialQ && initialQ !== submitted) {
@@ -43,13 +47,36 @@ function Archive() {
     },
   });
 
-  const { data: trends = [] } = useQuery({
-    queryKey: ["archive", submitted],
+  const { data: trends = [], isFetching } = useQuery({
+    queryKey: ["archive", submitted, useAI],
     queryFn: async () => {
-      let qb = supabase.from("trends").select("*").order("term");
-      if (submitted) qb = qb.ilike("term", `%${submitted}%`);
-      const { data } = await qb;
-      return data ?? [];
+      const { data: all } = await supabase.from("trends").select("*").order("term");
+      const rows = all ?? [];
+      if (!submitted) return rows;
+
+      const needle = submitted.toLowerCase();
+      const keywordHits = rows.filter((t) =>
+        t.term?.toLowerCase().includes(needle) ||
+        t.category?.toLowerCase().includes(needle) ||
+        t.plain_language?.toLowerCase().includes(needle),
+      );
+
+      if (!useAI) return keywordHits;
+
+      try {
+        const { slugs } = await aiSearch({ data: { query: submitted } });
+        const set = new Set([...keywordHits.map((t) => t.slug), ...slugs]);
+        // Preserve AI ordering for AI-only hits, then keyword hits.
+        const ordered = [
+          ...slugs.map((s) => rows.find((r) => r.slug === s)).filter(Boolean),
+          ...keywordHits.filter((t) => !slugs.includes(t.slug)),
+        ];
+        return ordered.filter((t, i, a) => t && a.findIndex((x) => x!.slug === t!.slug) === i) as typeof rows;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "AI search failed";
+        toast.error(msg);
+        return keywordHits;
+      }
     },
   });
 
@@ -84,12 +111,18 @@ function Archive() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search slang, memes, trends…"
+            placeholder="Search a term, vibe, or category (try “fashion”)…"
             className="w-full border border-ink/40 bg-background pl-10 pr-3 py-2 ui focus:outline-none focus:border-accent-red"
           />
         </div>
         <button className="ui small-caps text-xs bg-ink text-newsprint px-5">Search</button>
       </form>
+
+      <label className="flex items-center gap-2 text-xs ui mb-6 -mt-4 cursor-pointer select-none">
+        <input type="checkbox" checked={useAI} onChange={(e) => setUseAI(e.target.checked)} />
+        <Sparkles className="w-3 h-3 text-accent-red" />
+        <span>AI-assisted search {isFetching && submitted ? "· thinking…" : ""}</span>
+      </label>
 
       <ul className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trends.map((t) => (
