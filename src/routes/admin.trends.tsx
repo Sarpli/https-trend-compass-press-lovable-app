@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { trendImage } from "@/lib/trend-image";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -95,6 +96,8 @@ type TrendRow = { id: string; slug: string; term: string; category: string | nul
 function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [value, setValue] = useState(trend.image_url ?? "");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const preview = value.trim() || trendImage(trend);
 
   async function save(next: string | null) {
@@ -112,6 +115,39 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
     onSaved();
   }
 
+  async function handleFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5 MB");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${trend.slug}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("trend-images")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) {
+      setUploading(false);
+      toast.error(upErr.message);
+      return;
+    }
+    // 10-year signed URL so the private bucket is readable everywhere
+    const { data: signed, error: signErr } = await supabase.storage
+      .from("trend-images")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (signErr || !signed?.signedUrl) {
+      toast.error(signErr?.message ?? "Could not get image URL");
+      return;
+    }
+    setValue(signed.signedUrl);
+    await save(signed.signedUrl);
+  }
+
   return (
     <div className="grid grid-cols-[120px_1fr] gap-4 border border-ink/20 p-3 bg-background">
       <img src={preview} alt={trend.term} className="w-[120px] h-[90px] object-cover border border-ink/20" />
@@ -123,11 +159,30 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
           </div>
           <Link to="/trends/$slug" params={{ slug: trend.slug }} className="text-[11px] ui small-caps underline">View</Link>
         </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleFile(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading || saving}
+          className="inline-flex items-center justify-center gap-2 bg-accent-red text-accent-foreground px-3 py-2 text-xs ui small-caps disabled:opacity-50"
+        >
+          <Upload className="w-3.5 h-3.5" />
+          {uploading ? "Uploading…" : "Upload image from your device"}
+        </button>
         <div className="flex gap-2">
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="https://… image URL"
+            placeholder="…or paste an image URL"
             className="flex-1 border border-ink/40 bg-background px-2 py-1 text-xs"
           />
           <button
