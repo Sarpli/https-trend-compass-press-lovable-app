@@ -139,7 +139,7 @@ function Index() {
                   <span className="display text-xl font-bold text-accent-red w-6 text-right tabular-nums">
                     {i + 1}
                   </span>
-                  <Link to="/trends/$slug" params={{ slug: t.slug }} className="flex-1 hover:underline">
+                  <Link to="/trends/$slug" params={{ slug: t.slug ?? "" }} className="flex-1 hover:underline">
                     {t.term}
                   </Link>
                   <span className="ui text-xs tabular-nums text-muted-foreground">{Number(t.price).toFixed(0)}</span>
@@ -156,7 +156,7 @@ function Index() {
                 <li key={t.trend_id} className="flex items-center justify-between gap-3 rule-bottom pb-2">
                   <div className="flex items-baseline gap-2 min-w-0">
                     <span className="display text-lg font-bold w-5 text-right">{i + 1}</span>
-                    <Link to="/trends/$slug" params={{ slug: t.slug }} className="truncate hover:underline text-sm">
+                    <Link to="/trends/$slug" params={{ slug: t.slug ?? "" }} className="truncate hover:underline text-sm">
                       {t.term}
                     </Link>
                   </div>
