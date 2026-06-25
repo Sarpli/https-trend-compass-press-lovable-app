@@ -38,7 +38,7 @@ function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: 
   const d = points
     .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(2)},${(h - ((p - min) / range) * h).toFixed(2)}`)
     .join(" ");
-  const stroke = up ? "hsl(var(--ticker-up))" : down ? "hsl(var(--ticker-down))" : "currentColor";
+  const stroke = up ? "var(--ticker-up)" : down ? "var(--ticker-down)" : "currentColor";
   return (
     <svg width={w} height={h} className="overflow-visible">
       <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
