@@ -45,15 +45,13 @@ function Board({ category, locked }: { category: Cat; locked: boolean }) {
     queryKey: ["leaderboard", category, periodKey],
     queryFn: async () => {
       const { data: trends } = await supabase.from("trends").select("id,slug,term,base_price");
-      const { data: votes } = await supabase
-        .from("votes")
-        .select("trend_id,direction,weight")
-        .eq("category", category)
-        .eq("period_key", periodKey);
+      const { data: tallies } = await supabase.rpc("get_vote_tallies", {
+        _category: category,
+        _period_key: periodKey,
+      });
       const tally = new Map<string, number>();
-      (votes ?? []).forEach((v) => {
-        const delta = (v.direction === "up" ? 1 : -1) * v.weight;
-        tally.set(v.trend_id, (tally.get(v.trend_id) ?? 0) + delta);
+      (tallies ?? []).forEach((t: { trend_id: string; net_votes: number }) => {
+        tally.set(t.trend_id, t.net_votes);
       });
       const enriched = (trends ?? []).map((t) => ({
         ...t,
