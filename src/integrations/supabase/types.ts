@@ -245,6 +245,17 @@ export type Database = {
       }
     }
     Functions: {
+      get_trend_scores: {
+        Args: never
+        Returns: {
+          base_price: number
+          net_votes: number
+          price: number
+          slug: string
+          term: string
+          trend_id: string
+        }[]
+      }
       get_vote_tallies: {
         Args: {
           _category: Database["public"]["Enums"]["vote_category"]
