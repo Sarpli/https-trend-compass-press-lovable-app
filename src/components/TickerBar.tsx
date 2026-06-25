@@ -22,6 +22,31 @@ async function fetchScores(): Promise<Row[]> {
 }
 
 export function TickerBar() {
+  return <TickerBarInner />;
+}
+
+function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: boolean }) {
+  const w = 36;
+  const h = 12;
+  if (points.length < 2) {
+    return <svg width={w} height={h} className="opacity-40"><line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth={1} /></svg>;
+  }
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(2)},${(h - ((p - min) / range) * h).toFixed(2)}`)
+    .join(" ");
+  const stroke = up ? "var(--ticker-up)" : down ? "var(--ticker-down)" : "currentColor";
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TickerBarInner() {
   const qc = useQueryClient();
   const { data: rows = [] } = useQuery({
     queryKey: ["ticker"],
@@ -31,6 +56,7 @@ export function TickerBar() {
   });
   const prevRef = useRef<Record<string, number>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
+  const [history, setHistory] = useState<Record<string, number[]>>({});
 
   useEffect(() => {
     const ch = supabase
@@ -60,6 +86,16 @@ export function TickerBar() {
       if (last !== undefined && last !== r.price) changed[r.trend_id] = r.price - last;
     });
     prevRef.current = next;
+    setHistory((h) => {
+      const copy = { ...h };
+      rows.forEach((r) => {
+        const arr = copy[r.trend_id] ? [...copy[r.trend_id]] : [];
+        if (arr.length === 0 || arr[arr.length - 1] !== r.price) arr.push(r.price);
+        if (arr.length > 24) arr.splice(0, arr.length - 24);
+        copy[r.trend_id] = arr;
+      });
+      return copy;
+    });
     if (Object.keys(changed).length > 0) {
       setDeltas((d) => ({ ...d, ...changed }));
       const id = setTimeout(() => {
@@ -104,6 +140,11 @@ export function TickerBar() {
                 >
                   <span className="small-caps font-bold tracking-wider">{r.term}</span>
                   <span className="tabular-nums">{r.price.toFixed(0)}</span>
+                  <Sparkline
+                    points={history[r.trend_id] ?? [r.price]}
+                    up={dir === "up" || dir === "up-static"}
+                    down={dir === "down" || dir === "down-static"}
+                  />
                   {(dir === "up" || dir === "up-static") && <ArrowUp className="w-3 h-3 text-ticker-up" />}
                   {(dir === "down" || dir === "down-static") && <ArrowDown className="w-3 h-3 text-ticker-down" />}
                   {dir === "flat" && <span className="text-newsprint/40">—</span>}
