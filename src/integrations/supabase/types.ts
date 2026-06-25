@@ -14,16 +14,252 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          is_founding_voter: boolean
+          last_active_date: string | null
+          streak_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          is_founding_voter?: boolean
+          last_active_date?: string | null
+          streak_count?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_founding_voter?: boolean
+          last_active_date?: string | null
+          streak_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_glossary: {
+        Row: {
+          created_at: string
+          trend_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          trend_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          trend_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_glossary_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "saved_glossary_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      searches: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          current_period_end: string | null
+          status: string
+          tier: Database["public"]["Enums"]["sub_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_period_end?: string | null
+          status?: string
+          tier?: Database["public"]["Enums"]["sub_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_period_end?: string | null
+          status?: string
+          tier?: Database["public"]["Enums"]["sub_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trends: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string
+          examples: Json
+          featured: boolean
+          id: string
+          origin: string
+          plain_language: string
+          safety_tips: string
+          slug: string
+          term: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          examples?: Json
+          featured?: boolean
+          id?: string
+          origin: string
+          plain_language: string
+          safety_tips: string
+          slug: string
+          term: string
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          examples?: Json
+          featured?: boolean
+          id?: string
+          origin?: string
+          plain_language?: string
+          safety_tips?: string
+          slug?: string
+          term?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          category: Database["public"]["Enums"]["vote_category"]
+          created_at: string
+          direction: Database["public"]["Enums"]["vote_direction"]
+          id: string
+          period_key: string
+          trend_id: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["vote_category"]
+          created_at?: string
+          direction: Database["public"]["Enums"]["vote_direction"]
+          id?: string
+          period_key: string
+          trend_id: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["vote_category"]
+          created_at?: string
+          direction?: Database["public"]["Enums"]["vote_direction"]
+          id?: string
+          period_key?: string
+          trend_id?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "votes_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      trend_scores: {
+        Row: {
+          base_price: number | null
+          net_votes: number | null
+          price: number | null
+          slug: string | null
+          term: string | null
+          trend_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_annual: { Args: { _user_id: string }; Returns: boolean }
+      is_pro: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      sub_tier: "free" | "pro_monthly" | "pro_annual"
+      vote_category: "week" | "month" | "year" | "oat"
+      vote_direction: "up" | "down"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +386,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      sub_tier: ["free", "pro_monthly", "pro_annual"],
+      vote_category: ["week", "month", "year", "oat"],
+      vote_direction: ["up", "down"],
+    },
   },
 } as const
