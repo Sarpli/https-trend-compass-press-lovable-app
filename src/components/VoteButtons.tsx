@@ -74,6 +74,10 @@ export function VoteButtons({ trendId, category, compact }: Props) {
       }
 
       await qc.cancelQueries({ queryKey: ["ticker"] });
+      const lbKey = ["leaderboard", category, periodKey] as const;
+      const myKey = ["myvote", trendId, category, periodKey, user?.id] as const;
+      await qc.cancelQueries({ queryKey: lbKey });
+      await qc.cancelQueries({ queryKey: myKey });
       const prevTicker = qc.getQueryData<Array<{ trend_id: string; price: number; net_votes: number }>>(["ticker"]);
       qc.setQueryData(["ticker"], (old: typeof prevTicker) => {
         if (!old) return old;
@@ -85,10 +89,33 @@ export function VoteButtons({ trendId, category, compact }: Props) {
           )
           .sort((a, b) => Number(b.price) - Number(a.price));
       });
-      return { prevTicker };
+
+      const prevLb = qc.getQueryData<Array<{ id: string; net: number; price: number; base_price: number }>>(lbKey);
+      qc.setQueryData(lbKey, (old: typeof prevLb) => {
+        if (!old) return old;
+        return [...old]
+          .map((r) =>
+            r.id === trendId
+              ? { ...r, net: r.net + delta, price: Number(r.base_price) + r.net + delta }
+              : r,
+          )
+          .sort((a, b) => b.net - a.net);
+      });
+
+      const prevMy = qc.getQueryData(myKey);
+      const nextMy = myVote
+        ? myVote.direction === direction
+          ? null
+          : { ...myVote, direction }
+        : { id: "optimistic", direction };
+      qc.setQueryData(myKey, nextMy);
+
+      return { prevTicker, prevLb, prevMy, lbKey, myKey };
     },
     onError: (e: Error, _vars, ctx) => {
       if (ctx?.prevTicker) qc.setQueryData(["ticker"], ctx.prevTicker);
+      if (ctx?.lbKey) qc.setQueryData(ctx.lbKey, ctx.prevLb);
+      if (ctx?.myKey) qc.setQueryData(ctx.myKey, ctx.prevMy);
       toast.error(e.message);
     },
     onSettled: () => {
