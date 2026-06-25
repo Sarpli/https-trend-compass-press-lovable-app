@@ -130,6 +130,7 @@ export type Database = {
           examples: Json
           featured: boolean
           id: string
+          image_url: string | null
           origin: string
           plain_language: string
           safety_tips: string
@@ -143,6 +144,7 @@ export type Database = {
           examples?: Json
           featured?: boolean
           id?: string
+          image_url?: string | null
           origin: string
           plain_language: string
           safety_tips: string
@@ -156,6 +158,7 @@ export type Database = {
           examples?: Json
           featured?: boolean
           id?: string
+          image_url?: string | null
           origin?: string
           plain_language?: string
           safety_tips?: string
