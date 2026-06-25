@@ -22,6 +22,31 @@ async function fetchScores(): Promise<Row[]> {
 }
 
 export function TickerBar() {
+  return <TickerBarInner />;
+}
+
+function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: boolean }) {
+  const w = 36;
+  const h = 12;
+  if (points.length < 2) {
+    return <svg width={w} height={h} className="opacity-40"><line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth={1} /></svg>;
+  }
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(2)},${(h - ((p - min) / range) * h).toFixed(2)}`)
+    .join(" ");
+  const stroke = up ? "hsl(var(--ticker-up))" : down ? "hsl(var(--ticker-down))" : "currentColor";
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TickerBarInner() {
   const qc = useQueryClient();
   const { data: rows = [] } = useQuery({
     queryKey: ["ticker"],
