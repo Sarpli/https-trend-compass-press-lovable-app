@@ -164,7 +164,7 @@ function Index() {
                     <span className={`ui text-xs tabular-nums ${Number(t.net_votes) >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
                       {Number(t.net_votes) > 0 ? "+" : ""}{t.net_votes}
                     </span>
-                    <VoteButtons trendId={t.trend_id} category="week" compact />
+                    <VoteButtons trendId={t.trend_id ?? ""} category="week" compact />
                   </div>
                 </li>
               ))}
