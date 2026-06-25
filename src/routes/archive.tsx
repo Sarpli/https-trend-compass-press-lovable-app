@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/archive")({
   head: () => ({ meta: [{ title: "Trend Archive — Trenslate" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   component: Archive,
 });
 
@@ -15,8 +16,17 @@ const DAILY_LIMIT = 3;
 
 function Archive() {
   const { user, isPro } = useAuth();
-  const [q, setQ] = useState("");
-  const [submitted, setSubmitted] = useState("");
+  const { q: initialQ } = Route.useSearch();
+  const [q, setQ] = useState(initialQ ?? "");
+  const [submitted, setSubmitted] = useState(initialQ ?? "");
+
+  useEffect(() => {
+    if (initialQ && initialQ !== submitted) {
+      setQ(initialQ);
+      setSubmitted(initialQ);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQ]);
 
   const { data: searchCount = 0 } = useQuery({
     queryKey: ["searches", user?.id],

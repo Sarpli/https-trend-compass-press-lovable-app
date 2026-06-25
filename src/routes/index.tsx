@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
@@ -18,6 +20,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
   const { data: featured } = useQuery({
     queryKey: ["featured"],
     queryFn: async () => {
@@ -70,6 +74,33 @@ function Index() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          navigate({ to: "/archive", search: { q: q.trim() } });
+        }}
+        className="rule-double py-5 mb-8 flex flex-col sm:flex-row gap-3 sm:items-center"
+      >
+        <div className="flex-1">
+          <div className="ui small-caps text-[10px] text-accent-red mb-1">Look it up</div>
+          <div className="display text-2xl md:text-3xl font-bold leading-tight">
+            What does it mean?
+          </div>
+        </div>
+        <div className="flex gap-2 sm:w-[420px]">
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="rizz, 67, mob wife…"
+              className="w-full border border-ink/60 bg-background pl-10 pr-3 py-2 ui focus:outline-none focus:border-accent-red"
+            />
+          </div>
+          <button className="ui small-caps text-xs bg-ink text-newsprint px-5">Search</button>
+        </div>
+      </form>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Featured spotlight */}
         <section className="lg:col-span-8">
