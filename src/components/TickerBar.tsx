@@ -60,10 +60,10 @@ function TickerBarInner() {
 
   useEffect(() => {
     const ch = supabase
-      .channel("ticker-votes")
+      .channel("ticker-vote-events")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "votes" },
+        { event: "INSERT", schema: "public", table: "vote_events" },
         () => {
           qc.invalidateQueries({ queryKey: ["ticker"] });
           qc.invalidateQueries({ queryKey: ["leaderboard"] });
