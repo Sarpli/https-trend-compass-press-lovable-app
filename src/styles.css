@@ -106,25 +106,29 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  /* Swap the newspaper palette: cream becomes ink, ink becomes cream. */
+  --ink: oklch(0.96 0.012 85);
+  --newsprint: oklch(0.16 0.01 60);
+  --rule: oklch(0.88 0.01 60);
+  --background: var(--newsprint);
+  --foreground: var(--ink);
+  --card: oklch(0.20 0.01 60);
+  --card-foreground: var(--ink);
+  --popover: oklch(0.20 0.01 60);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--newsprint);
+  --secondary: oklch(0.24 0.01 60);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.24 0.01 60);
+  --muted-foreground: oklch(0.70 0.02 60);
+  --accent: var(--accent-red);
+  --accent-foreground: oklch(0.99 0 0);
+  --destructive: var(--ticker-down);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: var(--ink);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);

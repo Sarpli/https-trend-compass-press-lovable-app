@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
+import { Moon, Sun, Lock } from "lucide-react";
 import { TickerBar } from "./TickerBar";
 
 const NAV = [
@@ -12,6 +14,7 @@ const NAV = [
 
 export function SiteHeader() {
   const { user, isPro } = useAuth();
+  const { theme, toggle } = useTheme();
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
@@ -31,11 +34,30 @@ export function SiteHeader() {
             <div className="text-[10px] ui small-caps mt-1 text-muted-foreground">
               The Daily Edition of Internet Culture
             </div>
-            <div className="display italic text-sm md:text-base mt-2 text-ink/80">
+            <div className="display italic text-sm md:text-base mt-2 text-foreground/80">
               "Finally in the loop."
             </div>
           </Link>
           <div className="flex justify-end gap-3 items-center text-sm ui">
+            {isPro ? (
+              <button
+                onClick={toggle}
+                aria-label="Toggle dark mode"
+                title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
+                className="p-1.5 rounded hover:bg-foreground/10 transition-colors"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            ) : user ? (
+              <Link
+                to="/pricing"
+                aria-label="Dark mode is a Pro feature"
+                title="Dark mode — Pro only"
+                className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Lock className="w-4 h-4" />
+              </Link>
+            ) : null}
             {user ? (
               <>
                 {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
@@ -46,7 +68,7 @@ export function SiteHeader() {
             )}
           </div>
         </div>
-        <nav className="border-t border-ink/80 border-b border-ink/30 bg-background">
+        <nav className="border-t border-foreground/80 border-b border-foreground/30 bg-background">
           <div className="max-w-7xl mx-auto px-6 flex justify-center gap-8 py-3 text-sm ui small-caps overflow-x-auto">
             {NAV.map((n) => (
               <Link
