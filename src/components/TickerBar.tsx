@@ -81,7 +81,7 @@ export function TickerBar() {
         <div className="px-3 py-2 small-caps bg-accent-red text-accent-foreground flex items-center font-bold">
           Live · Trend Tape
         </div>
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative ticker-track-pause">
           <div className="ticker-track py-2 whitespace-nowrap">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
