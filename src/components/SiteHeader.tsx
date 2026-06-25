@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
+import { Moon, Sun, Lock } from "lucide-react";
 import { TickerBar } from "./TickerBar";
 
 const NAV = [
@@ -12,6 +14,7 @@ const NAV = [
 
 export function SiteHeader() {
   const { user, isPro } = useAuth();
+  const { theme, toggle } = useTheme();
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
@@ -36,6 +39,25 @@ export function SiteHeader() {
             </div>
           </Link>
           <div className="flex justify-end gap-3 items-center text-sm ui">
+            {isPro ? (
+              <button
+                onClick={toggle}
+                aria-label="Toggle dark mode"
+                title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
+                className="p-1.5 rounded hover:bg-foreground/10 transition-colors"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            ) : user ? (
+              <Link
+                to="/pricing"
+                aria-label="Dark mode is a Pro feature"
+                title="Dark mode — Pro only"
+                className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Lock className="w-4 h-4" />
+              </Link>
+            ) : null}
             {user ? (
               <>
                 {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
