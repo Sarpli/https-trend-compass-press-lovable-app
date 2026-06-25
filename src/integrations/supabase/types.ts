@@ -185,6 +185,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vote_events: {
+        Row: {
+          created_at: string
+          id: number
+          trend_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          trend_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          trend_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_events_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "vote_events_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           category: Database["public"]["Enums"]["vote_category"]
