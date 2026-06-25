@@ -41,6 +41,8 @@ export function TickerBar() {
         () => {
           qc.invalidateQueries({ queryKey: ["ticker"] });
           qc.invalidateQueries({ queryKey: ["leaderboard"] });
+          qc.invalidateQueries({ queryKey: ["trend-score"] });
+          qc.invalidateQueries({ queryKey: ["myvote"] });
         },
       )
       .subscribe();
