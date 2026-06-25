@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ShieldAlert } from "lucide-react";
 import { trendImage } from "@/lib/trend-image";
+import { PriceChart } from "@/components/PriceChart";
 
 export const Route = createFileRoute("/trends/$slug")({
   loader: async ({ params }) => {
@@ -124,6 +125,10 @@ function TrendPage() {
             {saved ? "Saved" : isPro ? "Save to glossary" : "Save (Pro)"}
           </button>
         </div>
+      </div>
+
+      <div className="my-6">
+        <PriceChart trendId={trend.id} basePrice={Number(trend.base_price)} />
       </div>
 
       <div className="grid md:grid-cols-12 gap-8 mt-4">
