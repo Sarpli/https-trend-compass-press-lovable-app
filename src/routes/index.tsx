@@ -1,29 +1,191 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { VoteButtons } from "@/components/VoteButtons";
+import { CATEGORY_LABEL } from "@/lib/period";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Trenslate — The Daily Edition of Internet Culture" },
+      { name: "description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
+      { property: "og:title", content: "Trenslate — The Daily Edition of Internet Culture" },
+      { property: "og:description", content: "Decode internet culture. Trade trends like stocks." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const { data: featured } = useQuery({
+    queryKey: ["featured"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trends")
+        .select("*")
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: top = [] } = useQuery({
+    queryKey: ["top-trends"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trend_scores")
+        .select("*")
+        .order("price", { ascending: false })
+        .limit(8);
+      return data ?? [];
+    },
+  });
+
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ["leaderboard", "week"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trend_scores")
+        .select("*")
+        .order("net_votes", { ascending: false })
+        .limit(5);
+      return data ?? [];
+    },
+  });
+
+  const { data: stories = [] } = useQuery({
+    queryKey: ["front-stories"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trends")
+        .select("id,slug,term,plain_language,category")
+        .neq("featured", true)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Featured spotlight */}
+        <section className="lg:col-span-8">
+          <div className="text-xs ui small-caps text-accent-red mb-2">Daily Edition · Trend Spotlight</div>
+          {featured ? (
+            <article className="rule-bottom pb-8">
+              <Link to="/trends/$slug" params={{ slug: featured.slug }}>
+                <h2 className="display text-5xl md:text-6xl font-black leading-[0.95] mb-4 hover:text-accent-red transition-colors">
+                  {featured.term}
+                </h2>
+              </Link>
+              <p className="text-xs ui small-caps text-muted-foreground mb-4">
+                {featured.category} · Filed today
+              </p>
+              <p className="text-lg leading-relaxed mb-3 first-letter:display first-letter:text-6xl first-letter:font-black first-letter:float-left first-letter:mr-2 first-letter:leading-[0.85]">
+                {featured.plain_language}
+              </p>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                <span className="small-caps ui text-xs text-ink">Origin —</span> {featured.origin}
+              </p>
+              <div className="mt-5 flex items-center gap-4">
+                <Link to="/trends/$slug" params={{ slug: featured.slug }} className="ui small-caps text-xs underline">
+                  Read the full entry →
+                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="ui text-xs small-caps text-muted-foreground">Vote week:</span>
+                  <VoteButtons trendId={featured.id} category="week" compact />
+                </div>
+              </div>
+            </article>
+          ) : (
+            <div className="h-64 rule-bottom" />
+          )}
+
+          {/* Front-page columns */}
+          <div className="grid sm:grid-cols-2 gap-6 mt-8">
+            {stories.map((s) => (
+              <article key={s.id} className="rule-top pt-4">
+                <div className="text-[10px] ui small-caps text-accent-red mb-1">{s.category}</div>
+                <Link to="/trends/$slug" params={{ slug: s.slug }}>
+                  <h3 className="display text-2xl font-bold leading-tight hover:text-accent-red transition-colors">
+                    {s.term}
+                  </h3>
+                </Link>
+                <p className="mt-2 text-sm leading-relaxed text-foreground/90 line-clamp-3">
+                  {s.plain_language}
+                </p>
+                <Link
+                  to="/trends/$slug"
+                  params={{ slug: s.slug }}
+                  className="ui small-caps text-[10px] mt-2 inline-block underline"
+                >
+                  Continue reading
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Sidebar */}
+        <aside className="lg:col-span-4 space-y-8">
+          <section className="rule-double py-4">
+            <h3 className="display text-xl font-bold mb-3">Top Trends</h3>
+            <ol className="space-y-2">
+              {top.map((t, i) => (
+                <li key={t.trend_id} className="flex items-baseline gap-3 text-sm">
+                  <span className="display text-xl font-bold text-accent-red w-6 text-right tabular-nums">
+                    {i + 1}
+                  </span>
+                  <Link to="/trends/$slug" params={{ slug: t.slug ?? "" }} className="flex-1 hover:underline">
+                    {t.term}
+                  </Link>
+                  <span className="ui text-xs tabular-nums text-muted-foreground">{Number(t.price).toFixed(0)}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="rule-top pt-4">
+            <div className="text-xs ui small-caps text-accent-red mb-2">Voting Floor</div>
+            <h3 className="display text-xl font-bold mb-3">{CATEGORY_LABEL.week} — Leaderboard</h3>
+            <ul className="space-y-3">
+              {leaderboard.map((t, i) => (
+                <li key={t.trend_id} className="flex items-center justify-between gap-3 rule-bottom pb-2">
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className="display text-lg font-bold w-5 text-right">{i + 1}</span>
+                    <Link to="/trends/$slug" params={{ slug: t.slug ?? "" }} className="truncate hover:underline text-sm">
+                      {t.term}
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`ui text-xs tabular-nums ${Number(t.net_votes) >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
+                      {Number(t.net_votes) > 0 ? "+" : ""}{t.net_votes}
+                    </span>
+                    <VoteButtons trendId={t.trend_id ?? ""} category="week" compact />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <Link to="/vote" className="ui small-caps text-xs underline mt-3 inline-block">
+              Open the full voting floor →
+            </Link>
+          </section>
+
+          <section className="bg-ink text-newsprint p-5">
+            <div className="ui small-caps text-xs text-accent-red mb-1">Subscribe</div>
+            <h3 className="display text-2xl font-bold leading-tight mb-2">
+              Become a Trenslate Pro.
+            </h3>
+            <p className="text-sm text-newsprint/80 mb-3">
+              Unlimited search. Vote in Trend of the Year and All Time. Save your personal glossary.
+            </p>
+            <Link to="/pricing" className="ui small-caps text-xs underline">View plans →</Link>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }
