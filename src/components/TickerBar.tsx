@@ -4,7 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
-type Row = { trend_id: string; slug: string; term: string; base_price: number; net_votes: number; price: number };
+type Row = {
+  trend_id: string | null;
+  slug: string | null;
+  term: string | null;
+  base_price: number | null;
+  net_votes: number | null;
+  price: number | null;
+};
 
 async function fetchScores(): Promise<Row[]> {
   const { data, error } = await supabase
@@ -33,7 +40,7 @@ export function TickerBar() {
 
   useEffect(() => {
     const next: Record<string, number> = {};
-    rows.forEach((r) => { next[r.trend_id] = r.price; });
+    rows.forEach((r) => { if (r.trend_id) next[r.trend_id] = Number(r.price ?? 0); });
     setPrev((p) => (Object.keys(p).length === 0 ? next : p));
     const id = setTimeout(() => setPrev(next), 200);
     return () => clearTimeout(id);
@@ -52,18 +59,19 @@ export function TickerBar() {
         <div className="flex-1 overflow-hidden relative">
           <div className="ticker-track py-2">
             {items.map((r, i) => {
-              const last = prev[r.trend_id] ?? r.price;
-              const delta = r.price - last;
+              const price = Number(r.price ?? 0);
+              const last = prev[r.trend_id ?? ""] ?? price;
+              const delta = price - last;
               const dir = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
               return (
                 <Link
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
-                  params={{ slug: r.slug }}
+                  params={{ slug: r.slug ?? "" }}
                   className="inline-flex items-center gap-2 hover:text-accent-red"
                 >
                   <span className="small-caps font-bold tracking-wider">{r.term}</span>
-                  <span className="tabular-nums">{r.price.toFixed(0)}</span>
+                  <span className="tabular-nums">{price.toFixed(0)}</span>
                   {dir === "up" && <ArrowUp className="w-3 h-3 text-ticker-up" />}
                   {dir === "down" && <ArrowDown className="w-3 h-3 text-ticker-down" />}
                   {dir === "flat" && <span className="text-newsprint/40">—</span>}
