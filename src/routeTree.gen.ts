@@ -17,6 +17,7 @@ import { Route as ArchiveRouteImport } from './routes/archive'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
+import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
 
 const VoteRoute = VoteRouteImport.update({
   id: '/vote',
@@ -58,6 +59,11 @@ const TrendsSlugRoute = TrendsSlugRouteImport.update({
   path: '/trends/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTrendsRoute = AdminTrendsRouteImport.update({
+  id: '/admin/trends',
+  path: '/admin/trends',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
   '/vote': typeof VoteRoute
+  '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
   '/vote': typeof VoteRoute
+  '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
   '/vote': typeof VoteRoute
+  '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/pricing'
     | '/vote'
+    | '/admin/trends'
     | '/trends/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/pricing'
     | '/vote'
+    | '/admin/trends'
     | '/trends/$slug'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/pricing'
     | '/vote'
+    | '/admin/trends'
     | '/trends/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   GlossaryRoute: typeof GlossaryRoute
   PricingRoute: typeof PricingRoute
   VoteRoute: typeof VoteRoute
+  AdminTrendsRoute: typeof AdminTrendsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
 }
 
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrendsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/trends': {
+      id: '/admin/trends'
+      path: '/admin/trends'
+      fullPath: '/admin/trends'
+      preLoaderRoute: typeof AdminTrendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   GlossaryRoute: GlossaryRoute,
   PricingRoute: PricingRoute,
   VoteRoute: VoteRoute,
+  AdminTrendsRoute: AdminTrendsRoute,
   TrendsSlugRoute: TrendsSlugRoute,
 }
 export const routeTree = rootRouteImport
