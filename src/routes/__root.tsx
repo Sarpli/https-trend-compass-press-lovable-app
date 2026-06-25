@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { AuthProvider } from "../lib/auth";
+import { ThemeProvider } from "../lib/theme";
 import { Toaster } from "../components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -142,7 +143,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
+        <ThemeProvider>
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
           <SiteHeader />
           <main className="flex-1">
             <Outlet />
@@ -150,6 +152,7 @@ function RootComponent() {
           <SiteFooter />
         </div>
         <Toaster />
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
