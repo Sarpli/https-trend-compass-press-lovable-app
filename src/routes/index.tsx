@@ -66,7 +66,7 @@ function Index() {
     queryFn: async () => {
       const { data } = await supabase
         .from("trends")
-        .select("id,slug,term,plain_language,category")
+        .select("id,slug,term,plain_language,category,image_url")
         .neq("featured", true)
         .limit(6);
       return data ?? [];
