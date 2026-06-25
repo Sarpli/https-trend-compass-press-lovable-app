@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
+import { trendImage } from "@/lib/trend-image";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,7 +66,7 @@ function Index() {
     queryFn: async () => {
       const { data } = await supabase
         .from("trends")
-        .select("id,slug,term,plain_language,category")
+        .select("id,slug,term,plain_language,category,image_url")
         .neq("featured", true)
         .limit(6);
       return data ?? [];
@@ -108,6 +109,12 @@ function Index() {
           {featured ? (
             <article className="rule-bottom pb-8">
               <Link to="/trends/$slug" params={{ slug: featured.slug }}>
+                <img
+                  src={trendImage(featured, 1200, 700)}
+                  alt={featured.term}
+                  loading="eager"
+                  className="w-full aspect-[16/9] object-cover grayscale-[20%] mb-4 border border-ink/20"
+                />
                 <h2 className="display text-5xl md:text-6xl font-black leading-[0.95] mb-4 hover:text-accent-red transition-colors">
                   {featured.term}
                 </h2>
@@ -141,6 +148,12 @@ function Index() {
               <article key={s.id} className="rule-top pt-4">
                 <div className="text-[10px] ui small-caps text-accent-red mb-1">{s.category}</div>
                 <Link to="/trends/$slug" params={{ slug: s.slug }}>
+                  <img
+                    src={trendImage(s, 600, 360)}
+                    alt={s.term}
+                    loading="lazy"
+                    className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
+                  />
                   <h3 className="display text-2xl font-bold leading-tight hover:text-accent-red transition-colors">
                     {s.term}
                   </h3>
