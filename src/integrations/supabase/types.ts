@@ -245,6 +245,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_vote_tallies: {
+        Args: {
+          _category: Database["public"]["Enums"]["vote_category"]
+          _period_key: string
+        }
+        Returns: {
+          net_votes: number
+          trend_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -254,6 +264,7 @@ export type Database = {
       }
       is_annual: { Args: { _user_id: string }; Returns: boolean }
       is_pro: { Args: { _user_id: string }; Returns: boolean }
+      is_pro_self: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
