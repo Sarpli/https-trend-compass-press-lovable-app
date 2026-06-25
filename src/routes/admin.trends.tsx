@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { trendImage } from "@/lib/trend-image";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -68,11 +69,19 @@ function AdminTrends() {
     !filter || t.term.toLowerCase().includes(filter.toLowerCase()) || t.slug.includes(filter.toLowerCase())
   );
 
+  const flagged = (trends ?? []).filter((t) => {
+    const v = validateImage(t.image_url, t).verdict;
+    return v === "off-topic" || v === "maybe";
+  }).length;
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Editor's Desk</div>
       <h1 className="display text-4xl font-black mb-2">Trend image editor</h1>
-      <p className="text-sm text-muted-foreground mb-6">Paste a URL to override the auto-pulled image, or clear it to fall back to the default.</p>
+      <p className="text-sm text-muted-foreground mb-2">Paste a URL to override the auto-pulled image, or clear it to fall back to the default.</p>
+      <p className="text-xs ui small-caps text-accent-red mb-6">
+        {flagged} of {trends?.length ?? 0} current images flagged as possibly off-topic.
+      </p>
 
       <input
         value={filter}
