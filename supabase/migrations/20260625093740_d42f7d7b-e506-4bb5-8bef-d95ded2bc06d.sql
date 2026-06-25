@@ -1,0 +1,1 @@
+ALTER VIEW public.trend_scores SET (security_invoker = true);
