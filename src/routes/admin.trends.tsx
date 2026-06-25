@@ -7,6 +7,8 @@ import { trendImage } from "@/lib/trend-image";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
+import { useServerFn } from "@tanstack/react-start";
+import { importTrendImageFromUrl } from "@/lib/admin-image.functions";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -106,7 +108,9 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [value, setValue] = useState(trend.image_url ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const importFromUrl = useServerFn(importTrendImageFromUrl);
   const preview = value.trim() || trendImage(trend);
   // Score whatever is currently typed; fall back to saved value, then preview.
   const candidate = value.trim() || trend.image_url || preview;
@@ -136,6 +140,37 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
     }
     toast.success(next ? "Image updated" : "Reset to default");
     onSaved();
+  }
+
+  async function importUrl() {
+    const url = value.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error("Enter a full http(s) URL");
+      return;
+    }
+    const v = validateImage(url, trend);
+    if (v.verdict === "off-topic") {
+      const ok = window.confirm(
+        `This image scored ${v.score}/100 (likely off-topic for "${trend.term}").\n\n` +
+        v.reasons.join("\n") +
+        `\n\nImport anyway?`
+      );
+      if (!ok) return;
+    }
+    setImporting(true);
+    try {
+      const { imageUrl } = await importFromUrl({
+        data: { trendId: trend.id, slug: trend.slug, url },
+      });
+      setValue(imageUrl);
+      toast.success("Image imported & re-hosted");
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Import failed");
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function handleFile(file: File) {
@@ -217,16 +252,25 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
             className="flex-1 border border-ink/40 bg-background px-2 py-1 text-xs"
           />
           <button
+            onClick={importUrl}
+            disabled={importing || saving || !value.trim()}
+            title="Download the image from this URL and re-host it in your bucket"
+            className="bg-accent-red text-accent-foreground px-3 py-1 text-xs ui small-caps disabled:opacity-50"
+          >
+            {importing ? "Importing…" : "Import"}
+          </button>
+          <button
             onClick={() => save(value.trim() || null)}
-            disabled={saving}
+            disabled={saving || importing}
+            title="Save the URL as-is (hot-link, not re-hosted)"
             className="bg-ink text-background px-3 py-1 text-xs ui small-caps disabled:opacity-50"
           >
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving…" : "Save URL"}
           </button>
           {trend.image_url && (
             <button
               onClick={() => { setValue(""); save(null); }}
-              disabled={saving}
+              disabled={saving || importing}
               className="border border-ink/40 px-3 py-1 text-xs ui small-caps disabled:opacity-50"
             >
               Reset
