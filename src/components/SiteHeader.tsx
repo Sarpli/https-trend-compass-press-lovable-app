@@ -27,14 +27,14 @@ export function SiteHeader() {
           <div className="text-xs ui small-caps text-muted-foreground hidden md:block">
             {today} · Vol. I · No. 1
           </div>
-          <Link to="/" className="text-center min-w-0 md:col-auto">
-            <h1 className="display text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-none">
+          <Link to="/" className="text-center min-w-0 py-2 md:py-0">
+            <h1 className="display text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-tight md:leading-none">
               Trenslate
             </h1>
-            <div className="text-[9px] md:text-[10px] ui small-caps mt-1 text-muted-foreground">
+            <div className="text-[9px] md:text-[10px] ui small-caps mt-3 md:mt-1 text-muted-foreground tracking-wider">
               The Daily Edition of Internet Culture
             </div>
-            <div className="display italic text-xs md:text-base mt-1 md:mt-2 text-foreground/80">
+            <div className="display italic text-xs md:text-base mt-3 md:mt-2 text-foreground/80">
               "Finally in the loop."
             </div>
           </Link>
