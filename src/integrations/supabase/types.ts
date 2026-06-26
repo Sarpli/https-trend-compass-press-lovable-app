@@ -281,6 +281,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_category_vote_history: {
+        Args: {
+          _category: Database["public"]["Enums"]["vote_category"]
+          _period_key: string
+        }
+        Returns: {
+          score: number
+          t: string
+        }[]
+      }
       get_trend_price_history: {
         Args: { _trend_id: string }
         Returns: {
