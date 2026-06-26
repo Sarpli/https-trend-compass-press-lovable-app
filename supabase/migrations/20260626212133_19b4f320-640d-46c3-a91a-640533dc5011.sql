@@ -1,0 +1,1 @@
+UPDATE public.trends SET image_url = '/__l5e/assets-v1/88b26f0c-d1b2-4ca3-8b07-1784d0a586a1/rizzler.jpeg' WHERE slug = 'rizzler';
