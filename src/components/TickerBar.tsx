@@ -57,6 +57,62 @@ function TickerBarInner() {
   const prevRef = useRef<Record<string, number>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [history, setHistory] = useState<Record<string, number[]>>({});
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const pausedRef = useRef(false);
+
+  // Auto-scroll the tape, but yield to the user on hover / touch / drag so
+  // they can swipe horizontally to browse the ticker.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    const track = trackRef.current;
+    if (!scroller || !track) return;
+    let raf = 0;
+    let last = performance.now();
+    const PX_PER_SEC = 40; // matches ~180s loop feel
+    const step = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      if (!pausedRef.current) {
+        const half = track.scrollWidth / 2;
+        if (half > 0) {
+          let next = scroller.scrollLeft + PX_PER_SEC * dt;
+          if (next >= half) next -= half;
+          scroller.scrollLeft = next;
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    const pause = () => { pausedRef.current = true; };
+    const resume = () => { pausedRef.current = false; last = performance.now(); };
+    // Keep the loop seamless when the user scrolls past the seam manually.
+    const onScroll = () => {
+      const half = track.scrollWidth / 2;
+      if (half <= 0) return;
+      if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
+      else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
+    };
+    scroller.addEventListener("pointerenter", pause);
+    scroller.addEventListener("pointerleave", resume);
+    scroller.addEventListener("pointerdown", pause);
+    scroller.addEventListener("pointerup", resume);
+    scroller.addEventListener("pointercancel", resume);
+    scroller.addEventListener("touchstart", pause, { passive: true });
+    scroller.addEventListener("touchend", resume);
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      scroller.removeEventListener("pointerenter", pause);
+      scroller.removeEventListener("pointerleave", resume);
+      scroller.removeEventListener("pointerdown", pause);
+      scroller.removeEventListener("pointerup", resume);
+      scroller.removeEventListener("pointercancel", resume);
+      scroller.removeEventListener("touchstart", pause);
+      scroller.removeEventListener("touchend", resume);
+      scroller.removeEventListener("scroll", onScroll);
+    };
+  }, [rows.length]);
 
   useEffect(() => {
     const ch = supabase
@@ -121,8 +177,12 @@ function TickerBarInner() {
           <span className="sm:hidden">Live</span>
           <span className="hidden sm:inline">Live · Trend Tape</span>
         </div>
-        <div className="flex-1 overflow-hidden relative ticker-track-pause">
-          <div className="ticker-track py-1 sm:py-2 whitespace-nowrap">
+        <div
+          ref={scrollerRef}
+          className="flex-1 relative ticker-scroller"
+          style={{ overflowX: "auto", overflowY: "hidden", touchAction: "pan-x", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+        >
+          <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
               const dir = delta > 0 ? "up" : delta < 0 ? "down" : r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
