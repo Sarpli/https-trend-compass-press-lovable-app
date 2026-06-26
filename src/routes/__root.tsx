@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -127,6 +127,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [introPlayed, setIntroPlayed] = useState(true);
+
+  useEffect(() => {
+    try {
+      if (!window.sessionStorage.getItem("trenslate-intro-played")) {
+        setIntroPlayed(false);
+        window.sessionStorage.setItem("trenslate-intro-played", "1");
+        const t = window.setTimeout(() => setIntroPlayed(true), 1600);
+        return () => window.clearTimeout(t);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -144,7 +156,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
-        <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <div className={`min-h-screen flex flex-col bg-background text-foreground${introPlayed ? "" : " intro-fluid-drop"}`}>
           <SiteHeader />
           <main className="flex-1">
             <Outlet />
