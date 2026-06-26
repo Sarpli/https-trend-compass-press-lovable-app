@@ -164,7 +164,7 @@ function TrendPage() {
               {(["week", "month", "year", "oat"] as const).map((cat) => (
                 <div key={cat} className="flex items-center justify-between gap-2">
                   <span className="small-caps text-xs">{CATEGORY_LABEL[cat]}</span>
-                  <VoteButtons trendId={trend.id} category={cat} />
+                  <VoteButtons trendId={trend.id} category={cat} wide />
                 </div>
               ))}
             </div>
