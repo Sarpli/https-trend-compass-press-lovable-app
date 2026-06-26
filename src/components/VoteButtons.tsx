@@ -13,9 +13,10 @@ interface Props {
   trendId: string;
   category: Category;
   compact?: boolean;
+  wide?: boolean;
 }
 
-export function VoteButtons({ trendId, category, compact }: Props) {
+export function VoteButtons({ trendId, category, compact, wide }: Props) {
   const { user, isPro, isAnnual } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -150,7 +151,8 @@ export function VoteButtons({ trendId, category, compact }: Props) {
       <button
         onClick={() => handle("up")}
         className={cn(
-          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors flex items-center justify-center",
+          wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
@@ -160,7 +162,8 @@ export function VoteButtons({ trendId, category, compact }: Props) {
       <button
         onClick={() => handle("down")}
         className={cn(
-          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors flex items-center justify-center",
+          wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
