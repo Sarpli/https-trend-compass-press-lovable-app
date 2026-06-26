@@ -34,31 +34,50 @@ function Index() {
       month: "2-digit",
       day: "2-digit",
     }).format(new Date());
+  const computeTimeZone = () =>
+    Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
   const [localDateKey, setLocalDateKey] = useState(computeLocalDateKey);
+  const [timeZone, setTimeZone] = useState(computeTimeZone);
   useEffect(() => {
+    // Re-evaluate the local date + time zone aggressively so the spotlight
+    // tracks the device clock in real time: scheduled midnight rollover,
+    // a 15s heartbeat (catches manual clock or time-zone changes), tab
+    // focus / visibility, and the standards-track Permissions/Intl signals
+    // browsers fire when the OS-level zone changes.
+    const sync = () => {
+      const nextKey = computeLocalDateKey();
+      const nextTz = computeTimeZone();
+      setLocalDateKey((prev) => (prev === nextKey ? prev : nextKey));
+      setTimeZone((prev) => (prev === nextTz ? prev : nextTz));
+    };
     const tick = () => {
       const now = new Date();
       const next = new Date(now);
       next.setHours(24, 0, 5, 0); // 5s after local midnight
       const ms = Math.max(1000, next.getTime() - now.getTime());
       return window.setTimeout(() => {
-        setLocalDateKey(computeLocalDateKey());
+        sync();
         timer = tick();
       }, ms);
     };
     let timer = tick();
-    const onFocus = () => setLocalDateKey(computeLocalDateKey());
+    const heartbeat = window.setInterval(sync, 15_000);
+    const onFocus = () => sync();
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
+    // Some browsers (Chrome) fire a `languagechange` when locale/zone shifts.
+    window.addEventListener("languagechange", onFocus);
     return () => {
       window.clearTimeout(timer);
+      window.clearInterval(heartbeat);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("languagechange", onFocus);
     };
   }, []);
 
   const { data: featured } = useQuery({
-    queryKey: ["featured", localDateKey],
+    queryKey: ["featured", localDateKey, timeZone],
     queryFn: async () => {
       // 1) Editor pin for today (auto-releases tomorrow because the row is
       //    keyed by date and we only look up today's date).
