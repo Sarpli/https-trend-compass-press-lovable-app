@@ -252,7 +252,7 @@ function TickerBarInner() {
         <div
           ref={scrollerRef}
           className="flex-1 relative ticker-scroller"
-          style={{ overflow: "hidden", touchAction: "pan-y", cursor: "grab", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+          style={{ overflow: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
           <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
