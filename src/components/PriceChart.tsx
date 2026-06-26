@@ -1,9 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Point = { t: string; price: number };
 
 export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [hover, setHover] = useState<{
+    idx: number;
+    xPx: number;
+    yPx: number;
+    containerW: number;
+  } | null>(null);
   const { data } = useQuery({
     queryKey: ["trend-history", trendId],
     queryFn: async () => {
@@ -84,6 +92,29 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
       ? d.toLocaleDateString(undefined, { month: "short", year: "numeric" })
       : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
+  const fmtTooltipTime = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+
+  const handlePointer = (e: React.PointerEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const fracX = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const svgX = fracX * w;
+    // Convert svgX back to a timestamp using the same linear mapping toX uses.
+    const t = xMin + ((svgX - padX) / innerW) * xRange;
+    // Stepped chart: pick the last point with t <= cursor t.
+    let idx = 0;
+    for (let i = 0; i < xs.length; i++) {
+      if (xs[i] <= t) idx = i;
+      else break;
+    }
+    const pointXPx = (toX(xs[idx]) / w) * rect.width;
+    const pointYPx = (toY(points[idx].price) / h) * rect.height;
+    setHover({ idx, xPx: pointXPx, yPx: pointYPx, containerW: rect.width });
+  };
+
+  const tooltipPoint = hover ? points[hover.idx] : null;
 
   return (
     <div className="border border-ink/20 bg-card p-4">
@@ -93,7 +124,17 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
           Base {firstPrice.toFixed(0)} → Now <span className={up ? "text-ticker-up" : "text-ticker-down"}>{lastPrice.toFixed(0)}</span>
         </div>
       </div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full block" style={{ aspectRatio: `${w} / ${h}` }} preserveAspectRatio="none">
+      <div className="relative">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${w} ${h}`}
+        className="w-full block touch-none"
+        style={{ aspectRatio: `${w} / ${h}` }}
+        preserveAspectRatio="none"
+        onPointerMove={handlePointer}
+        onPointerDown={handlePointer}
+        onPointerLeave={() => setHover(null)}
+      >
         <defs>
           <linearGradient id={`grad-${trendId}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
@@ -119,7 +160,47 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
         <text x={w - padX} y={h - 4} textAnchor="end" fontSize="10" fill="currentColor" fillOpacity={0.5} className="ui">
           {fmtTime(points[points.length - 1].t)}
         </text>
+        {hover && tooltipPoint && (
+          <g pointerEvents="none">
+            <line
+              x1={toX(xs[hover.idx])}
+              x2={toX(xs[hover.idx])}
+              y1={padY}
+              y2={h - padY}
+              stroke={stroke}
+              strokeOpacity={0.45}
+              strokeDasharray="3 3"
+              vectorEffect="non-scaling-stroke"
+            />
+            <circle
+              cx={toX(xs[hover.idx])}
+              cy={toY(tooltipPoint.price)}
+              r={4}
+              fill="var(--card)"
+              stroke={stroke}
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
+            />
+          </g>
+        )}
       </svg>
+      {hover && tooltipPoint && (
+        <div
+          className="ui pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap border border-ink/30 bg-card px-2 py-1 text-[11px] shadow-sm"
+          style={{
+            left: Math.min(Math.max(hover.xPx, 60), hover.containerW - 60),
+            top: Math.max(hover.yPx - 44, 4),
+          }}
+        >
+          <div className="small-caps text-muted-foreground">
+            {fmtTooltipTime(tooltipPoint.t)}
+          </div>
+          <div className="tabular-nums font-semibold">
+            {Number(tooltipPoint.price).toFixed(0)}
+          </div>
+        </div>
+      )}
+      </div>
       <div
         className="ui small-caps text-[11px] text-muted-foreground mt-1"
         style={{ visibility: !data || data.length === 0 ? "visible" : "hidden" }}
