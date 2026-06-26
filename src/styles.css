@@ -54,7 +54,7 @@
 
 .route-fluid-drop {
   transform-origin: top center;
-  animation: trenslate-route-drop 650ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  animation: trenslate-route-drop 1200ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
   will-change: transform, filter, opacity;
 }
 
