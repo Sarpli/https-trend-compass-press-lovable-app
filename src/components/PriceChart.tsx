@@ -83,7 +83,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
           Base {firstPrice.toFixed(0)} → Now <span className={up ? "text-ticker-up" : "text-ticker-down"}>{lastPrice.toFixed(0)}</span>
         </div>
       </div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto" preserveAspectRatio="none">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full block" style={{ aspectRatio: `${w} / ${h}` }} preserveAspectRatio="none">
         <defs>
           <linearGradient id={`grad-${trendId}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
@@ -110,9 +110,12 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
           {fmtTime(points[points.length - 1].t)}
         </text>
       </svg>
-      {(!data || data.length === 0) && (
-        <div className="ui small-caps text-[11px] text-muted-foreground mt-1">No votes yet — chart starts at base price.</div>
-      )}
+      <div
+        className="ui small-caps text-[11px] text-muted-foreground mt-1"
+        style={{ visibility: !data || data.length === 0 ? "visible" : "hidden" }}
+      >
+        No votes yet — chart starts at base price.
+      </div>
     </div>
   );
 }
