@@ -60,6 +60,8 @@ function TickerBarInner() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
+  const restoredRef = useRef(false);
+  const STORAGE_KEY = "trenslate.ticker.scrollLeft";
 
   // Auto-scroll the tape, but yield to the user on hover / touch / drag so
   // they can swipe horizontally to browse the ticker.
@@ -70,6 +72,21 @@ function TickerBarInner() {
     let raf = 0;
     let last = performance.now();
     const PX_PER_SEC = 40; // matches ~180s loop feel
+    // Restore the user's previous scroll position once the track has width.
+    if (!restoredRef.current) {
+      try {
+        const saved = sessionStorage.getItem(STORAGE_KEY);
+        const half = track.scrollWidth / 2;
+        if (saved && half > 0) {
+          let v = parseFloat(saved);
+          if (Number.isFinite(v)) {
+            if (v >= half) v = v % half;
+            scroller.scrollLeft = v;
+          }
+        }
+        restoredRef.current = true;
+      } catch {}
+    }
     const step = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
@@ -92,6 +109,7 @@ function TickerBarInner() {
       if (half <= 0) return;
       if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
       else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
+      try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
     };
     scroller.addEventListener("pointerenter", pause);
     scroller.addEventListener("pointerleave", resume);
