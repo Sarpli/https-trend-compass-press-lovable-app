@@ -85,6 +85,8 @@ function AdminTrends() {
         {flagged} of {trends?.length ?? 0} current images flagged as possibly off-topic.
       </p>
 
+      <SpotlightPin trends={trends ?? []} />
+
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
