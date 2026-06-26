@@ -49,13 +49,15 @@ async def main() -> int:
         context = await browser.new_context(viewport={"width": 390, "height": 844})
         page = await context.new_page()
 
-        await page.goto(BASE_URL, wait_until="domcontentloaded")
+        # Land on the term page directly; restoring the session requires the
+        # localhost origin, so we set it after the first goto via evaluate
+        # and then navigate to the same URL again via client-side router.
+        await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
         if storage_key and session:
             await page.evaluate(
                 f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session)})"
             )
-
-        await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
+            await page.reload(wait_until="domcontentloaded")
         await page.wait_for_selector('button[aria-label="Vote up"]', timeout=15000)
         await page.evaluate(OBSERVER_JS)
 
