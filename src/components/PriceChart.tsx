@@ -14,16 +14,21 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     refetchInterval: 10000,
   });
 
-  const points: Point[] = [];
-  const first = data?.[0];
-  // Always anchor the chart at base_price, slightly before the first vote (or "now" if none yet).
-  const anchorTime = first ? new Date(new Date(first.t).getTime() - 60_000).toISOString() : new Date(Date.now() - 60_000).toISOString();
-  points.push({ t: anchorTime, price: Number(basePrice) });
-  if (data && data.length > 0) {
-    points.push(...data);
-  } else {
-    points.push({ t: new Date().toISOString(), price: Number(basePrice) });
+  // The RPC always returns a synthetic first point at Jan 1 of the term's
+  // creation year (price = base_price), so we just use the series as-is.
+  // Append a trailing "now" point so the chart extends to the current time
+  // even when there are no recent votes.
+  const series: Point[] = (data ?? []).map((p) => ({ t: p.t, price: Number(p.price) }));
+  if (series.length === 0) {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+    series.push({ t: startOfYear, price: Number(basePrice) });
   }
+  const last = series[series.length - 1];
+  const nowIso = new Date().toISOString();
+  if (new Date(last.t).getTime() < Date.now() - 1000) {
+    series.push({ t: nowIso, price: last.price });
+  }
+  const points = series;
 
   const w = 800;
   const h = 220;
@@ -70,9 +75,14 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     return { y: toY(v), v };
   });
 
+  const spansYears =
+    new Date(points[0].t).getFullYear() !==
+    new Date(points[points.length - 1].t).getFullYear();
   const fmtTime = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return spansYears
+      ? d.toLocaleDateString(undefined, { month: "short", year: "numeric" })
+      : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
 
   return (
