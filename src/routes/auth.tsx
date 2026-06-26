@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -50,6 +51,22 @@ function AuthPage() {
     }
   };
 
+  const signInWithApple = async () => {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw new Error(result.error.message ?? "Apple sign-in failed");
+      if (result.redirected) return;
+      navigate({ to: "/" });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto px-6 py-16">
       <div className="text-xs ui small-caps text-accent-red mb-2 text-center">
@@ -83,6 +100,22 @@ function AuthPage() {
           {busy ? "..." : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
+      <div className="flex items-center gap-3 my-6">
+        <div className="flex-1 h-px bg-ink/20" />
+        <span className="ui small-caps text-[10px] text-muted-foreground">or</span>
+        <div className="flex-1 h-px bg-ink/20" />
+      </div>
+      <button
+        type="button"
+        onClick={signInWithApple}
+        disabled={busy}
+        className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 ui small-caps tracking-wider hover:bg-black/85 transition-colors disabled:opacity-50"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+          <path d="M16.365 1.43c0 1.14-.42 2.23-1.18 3.06-.78.86-2.06 1.52-3.1 1.44-.13-1.1.43-2.25 1.16-3.06.81-.9 2.18-1.56 3.12-1.44zM20.5 17.34c-.55 1.27-.81 1.83-1.52 2.95-.99 1.57-2.38 3.52-4.11 3.54-1.53.02-1.93-1-4.01-.99-2.08.01-2.52 1.01-4.06.99-1.72-.02-3.04-1.78-4.03-3.34-2.77-4.38-3.06-9.51-1.35-12.24 1.21-1.93 3.12-3.06 4.92-3.06 1.83 0 2.98 1.01 4.49 1.01 1.47 0 2.36-1.01 4.48-1.01 1.6 0 3.3.88 4.51 2.4-3.97 2.18-3.33 7.88.68 9.75z" />
+        </svg>
+        Sign in with Apple
+      </button>
       <div className="text-center mt-6 text-sm">
         {mode === "signin" ? (
           <button onClick={() => setMode("signup")} className="ui small-caps text-xs underline">
