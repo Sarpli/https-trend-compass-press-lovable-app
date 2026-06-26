@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Search, Sparkles } from "lucide-react";
 import { trendImage } from "@/lib/trend-image";
+import { TrendCover } from "@/components/TrendCover";
 import { aiSearchTrends } from "@/lib/ai-search.functions";
 
 export const Route = createFileRoute("/archive")({
@@ -128,10 +129,11 @@ function Archive() {
         {trends.map((t) => (
           <li key={t.id} className="rule-top pt-3">
             <Link to="/trends/$slug" params={{ slug: t.slug }}>
-              <img
-                src={trendImage(t, 600, 360)}
-                alt={t.term}
-                loading="lazy"
+              <TrendCover
+                trend={t}
+                width={600}
+                height={360}
+                sizes="(min-width: 1024px) 360px, (min-width: 768px) 50vw, 100vw"
                 className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
               />
             </Link>
