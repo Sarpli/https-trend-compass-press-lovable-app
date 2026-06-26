@@ -1,0 +1,72 @@
+name: CLS Regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  cls:
+    name: Voting CLS check on term pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: http://localhost:8080
+      TERM_SLUG: ${{ vars.CLS_TERM_SLUG || '67' }}
+      CLS_THRESHOLD: ${{ vars.CLS_THRESHOLD || '0.05' }}
+      VOTE_CLICKS: '6'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build app
+        run: bun run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Playwright
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Start preview server
+        run: |
+          bun run preview --port 8080 --host 127.0.0.1 > /tmp/preview.log 2>&1 &
+          echo $! > /tmp/preview.pid
+          for i in $(seq 1 60); do
+            if curl -fsS "$BASE_URL" > /dev/null 2>&1; then
+              echo "Preview is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Preview failed to start" >&2
+          cat /tmp/preview.log >&2
+          exit 1
+
+      - name: Run CLS regression check
+        run: python3 tests/cls_vote.py
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/preview.pid ]; then kill "$(cat /tmp/preview.pid)" || true; fi
+
+      - name: Upload preview log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-log
+          path: /tmp/preview.log
+          if-no-files-found: ignore
