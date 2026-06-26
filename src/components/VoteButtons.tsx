@@ -139,6 +139,9 @@ export function VoteButtons({ trendId, category, compact }: Props) {
 
   const handle = (d: "up" | "down") => {
     if (!user) { navigate({ to: "/auth" }); return; }
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(d === "up" ? [15, 25, 15] : 30);
+    }
     mut.mutate(d);
   };
 
