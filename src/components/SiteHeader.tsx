@@ -22,7 +22,7 @@ export function SiteHeader() {
   return (
     <header>
       <TickerBar />
-      <div className="masthead-rule bg-background">
+      <div className="masthead-rule glass glass-sheen">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5">
           {/* Mobile layout */}
           <div className="md:hidden">
@@ -123,7 +123,7 @@ export function SiteHeader() {
             </div>
           </div>
         </div>
-        <nav className="border-t border-foreground/80 border-b border-foreground/30 bg-background">
+        <nav className="border-t border-foreground/80 border-b border-foreground/30 glass glass-sheen sticky top-0 z-30">
           <div className="max-w-7xl mx-auto px-6 flex justify-center gap-8 py-3 text-sm ui small-caps overflow-x-auto">
             {NAV.map((n) => (
               <Link

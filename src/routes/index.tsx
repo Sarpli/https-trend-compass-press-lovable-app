@@ -258,7 +258,7 @@ function Index() {
 
         {/* Sidebar */}
         <aside className="lg:col-span-4 space-y-8">
-          <section className="rule-double py-4">
+          <section className="glass glass-sheen rule-double py-4 px-4 rounded-sm">
             <h3 className="display text-xl font-bold mb-3">Top Trends</h3>
             <ol className="space-y-2">
               {top.map((t, i) => (
@@ -275,7 +275,7 @@ function Index() {
             </ol>
           </section>
 
-          <section className="rule-top pt-4">
+          <section className="glass glass-sheen rule-top pt-4 px-4 pb-4 rounded-sm">
             <div className="text-xs ui small-caps text-accent-red mb-2">Voting Floor</div>
             <h3 className="display text-xl font-bold mb-3">{CATEGORY_LABEL.week} — Leaderboard</h3>
             <ul className="space-y-3">
@@ -301,7 +301,7 @@ function Index() {
             </Link>
           </section>
 
-          <section className="bg-ink text-newsprint p-5">
+          <section className="glass-dark glass-sheen text-newsprint p-5 rounded-sm">
             <div className="ui small-caps text-xs text-accent-red mb-1">Subscribe</div>
             <h3 className="display text-2xl font-bold leading-tight mb-2">
               Become a Trenslate Pro.
