@@ -35,15 +35,24 @@ function Index() {
   const { data: featured } = useQuery({
     queryKey: ["featured", localDateKey],
     queryFn: async () => {
-      // Pull the full pool of candidates ordered deterministically, then pick
-      // one by hashing today's local date. Same date → same pick everywhere
-      // in that time zone; next local midnight → next trend.
+      // Restrict the spotlight pool to the most popular trends only — the
+      // top of the live ticker by price. No niche entries; readers in every
+      // time zone get a recognizable headline.
+      const { data: topScores } = await supabase
+        .from("trend_scores")
+        .select("slug")
+        .order("price", { ascending: false })
+        .limit(15);
+      const slugs = (topScores ?? []).map((r: { slug: string }) => r.slug);
+      if (slugs.length === 0) return null;
       const { data } = await supabase
         .from("trends")
         .select("*")
-        .order("featured", { ascending: false })
-        .order("created_at", { ascending: true });
-      const pool = data ?? [];
+        .in("slug", slugs);
+      // Re-sort by the ranking we got from trend_scores so the hash is stable.
+      const pool = (data ?? []).slice().sort(
+        (a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug),
+      );
       if (pool.length === 0) return null;
       let h = 2166136261;
       for (let i = 0; i < localDateKey.length; i++) {
