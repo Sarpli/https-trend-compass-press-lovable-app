@@ -26,8 +26,8 @@ export function SiteHeader() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5">
           {/* Mobile layout */}
           <div className="md:hidden">
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 mb-2">
+              <div className="flex items-center justify-self-start">
                 {isPro ? (
                   <button
                     onClick={toggle}
@@ -48,7 +48,8 @@ export function SiteHeader() {
                   </Link>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2 text-xs ui">
+              <div aria-hidden className="h-px" />
+              <div className="flex items-center gap-2 text-xs ui justify-self-end">
                 {user ? (
                   <>
                     {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
@@ -59,14 +60,14 @@ export function SiteHeader() {
                 )}
               </div>
             </div>
-            <Link to="/" className="block text-center">
-              <div className="text-[9px] ui small-caps text-muted-foreground">
+            <Link to="/" className="block text-center mx-auto max-w-[20rem]">
+              <div className="text-[10px] ui small-caps tracking-[0.18em] text-muted-foreground">
                 The Daily Edition of Internet Culture
               </div>
-              <h1 className="display text-4xl font-black tracking-tight leading-none mt-1">
+              <h1 className="display text-[2.75rem] xs:text-5xl font-black tracking-tight leading-[0.95] mt-1.5">
                 Trenslate
               </h1>
-              <div className="display italic text-xs mt-1 text-foreground/80">
+              <div className="display italic text-sm mt-1.5 text-foreground/75">
                 "Finally in the loop."
               </div>
             </Link>
