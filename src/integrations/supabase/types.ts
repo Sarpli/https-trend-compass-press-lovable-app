@@ -132,6 +132,7 @@ export type Database = {
           id: string
           image_url: string | null
           origin: string
+          origin_year: number | null
           plain_language: string
           safety_tips: string
           slug: string
@@ -146,6 +147,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           origin: string
+          origin_year?: number | null
           plain_language: string
           safety_tips: string
           slug: string
@@ -160,6 +162,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           origin?: string
+          origin_year?: number | null
           plain_language?: string
           safety_tips?: string
           slug?: string
