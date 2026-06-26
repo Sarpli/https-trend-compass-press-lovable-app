@@ -4,6 +4,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Fluid drop-down intro on first app open per session */
+@keyframes trenslate-fluid-drop {
+  0% {
+    transform: translateY(-110%) scaleY(0.55);
+    filter: blur(14px);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(6%) scaleY(1.06);
+    filter: blur(2px);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-2%) scaleY(0.98);
+    filter: blur(0);
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+.intro-fluid-drop {
+  transform-origin: top center;
+  animation: trenslate-fluid-drop 1500ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  will-change: transform, filter, opacity;
+}
+
 /*
  * Trenslate — WSJ-inspired newspaper design system.
  * Ink black on newsprint cream, accent red for the live ticker.
