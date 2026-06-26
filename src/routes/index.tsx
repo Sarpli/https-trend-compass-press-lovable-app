@@ -35,6 +35,15 @@ function Index() {
   const { data: featured } = useQuery({
     queryKey: ["featured", localDateKey],
     queryFn: async () => {
+      // 1) Editor pin for today (auto-releases tomorrow because the row is
+      //    keyed by date and we only look up today's date).
+      const { data: pin } = await supabase
+        .from("spotlight_pins")
+        .select("trend_id, trends:trend_id(*)")
+        .eq("pin_date", localDateKey)
+        .maybeSingle();
+      if (pin?.trends) return pin.trends as typeof pin.trends;
+
       // Restrict the spotlight pool to the most popular trends only — the
       // top of the live ticker by price. No niche entries; readers in every
       // time zone get a recognizable headline.
@@ -56,16 +65,6 @@ function Index() {
         (a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug),
       );
       if (pool.length === 0) return null;
-      // Editorial overrides — pin specific local dates (YYYY-MM-DD) to a
-      // chosen trend. Keys are matched against the viewer's local date.
-      const PINNED: Record<string, string> = {
-        "2026-06-26": "67",
-      };
-      const pinSlug = PINNED[localDateKey];
-      if (pinSlug) {
-        const pinned = pool.find((p) => p.slug === pinSlug);
-        if (pinned) return pinned;
-      }
       let h = 2166136261;
       for (let i = 0; i < localDateKey.length; i++) {
         h ^= localDateKey.charCodeAt(i);

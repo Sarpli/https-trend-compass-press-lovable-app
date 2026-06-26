@@ -98,6 +98,42 @@ export type Database = {
         }
         Relationships: []
       }
+      spotlight_pins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          pin_date: string
+          trend_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          pin_date: string
+          trend_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          pin_date?: string
+          trend_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spotlight_pins_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "spotlight_pins_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           current_period_end: string | null

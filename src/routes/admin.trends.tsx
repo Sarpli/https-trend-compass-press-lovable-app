@@ -85,6 +85,8 @@ function AdminTrends() {
         {flagged} of {trends?.length ?? 0} current images flagged as possibly off-topic.
       </p>
 
+      <SpotlightPin trends={trends ?? []} />
+
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
@@ -103,6 +105,153 @@ function AdminTrends() {
 }
 
 type TrendRow = { id: string; slug: string; term: string; category: string | null; image_url: string | null };
+
+function SpotlightPin({ trends }: { trends: TrendRow[] }) {
+  const qc = useQueryClient();
+  const today = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  const { data: pin } = useQuery({
+    queryKey: ["spotlight-pin", today],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("spotlight_pins")
+        .select("pin_date, trend_id, trends:trend_id(term, slug)")
+        .eq("pin_date", today)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const { data: upcoming = [] } = useQuery({
+    queryKey: ["spotlight-pins-upcoming", today],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("spotlight_pins")
+        .select("pin_date, trend_id, trends:trend_id(term, slug)")
+        .gt("pin_date", today)
+        .order("pin_date");
+      return data ?? [];
+    },
+  });
+
+  const [pickDate, setPickDate] = useState(today);
+  const [pickTrend, setPickTrend] = useState("");
+  const [filter, setFilter] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const options = trends
+    .filter((t) => !filter || t.term.toLowerCase().includes(filter.toLowerCase()) || t.slug.includes(filter.toLowerCase()))
+    .slice(0, 50);
+
+  async function savePin() {
+    if (!pickTrend) {
+      toast.error("Pick a trend first");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("spotlight_pins")
+      .upsert({ pin_date: pickDate, trend_id: pickTrend }, { onConflict: "pin_date" });
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Spotlight pinned for ${pickDate}`);
+    setPickTrend("");
+    setFilter("");
+    qc.invalidateQueries({ queryKey: ["spotlight-pin", today] });
+    qc.invalidateQueries({ queryKey: ["spotlight-pins-upcoming", today] });
+  }
+
+  async function clearPin(date: string) {
+    const { error } = await supabase.from("spotlight_pins").delete().eq("pin_date", date);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Pin cleared for ${date}`);
+    qc.invalidateQueries({ queryKey: ["spotlight-pin", today] });
+    qc.invalidateQueries({ queryKey: ["spotlight-pins-upcoming", today] });
+  }
+
+  return (
+    <section className="border border-ink/40 bg-background p-4 mb-6">
+      <div className="text-[10px] ui small-caps text-accent-red mb-1">Spotlight Override</div>
+      <h2 className="display text-2xl font-black mb-1">Pin today's trend spotlight</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Pins are keyed by date and auto-release at local midnight the next day.
+      </p>
+
+      <div className="text-xs mb-3">
+        <span className="ui small-caps text-muted-foreground">Today ({today}): </span>
+        {pin?.trends ? (
+          <>
+            <span className="font-bold">{pin.trends.term}</span>{" "}
+            <button onClick={() => clearPin(today)} className="underline ml-2">clear</button>
+          </>
+        ) : (
+          <span className="text-muted-foreground">no pin — using popular-pool rotation</span>
+        )}
+      </div>
+
+      <div className="grid sm:grid-cols-[160px_1fr_auto] gap-2 items-start">
+        <input
+          type="date"
+          value={pickDate}
+          min={today}
+          onChange={(e) => setPickDate(e.target.value)}
+          className="border border-ink/40 bg-background px-2 py-1 text-xs"
+        />
+        <div className="flex flex-col gap-1">
+          <input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter trends…"
+            className="border border-ink/40 bg-background px-2 py-1 text-xs"
+          />
+          <select
+            value={pickTrend}
+            onChange={(e) => setPickTrend(e.target.value)}
+            className="border border-ink/40 bg-background px-2 py-1 text-xs"
+          >
+            <option value="">— select a trend —</option>
+            {options.map((t) => (
+              <option key={t.id} value={t.id}>{t.term} ({t.slug})</option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={savePin}
+          disabled={saving}
+          className="bg-accent-red text-accent-foreground px-4 py-2 text-xs ui small-caps disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Pin spotlight"}
+        </button>
+      </div>
+
+      {upcoming.length > 0 && (
+        <div className="mt-4">
+          <div className="text-[10px] ui small-caps text-muted-foreground mb-1">Upcoming pins</div>
+          <ul className="text-xs space-y-1">
+            {upcoming.map((u) => (
+              <li key={u.pin_date} className="flex items-center gap-2">
+                <span className="tabular-nums">{u.pin_date}</span>
+                <span>·</span>
+                <span className="font-bold">{u.trends?.term ?? u.trend_id}</span>
+                <button onClick={() => clearPin(u.pin_date)} className="underline ml-2">clear</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [value, setValue] = useState(trend.image_url ?? "");
