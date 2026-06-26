@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { currentPeriodKey, CATEGORY_LABEL } from "@/lib/period";
 import { cn } from "@/lib/utils";
+import { haptic } from "@/lib/haptics";
 
 type Category = "week" | "month" | "year" | "oat";
 
@@ -140,9 +141,7 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
 
   const handle = (d: "up" | "down") => {
     if (!user) { navigate({ to: "/auth" }); return; }
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(d === "up" ? [15, 25, 15] : 30);
-    }
+    haptic(d);
     mut.mutate(d);
   };
 
