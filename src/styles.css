@@ -65,30 +65,36 @@
 
 :root {
   --radius: 0.125rem;
-  --ink: oklch(0.15 0.01 60);
-  --newsprint: oklch(0.975 0.012 85);
-  --rule: oklch(0.18 0.01 60);
-  --ticker-up: oklch(0.52 0.16 145);
-  --ticker-down: oklch(0.55 0.22 25);
-  --accent-red: oklch(0.50 0.22 25);
+  /*
+   * "Morning Edition" — warm ivory newsprint with deep espresso ink.
+   * Inspired by uncoated book stock and letterpress: softer than pure white,
+   * higher-contrast where it counts, with an oxblood accent that reads
+   * editorial rather than alarming.
+   */
+  --ink: oklch(0.22 0.018 55);          /* deep espresso, not pure black */
+  --newsprint: oklch(0.965 0.018 82);   /* warm ivory paper */
+  --rule: oklch(0.32 0.02 55);          /* softer hairline */
+  --ticker-up: oklch(0.50 0.14 150);
+  --ticker-down: oklch(0.52 0.20 28);
+  --accent-red: oklch(0.46 0.18 28);    /* oxblood — refined, less neon */
   --background: var(--newsprint);
   --foreground: var(--ink);
-  --card: oklch(1 0 0);
+  --card: oklch(0.99 0.008 85);         /* near-white with a paper warmth */
   --card-foreground: var(--ink);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.99 0.008 85);
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--newsprint);
-  --secondary: oklch(0.94 0.01 85);
+  --secondary: oklch(0.93 0.018 80);    /* warm dove */
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.93 0.01 85);
-  --muted-foreground: oklch(0.42 0.02 60);
+  --muted: oklch(0.94 0.015 82);
+  --muted-foreground: oklch(0.48 0.025 55);
   --accent: var(--accent-red);
   --accent-foreground: oklch(0.99 0 0);
   --destructive: var(--ticker-down);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.84 0.01 60);
-  --input: oklch(0.84 0.01 60);
+  --border: oklch(0.86 0.015 75);
+  --input: oklch(0.86 0.015 75);
   --ring: var(--ink);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
