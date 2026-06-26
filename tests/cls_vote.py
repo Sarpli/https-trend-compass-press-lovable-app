@@ -59,6 +59,12 @@ async def main() -> int:
             )
             await page.reload(wait_until="domcontentloaded")
         await page.wait_for_selector('button[aria-label="Vote up"]', timeout=15000)
+        # Scroll vote buttons into view BEFORE we start measuring CLS,
+        # so the scroll itself isn't counted (it wouldn't be — scrolls
+        # don't generate layout-shift entries — but the chart finishing
+        # render after scroll might).
+        await page.locator('button[aria-label="Vote up"]').first.scroll_into_view_if_needed()
+        await page.wait_for_timeout(400)
         await page.evaluate(OBSERVER_JS)
 
         # Let initial paint + chart settle, then reset the score.
