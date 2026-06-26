@@ -230,3 +230,58 @@
 }
 
 .ticker-scroller::-webkit-scrollbar { display: none; }
+
+/*
+ * Liquid Glass — frosted translucent surfaces with a soft specular highlight
+ * and a hairline edge. Tuned for both Morning Edition (ivory) and After Hours
+ * (dark) palettes via the semantic tokens, so the same utility reads as
+ * cream-on-paper in light mode and smoked-glass in dark mode.
+ */
+@utility glass {
+  position: relative;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--newsprint) 72%, transparent) 0%,
+      color-mix(in oklab, var(--newsprint) 48%, transparent) 55%,
+      color-mix(in oklab, var(--newsprint) 62%, transparent) 100%
+    );
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--rule) 38%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 35%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, var(--ink) 8%, transparent) inset,
+    0 10px 30px -18px color-mix(in oklab, var(--ink) 55%, transparent);
+}
+@utility glass-dark {
+  position: relative;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--ink) 88%, transparent) 0%,
+      color-mix(in oklab, var(--ink) 70%, transparent) 55%,
+      color-mix(in oklab, var(--ink) 82%, transparent) 100%
+    );
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid color-mix(in oklab, var(--newsprint) 18%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 14%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 30%, transparent) inset,
+    0 12px 32px -18px color-mix(in oklab, black 55%, transparent);
+}
+@utility glass-sheen {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, white 22%, transparent) 0%,
+      transparent 38%,
+      transparent 62%,
+      color-mix(in oklab, white 8%, transparent) 100%
+    );
+    mix-blend-mode: screen;
+  }
+}
