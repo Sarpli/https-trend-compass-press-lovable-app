@@ -56,6 +56,16 @@ function Index() {
         (a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug),
       );
       if (pool.length === 0) return null;
+      // Editorial overrides — pin specific local dates (YYYY-MM-DD) to a
+      // chosen trend. Keys are matched against the viewer's local date.
+      const PINNED: Record<string, string> = {
+        "2026-06-26": "67",
+      };
+      const pinSlug = PINNED[localDateKey];
+      if (pinSlug) {
+        const pinned = pool.find((p) => p.slug === pinSlug);
+        if (pinned) return pinned;
+      }
       let h = 2166136261;
       for (let i = 0; i < localDateKey.length; i++) {
         h ^= localDateKey.charCodeAt(i);
