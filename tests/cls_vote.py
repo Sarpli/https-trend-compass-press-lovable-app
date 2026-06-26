@@ -55,7 +55,8 @@ async def main() -> int:
                 f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session)})"
             )
 
-        await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="networkidle")
+        await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
+        await page.wait_for_selector('button[aria-label="Vote up"]', timeout=15000)
         await page.evaluate(OBSERVER_JS)
 
         # Let initial paint + chart settle, then reset the score.
