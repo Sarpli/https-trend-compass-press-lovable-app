@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -160,7 +161,7 @@ function RootComponent() {
         <div className={`min-h-screen flex flex-col bg-background text-foreground${introPlayed ? "" : " intro-fluid-drop"}`}>
           <SiteHeader />
           <main className="flex-1">
-            <Outlet />
+            <RouteTransition />
           </main>
           <SiteFooter />
         </div>
@@ -169,5 +170,14 @@ function RootComponent() {
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function RouteTransition() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return (
+    <div key={pathname} className="route-fluid-drop">
+      <Outlet />
+    </div>
   );
 }
