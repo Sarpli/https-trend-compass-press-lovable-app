@@ -6,7 +6,6 @@ import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
-import { trendImage } from "@/lib/trend-image";
 import { TrendCover } from "@/components/TrendCover";
 
 export const Route = createFileRoute("/")({

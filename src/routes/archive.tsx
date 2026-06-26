@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Search, Sparkles } from "lucide-react";
-import { trendImage } from "@/lib/trend-image";
 import { TrendCover } from "@/components/TrendCover";
 import { aiSearchTrends } from "@/lib/ai-search.functions";
 
