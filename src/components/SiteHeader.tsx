@@ -23,7 +23,7 @@ export function SiteHeader() {
     <header>
       <TickerBar />
       <div className="masthead-rule bg-background">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 grid grid-cols-[auto_1fr_auto] md:grid-cols-3 items-center gap-2 md:gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 grid grid-cols-3 items-center gap-2 md:gap-4">
           <div className="text-xs ui small-caps text-muted-foreground hidden md:block">
             {today} · Vol. I · No. 1
           </div>
