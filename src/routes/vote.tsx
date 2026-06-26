@@ -82,7 +82,7 @@ function Board({ category, locked }: { category: Cat; locked: boolean }) {
             <span className={`ui text-xs tabular-nums ${t.net >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
               {t.net > 0 ? "+" : ""}{t.net}
             </span>
-            <VoteButtons trendId={t.id} category={category} compact />
+            <VoteButtons trendId={t.id} category={category} wide />
           </li>
         ))}
       </ol>
