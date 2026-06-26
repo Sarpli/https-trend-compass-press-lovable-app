@@ -14,6 +14,7 @@ import asyncio
 import json
 import os
 import sys
+from pathlib import Path
 
 from playwright.async_api import async_playwright
 
@@ -21,6 +22,7 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8080")
 TERM_SLUG = os.environ.get("TERM_SLUG", "67")
 CLS_THRESHOLD = float(os.environ.get("CLS_THRESHOLD", "0.05"))
 VOTE_CLICKS = int(os.environ.get("VOTE_CLICKS", "6"))
+ARTIFACT_DIR = Path(os.environ.get("CLS_ARTIFACT_DIR", "/tmp/cls-artifacts"))
 
 SEQUENCE = ["up", "down", "up", "up", "down", "down"]
 
@@ -44,15 +46,33 @@ async def main() -> int:
     session = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
     storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
 
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    console_log = ARTIFACT_DIR / "console.log"
+    network_log = ARTIFACT_DIR / "network.log"
+    trace_path = ARTIFACT_DIR / "trace.zip"
+    summary_path = ARTIFACT_DIR / "cls-summary.json"
+    screenshot_path = ARTIFACT_DIR / "final.png"
+    console_fh = console_log.open("w")
+    network_fh = network_log.open("w")
+
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True)
         context = await browser.new_context(viewport={"width": 390, "height": 844})
+        await context.tracing.start(screenshots=True, snapshots=True, sources=True)
         page = await context.new_page()
+        page.on("console", lambda msg: console_fh.write(f"[{msg.type}] {msg.text}\n"))
+        page.on("pageerror", lambda exc: console_fh.write(f"[pageerror] {exc}\n"))
+        page.on("request", lambda req: network_fh.write(f"> {req.method} {req.url}\n"))
+        page.on(
+            "response",
+            lambda res: network_fh.write(f"< {res.status} {res.url}\n"),
+        )
 
         # Land on the term page directly; restoring the session requires the
         # localhost origin, so we set it after the first goto via evaluate
         # and then navigate to the same URL again via client-side router.
-        await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
+        try:
+            await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
         if storage_key and session:
             await page.evaluate(
                 f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session)})"
@@ -85,14 +105,33 @@ async def main() -> int:
 
         await page.wait_for_timeout(600)
 
-        result = await page.evaluate(
-            "() => ({ cls: window.__cls, shifts: window.__shifts })"
-        )
-        await browser.close()
+            result = await page.evaluate(
+                "() => ({ cls: window.__cls, shifts: window.__shifts })"
+            )
+            await page.screenshot(path=str(screenshot_path))
+        finally:
+            await context.tracing.stop(path=str(trace_path))
+            await browser.close()
+            console_fh.close()
+            network_fh.close()
 
     cls = float(result["cls"])
     shifts = result["shifts"]
+    summary_path.write_text(
+        json.dumps(
+            {
+                "cls": cls,
+                "threshold": CLS_THRESHOLD,
+                "votes": VOTE_CLICKS,
+                "sequence": SEQUENCE[:VOTE_CLICKS],
+                "slug": TERM_SLUG,
+                "shifts": shifts,
+            },
+            indent=2,
+        )
+    )
     print(f"CLS after {VOTE_CLICKS} votes: {cls:.5f} (threshold {CLS_THRESHOLD})")
+    print(f"Artifacts written to {ARTIFACT_DIR}")
     if shifts:
         print(f"Shift entries ({len(shifts)}):")
         for s in shifts:
