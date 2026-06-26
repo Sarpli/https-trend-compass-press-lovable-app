@@ -74,7 +74,9 @@ function Board({ category, locked }: { category: Cat; locked: boolean }) {
           </span>
         )}
       </div>
-      <CategoryChart category={category} periodKey={periodKey} />
+      <div className="md:hidden">
+        <CategoryChart category={category} periodKey={periodKey} />
+      </div>
       <ol className="space-y-2">
         {rows.map((t, i) => (
           <li key={t.id} className="flex items-center gap-3 rule-bottom pb-2">
