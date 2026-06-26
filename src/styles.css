@@ -228,3 +228,5 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+.ticker-scroller::-webkit-scrollbar { display: none; }
