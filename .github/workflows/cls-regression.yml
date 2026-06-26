@@ -11,6 +11,9 @@ jobs:
     name: Voting CLS check on term pages
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       BASE_URL: http://localhost:8080
       TERM_SLUG: ${{ vars.CLS_TERM_SLUG || '67' }}
@@ -57,6 +60,7 @@ jobs:
           exit 1
 
       - name: Run CLS regression check
+        id: cls
         run: python3 tests/cls_vote.py
 
       - name: Stop preview server
@@ -72,9 +76,49 @@ jobs:
 
       - name: Upload CLS debug artifacts
         if: failure()
+        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: cls-debug-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.CLS_ARTIFACT_DIR }}
           retention-days: 14
           if-no-files-found: ignore
+
+      - name: Comment CLS failure on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const dir = process.env.CLS_ARTIFACT_DIR;
+            const threshold = process.env.CLS_THRESHOLD;
+            let cls = 'n/a';
+            let votes = process.env.VOTE_CLICKS;
+            let slug = process.env.TERM_SLUG;
+            try {
+              const summary = JSON.parse(
+                fs.readFileSync(path.join(dir, 'cls-summary.json'), 'utf8'),
+              );
+              cls = Number(summary.cls).toFixed(5);
+              votes = summary.votes ?? votes;
+              slug = summary.slug ?? slug;
+            } catch (err) {
+              core.warning(`No cls-summary.json: ${err.message}`);
+            }
+            const artifactUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}#artifacts`;
+            const body = [
+              '### ❌ CLS regression check failed',
+              '',
+              `- **CLS:** \`${cls}\` (threshold \`${threshold}\`)`,
+              `- **Term page:** \`/trends/${slug}\` · ${votes} vote clicks`,
+              `- **Debug artifact:** [cls-debug-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}](${artifactUrl}) — trace.zip, console.log, network.log, final.png, preview.log`,
+              '',
+              `<sub>Run: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})</sub>`,
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
