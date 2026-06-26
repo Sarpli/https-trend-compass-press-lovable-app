@@ -141,11 +141,6 @@ export function WelcomeAuthModal() {
             {mode === "signup" ? "Already a subscriber? Sign in" : "New here? Create an account"}
           </button>
         </div>
-        <div className="text-center mt-3">
-          <button onClick={dismiss} className="text-[11px] text-muted-foreground hover:underline">
-            Maybe later
-          </button>
-        </div>
       </div>
     </div>
   );
