@@ -16,6 +16,7 @@ jobs:
       TERM_SLUG: ${{ vars.CLS_TERM_SLUG || '67' }}
       CLS_THRESHOLD: ${{ vars.CLS_THRESHOLD || '0.05' }}
       VOTE_CLICKS: '6'
+      CLS_ARTIFACT_DIR: ${{ github.workspace }}/cls-artifacts
     steps:
       - uses: actions/checkout@v4
 
@@ -63,10 +64,17 @@ jobs:
         run: |
           if [ -f /tmp/preview.pid ]; then kill "$(cat /tmp/preview.pid)" || true; fi
 
-      - name: Upload preview log on failure
+      - name: Collect preview log
+        if: always()
+        run: |
+          mkdir -p "$CLS_ARTIFACT_DIR"
+          cp /tmp/preview.log "$CLS_ARTIFACT_DIR/preview.log" 2>/dev/null || true
+
+      - name: Upload CLS debug artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: preview-log
-          path: /tmp/preview.log
+          name: cls-debug-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.CLS_ARTIFACT_DIR }}
+          retention-days: 14
           if-no-files-found: ignore
