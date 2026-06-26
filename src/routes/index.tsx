@@ -43,7 +43,9 @@ function Index() {
         .select("slug")
         .order("price", { ascending: false })
         .limit(15);
-      const slugs = (topScores ?? []).map((r: { slug: string }) => r.slug);
+      const slugs = (topScores ?? [])
+        .map((r) => r.slug)
+        .filter((s): s is string => !!s);
       if (slugs.length === 0) return null;
       const { data } = await supabase
         .from("trends")
