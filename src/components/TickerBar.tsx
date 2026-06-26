@@ -156,13 +156,15 @@ function TickerBarInner() {
     scroller.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       cancelAnimationFrame(raf);
-      scroller.removeEventListener("pointerenter", pause);
-      scroller.removeEventListener("pointerleave", resume);
+      if (canHover) {
+        scroller.removeEventListener("pointerenter", hoverPause);
+        scroller.removeEventListener("pointerleave", hoverResume);
+      }
       scroller.removeEventListener("pointerdown", pause);
       scroller.removeEventListener("pointerup", resume);
       scroller.removeEventListener("pointercancel", resume);
-      scroller.removeEventListener("touchstart", pause);
       scroller.removeEventListener("touchend", resume);
+      scroller.removeEventListener("touchcancel", resume);
       scroller.removeEventListener("scroll", onScroll);
       scroller.removeEventListener("wheel", onWheel);
       window.clearTimeout(wheelIdle);
