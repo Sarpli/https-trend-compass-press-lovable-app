@@ -143,28 +143,28 @@ function Index() {
           )}
 
           {/* Front-page columns */}
-          <div className="grid sm:grid-cols-2 gap-6 mt-8">
+          <div className="grid grid-cols-2 gap-4 mt-8">
             {stories.map((s) => (
-              <article key={s.id} className="rule-top pt-4">
-                <div className="text-[10px] ui small-caps text-accent-red mb-1">{s.category}</div>
+              <article key={s.id} className="rule-top pt-3">
+                <div className="text-[9px] ui small-caps text-accent-red mb-1">{s.category}</div>
                 <Link to="/trends/$slug" params={{ slug: s.slug }}>
                   <img
-                    src={trendImage(s, 600, 360)}
+                    src={trendImage(s, 400, 240)}
                     alt={s.term}
                     loading="lazy"
                     className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
                   />
-                  <h3 className="display text-2xl font-bold leading-tight hover:text-accent-red transition-colors">
+                  <h3 className="display text-base sm:text-lg font-bold leading-tight hover:text-accent-red transition-colors">
                     {s.term}
                   </h3>
                 </Link>
-                <p className="mt-2 text-sm leading-relaxed text-foreground/90 line-clamp-3">
+                <p className="mt-1 text-xs leading-snug text-foreground/90 line-clamp-2">
                   {s.plain_language}
                 </p>
                 <Link
                   to="/trends/$slug"
                   params={{ slug: s.slug }}
-                  className="ui small-caps text-[10px] mt-2 inline-block underline"
+                  className="ui small-caps text-[9px] mt-1 inline-block underline"
                 >
                   Continue reading
                 </Link>
