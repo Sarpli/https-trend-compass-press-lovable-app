@@ -77,7 +77,7 @@ function Index() {
   }, []);
 
   const { data: featured } = useQuery({
-    queryKey: ["featured", localDateKey],
+    queryKey: ["featured", localDateKey, timeZone],
     queryFn: async () => {
       // 1) Editor pin for today (auto-releases tomorrow because the row is
       //    keyed by date and we only look up today's date).
