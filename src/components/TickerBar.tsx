@@ -111,13 +111,29 @@ function TickerBarInner() {
       else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
       try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
     };
-    scroller.addEventListener("pointerenter", pause);
-    scroller.addEventListener("pointerleave", resume);
+    // Hover-pause only for devices with a true hover (desktop mice/trackpads).
+    // Touchscreens fire pointerenter on tap and often skip pointerleave, which
+    // would leave the tape stuck paused after a single touch — so we gate the
+    // hover listeners on a fine pointer with hover capability.
+    const canHover =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
+    const hoverPause = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") pause();
+    };
+    const hoverResume = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") resume();
+    };
+    if (canHover) {
+      scroller.addEventListener("pointerenter", hoverPause);
+      scroller.addEventListener("pointerleave", hoverResume);
+    }
+    // Active interaction always pauses, then resumes when the user lets go.
     scroller.addEventListener("pointerdown", pause);
     scroller.addEventListener("pointerup", resume);
     scroller.addEventListener("pointercancel", resume);
-    scroller.addEventListener("touchstart", pause, { passive: true });
-    scroller.addEventListener("touchend", resume);
+    scroller.addEventListener("touchend", resume, { passive: true });
+    scroller.addEventListener("touchcancel", resume, { passive: true });
     scroller.addEventListener("scroll", onScroll, { passive: true });
     // Desktop: let a two-finger trackpad drag (or mouse wheel) scrub the tape.
     // Translate vertical wheel delta into horizontal scroll when it's the
@@ -140,13 +156,15 @@ function TickerBarInner() {
     scroller.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       cancelAnimationFrame(raf);
-      scroller.removeEventListener("pointerenter", pause);
-      scroller.removeEventListener("pointerleave", resume);
+      if (canHover) {
+        scroller.removeEventListener("pointerenter", hoverPause);
+        scroller.removeEventListener("pointerleave", hoverResume);
+      }
       scroller.removeEventListener("pointerdown", pause);
       scroller.removeEventListener("pointerup", resume);
       scroller.removeEventListener("pointercancel", resume);
-      scroller.removeEventListener("touchstart", pause);
       scroller.removeEventListener("touchend", resume);
+      scroller.removeEventListener("touchcancel", resume);
       scroller.removeEventListener("scroll", onScroll);
       scroller.removeEventListener("wheel", onWheel);
       window.clearTimeout(wheelIdle);
