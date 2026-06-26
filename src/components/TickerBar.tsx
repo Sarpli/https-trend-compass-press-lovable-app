@@ -104,12 +104,20 @@ function TickerBarInner() {
     const pause = () => { pausedRef.current = true; };
     const resume = () => { pausedRef.current = false; last = performance.now(); };
     // Keep the loop seamless when the user scrolls past the seam manually.
+    // The auto-scroller writes scrollLeft every frame, so this fires ~60fps —
+    // persist to sessionStorage on a throttle to avoid synchronous storage
+    // writes on every frame (a known cause of desktop ticker jank).
+    let lastSave = 0;
     const onScroll = () => {
       const half = track.scrollWidth / 2;
       if (half <= 0) return;
       if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
       else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
-      try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
+      const now = performance.now();
+      if (now - lastSave > 500) {
+        lastSave = now;
+        try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
+      }
     };
     // Hover-pause only for devices with a true hover (desktop mice/trackpads).
     // Touchscreens fire pointerenter on tap and often skip pointerleave, which
