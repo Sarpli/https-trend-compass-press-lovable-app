@@ -119,6 +119,25 @@ function TickerBarInner() {
     scroller.addEventListener("touchstart", pause, { passive: true });
     scroller.addEventListener("touchend", resume);
     scroller.addEventListener("scroll", onScroll, { passive: true });
+    // Desktop: let a two-finger trackpad drag (or mouse wheel) scrub the tape.
+    // Translate vertical wheel delta into horizontal scroll when it's the
+    // dominant axis, and pause auto-scroll while the user is gesturing.
+    let wheelIdle = 0;
+    const onWheel = (e: WheelEvent) => {
+      const dx = e.deltaX;
+      const dy = e.deltaY;
+      const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+      if (delta === 0) return;
+      e.preventDefault();
+      pausedRef.current = true;
+      scroller.scrollLeft += delta;
+      window.clearTimeout(wheelIdle);
+      wheelIdle = window.setTimeout(() => {
+        pausedRef.current = false;
+        last = performance.now();
+      }, 400);
+    };
+    scroller.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       cancelAnimationFrame(raf);
       scroller.removeEventListener("pointerenter", pause);
@@ -129,6 +148,8 @@ function TickerBarInner() {
       scroller.removeEventListener("touchstart", pause);
       scroller.removeEventListener("touchend", resume);
       scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("wheel", onWheel);
+      window.clearTimeout(wheelIdle);
     };
   }, [rows.length]);
 
