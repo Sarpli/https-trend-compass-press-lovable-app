@@ -73,37 +73,41 @@ async def main() -> int:
         # and then navigate to the same URL again via client-side router.
         try:
             await page.goto(f"{BASE_URL}/trends/{TERM_SLUG}", wait_until="domcontentloaded")
-        if storage_key and session:
-            await page.evaluate(
-                f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session)})"
-            )
-            await page.reload(wait_until="domcontentloaded")
-        await page.wait_for_selector('button[aria-label="Vote up"]', timeout=15000)
-        # Scroll vote buttons into view BEFORE we start measuring CLS,
-        # so the scroll itself isn't counted (it wouldn't be — scrolls
-        # don't generate layout-shift entries — but the chart finishing
-        # render after scroll might).
-        await page.locator('button[aria-label="Vote up"]').first.scroll_into_view_if_needed()
-        await page.wait_for_timeout(400)
-        await page.evaluate(OBSERVER_JS)
+            if storage_key and session:
+                await page.evaluate(
+                    f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session)})"
+                )
+                await page.reload(wait_until="domcontentloaded")
+            await page.wait_for_selector('button[aria-label="Vote up"]', timeout=15000)
+            # Scroll vote buttons into view BEFORE we start measuring CLS,
+            # so the scroll itself isn't counted (it wouldn't be — scrolls
+            # don't generate layout-shift entries — but the chart finishing
+            # render after scroll might).
+            await page.locator('button[aria-label="Vote up"]').first.scroll_into_view_if_needed()
+            await page.wait_for_timeout(400)
+            await page.evaluate(OBSERVER_JS)
 
-        # Let initial paint + chart settle, then reset the score.
-        await page.wait_for_timeout(800)
-        await page.evaluate("() => { window.__cls = 0; window.__shifts = []; }")
+            # Let initial paint + chart settle, then reset the score.
+            await page.wait_for_timeout(800)
+            await page.evaluate("() => { window.__cls = 0; window.__shifts = []; }")
 
-        up_btns = page.locator('button[aria-label="Vote up"]')
-        down_btns = page.locator('button[aria-label="Vote down"]')
-        if await up_btns.count() == 0:
-            print("FAIL: no vote-up buttons found on term page", file=sys.stderr)
-            return 1
+            up_btns = page.locator('button[aria-label="Vote up"]')
+            down_btns = page.locator('button[aria-label="Vote down"]')
+            if await up_btns.count() == 0:
+                print("FAIL: no vote-up buttons found on term page", file=sys.stderr)
+                await context.tracing.stop(path=str(trace_path))
+                await browser.close()
+                console_fh.close()
+                network_fh.close()
+                return 1
 
-        for i in range(VOTE_CLICKS):
-            direction = SEQUENCE[i % len(SEQUENCE)]
-            target = (up_btns if direction == "up" else down_btns).first
-            await target.click(force=True)
-            await page.wait_for_timeout(450)
+            for i in range(VOTE_CLICKS):
+                direction = SEQUENCE[i % len(SEQUENCE)]
+                target = (up_btns if direction == "up" else down_btns).first
+                await target.click(force=True)
+                await page.wait_for_timeout(450)
 
-        await page.wait_for_timeout(600)
+            await page.wait_for_timeout(600)
 
             result = await page.evaluate(
                 "() => ({ cls: window.__cls, shifts: window.__shifts })"
