@@ -151,24 +151,24 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       <button
         onClick={() => handle("up")}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors flex items-center justify-center",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
       >
-        <ChevronUp className="w-6 h-6" strokeWidth={2.5} />
+        <ChevronUp className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
       </button>
       <button
         onClick={() => handle("down")}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors flex items-center justify-center",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
       >
-        <ChevronDown className="w-6 h-6" strokeWidth={2.5} />
+        <ChevronDown className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
       </button>
     </div>
   );
