@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
@@ -8,6 +8,8 @@ import { X } from "lucide-react";
 export function WelcomeAuthModal() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
+  const [show, setShow] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,8 +21,19 @@ export function WelcomeAuthModal() {
     return () => window.clearTimeout(t);
   }, [user, loading]);
 
+  useEffect(() => {
+    if (!open) return;
+    const r = requestAnimationFrame(() => setShow(true));
+    return () => cancelAnimationFrame(r);
+  }, [open]);
+
   const dismiss = () => {
-    setOpen(false);
+    setClosing(true);
+    setShow(false);
+    window.setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, 380);
   };
 
   if (!open || user) return null;
@@ -64,12 +77,21 @@ export function WelcomeAuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-0 md:p-4"
+      className={`fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 transition-[background-color,backdrop-filter] duration-500 ease-out ${show && !closing ? "bg-black/60 backdrop-blur-sm" : "bg-black/0 backdrop-blur-0"}`}
       onClick={dismiss}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="glass glass-sheen w-full md:max-w-md bg-background border border-ink/20 rounded-t-2xl md:rounded-lg shadow-2xl p-6 relative animate-in slide-in-from-bottom-4 fade-in duration-300"
+        style={{
+          transitionTimingFunction: show && !closing
+            ? "cubic-bezier(0.22, 1.4, 0.36, 1)"
+            : "cubic-bezier(0.4, 0, 0.6, 1)",
+        }}
+        className={`glass glass-sheen w-full md:max-w-md bg-background border border-ink/20 rounded-t-2xl md:rounded-lg shadow-2xl p-6 relative will-change-transform transition-[transform,opacity,filter] duration-[520ms] ${
+          show && !closing
+            ? "translate-y-0 opacity-100 blur-0 scale-100"
+            : "translate-y-12 md:translate-y-6 opacity-0 blur-[6px] scale-[0.97]"
+        }`}
       >
         <button
           onClick={dismiss}
