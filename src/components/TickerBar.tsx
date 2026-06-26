@@ -115,13 +115,14 @@ function TickerBarInner() {
   const items = [...rows, ...rows]; // duplicate for seamless scroll
 
   return (
-    <div className="bg-ink text-newsprint overflow-hidden ui text-xs">
+    <div className="bg-ink text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
       <div className="flex items-stretch">
-        <div className="px-3 py-2 small-caps bg-accent-red text-accent-foreground flex items-center font-bold">
-          Live · Trend Tape
+        <div className="px-2 py-1 sm:px-3 sm:py-2 small-caps bg-accent-red text-accent-foreground flex items-center font-bold text-[9px] sm:text-xs shrink-0">
+          <span className="sm:hidden">Live</span>
+          <span className="hidden sm:inline">Live · Trend Tape</span>
         </div>
         <div className="flex-1 overflow-hidden relative ticker-track-pause">
-          <div className="ticker-track py-2 whitespace-nowrap">
+          <div className="ticker-track py-1 sm:py-2 whitespace-nowrap">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
               const dir = delta > 0 ? "up" : delta < 0 ? "down" : r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
@@ -131,7 +132,7 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-2 mx-4 transition-colors ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 mx-2 sm:mx-4 transition-colors ${
                     flashing
                       ? dir === "up"
                         ? "text-ticker-up"
