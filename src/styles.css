@@ -33,20 +33,19 @@
   will-change: transform, filter, opacity;
 }
 
-/* Shorter fluid drop applied on route changes */
+/* Smooth fluid drop applied on route changes — no overshoot/recoil */
 @keyframes trenslate-route-drop {
   0% {
-    transform: translateY(-32px) scaleY(0.92);
-    filter: blur(8px);
+    transform: translate3d(0, -28px, 0);
+    filter: blur(6px);
     opacity: 0;
   }
   60% {
-    transform: translateY(4px) scaleY(1.02);
-    filter: blur(1px);
+    filter: blur(0);
     opacity: 1;
   }
   100% {
-    transform: translateY(0) scaleY(1);
+    transform: translate3d(0, 0, 0);
     filter: blur(0);
     opacity: 1;
   }
@@ -54,7 +53,7 @@
 
 .route-fluid-drop {
   transform-origin: top center;
-  animation: trenslate-route-drop 1200ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+  animation: trenslate-route-drop 1100ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   will-change: transform, filter, opacity;
 }
 
