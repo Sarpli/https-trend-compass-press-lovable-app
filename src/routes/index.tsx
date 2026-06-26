@@ -25,12 +25,37 @@ function Index() {
   const [q, setQ] = useState("");
   // Local-date key in the viewer's own time zone (YYYY-MM-DD).
   // The spotlight rotates once per local calendar day, so each time zone
-  // gets its own "today's edition" without a server-side cron.
-  const localDateKey = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  // gets its own "today's edition" without a server-side cron. We keep this
+  // in state and tick it at the viewer's local midnight so a long-lived tab
+  // rolls over to tomorrow's spotlight without a manual reload.
+  const computeLocalDateKey = () =>
+    new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  const [localDateKey, setLocalDateKey] = useState(computeLocalDateKey);
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 5, 0); // 5s after local midnight
+      const ms = Math.max(1000, next.getTime() - now.getTime());
+      return window.setTimeout(() => {
+        setLocalDateKey(computeLocalDateKey());
+        timer = tick();
+      }, ms);
+    };
+    let timer = tick();
+    const onFocus = () => setLocalDateKey(computeLocalDateKey());
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, []);
 
   const { data: featured } = useQuery({
     queryKey: ["featured", localDateKey],
