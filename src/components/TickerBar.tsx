@@ -61,10 +61,13 @@ function TickerBarInner() {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
   const restoredRef = useRef(false);
+  const offsetRef = useRef(0);
+  const pointerRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false });
   const STORAGE_KEY = "trenslate.ticker.scrollLeft";
 
-  // Auto-scroll the tape, but yield to the user on hover / touch / drag so
-  // they can swipe horizontally to browse the ticker.
+  // Auto-scroll the tape with a GPU transform instead of writing scrollLeft on
+  // every frame. That keeps desktop motion smooth while preserving drag/wheel
+  // scrubbing and the saved ticker position.
   useEffect(() => {
     const scroller = scrollerRef.current;
     const track = trackRef.current;
@@ -72,53 +75,43 @@ function TickerBarInner() {
     let raf = 0;
     let last = performance.now();
     const PX_PER_SEC = 40; // matches ~180s loop feel
+    const getHalf = () => track.scrollWidth / 2;
+    const normalize = (value: number) => {
+      const half = getHalf();
+      if (half <= 0) return 0;
+      return ((value % half) + half) % half;
+    };
+    const render = () => {
+      track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
+    };
+    const savePosition = () => {
+      try { sessionStorage.setItem(STORAGE_KEY, String(offsetRef.current)); } catch {}
+    };
     // Restore the user's previous scroll position once the track has width.
     if (!restoredRef.current) {
       try {
         const saved = sessionStorage.getItem(STORAGE_KEY);
-        const half = track.scrollWidth / 2;
+        const half = getHalf();
         if (saved && half > 0) {
-          let v = parseFloat(saved);
-          if (Number.isFinite(v)) {
-            if (v >= half) v = v % half;
-            scroller.scrollLeft = v;
-          }
+          const v = parseFloat(saved);
+          if (Number.isFinite(v)) offsetRef.current = normalize(v);
         }
         restoredRef.current = true;
       } catch {}
     }
+    render();
     const step = (now: number) => {
       const dt = (now - last) / 1000;
       last = now;
       if (!pausedRef.current) {
-        const half = track.scrollWidth / 2;
-        if (half > 0) {
-          let next = scroller.scrollLeft + PX_PER_SEC * dt;
-          if (next >= half) next -= half;
-          scroller.scrollLeft = next;
-        }
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * dt);
+        render();
       }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
     const resume = () => { pausedRef.current = false; last = performance.now(); };
-    // Keep the loop seamless when the user scrolls past the seam manually.
-    // The auto-scroller writes scrollLeft every frame, so this fires ~60fps —
-    // persist to sessionStorage on a throttle to avoid synchronous storage
-    // writes on every frame (a known cause of desktop ticker jank).
-    let lastSave = 0;
-    const onScroll = () => {
-      const half = track.scrollWidth / 2;
-      if (half <= 0) return;
-      if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
-      else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
-      const now = performance.now();
-      if (now - lastSave > 500) {
-        lastSave = now;
-        try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
-      }
-    };
     // Hover-pause only for devices with a true hover (desktop mice/trackpads).
     // Touchscreens fire pointerenter on tap and often skip pointerleave, which
     // would leave the tape stuck paused after a single touch — so we gate the
@@ -140,13 +133,38 @@ function TickerBarInner() {
       // so it's cheap and only fires when the cursor actually leaves.
       scroller.addEventListener("mouseleave", resume);
     }
-    // Active interaction always pauses, then resumes when the user lets go.
-    scroller.addEventListener("pointerdown", pause);
-    scroller.addEventListener("pointerup", resume);
-    scroller.addEventListener("pointercancel", resume);
-    scroller.addEventListener("touchend", resume, { passive: true });
-    scroller.addEventListener("touchcancel", resume, { passive: true });
-    scroller.addEventListener("scroll", onScroll, { passive: true });
+    // Active drag interaction always pauses, then resumes when the user lets go.
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
+      pause();
+      scroller.setPointerCapture?.(e.pointerId);
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (!pointerRef.current.active) return;
+      const dx = e.clientX - pointerRef.current.startX;
+      if (Math.abs(dx) > 3) pointerRef.current.moved = true;
+      offsetRef.current = normalize(pointerRef.current.startOffset - dx);
+      render();
+    };
+    const endPointer = (e: PointerEvent) => {
+      if (!pointerRef.current.active) return;
+      pointerRef.current.active = false;
+      scroller.releasePointerCapture?.(e.pointerId);
+      savePosition();
+      resume();
+    };
+    const preventDraggedClick = (e: MouseEvent) => {
+      if (!pointerRef.current.moved) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pointerRef.current.moved = false;
+    };
+    scroller.addEventListener("pointerdown", onPointerDown);
+    scroller.addEventListener("pointermove", onPointerMove);
+    scroller.addEventListener("pointerup", endPointer);
+    scroller.addEventListener("pointercancel", endPointer);
+    scroller.addEventListener("click", preventDraggedClick, true);
     // Desktop: let a two-finger trackpad drag (or mouse wheel) scrub the tape.
     // Translate vertical wheel delta into horizontal scroll when it's the
     // dominant axis, and pause auto-scroll while the user is gesturing.
@@ -158,9 +176,11 @@ function TickerBarInner() {
       if (delta === 0) return;
       e.preventDefault();
       pausedRef.current = true;
-      scroller.scrollLeft += delta;
+      offsetRef.current = normalize(offsetRef.current + delta);
+      render();
       window.clearTimeout(wheelIdle);
       wheelIdle = window.setTimeout(() => {
+        savePosition();
         pausedRef.current = false;
         last = performance.now();
       }, 400);
@@ -173,12 +193,12 @@ function TickerBarInner() {
         scroller.removeEventListener("pointerleave", hoverResume);
         scroller.removeEventListener("mouseleave", resume);
       }
-      scroller.removeEventListener("pointerdown", pause);
-      scroller.removeEventListener("pointerup", resume);
-      scroller.removeEventListener("pointercancel", resume);
-      scroller.removeEventListener("touchend", resume);
-      scroller.removeEventListener("touchcancel", resume);
-      scroller.removeEventListener("scroll", onScroll);
+      savePosition();
+      scroller.removeEventListener("pointerdown", onPointerDown);
+      scroller.removeEventListener("pointermove", onPointerMove);
+      scroller.removeEventListener("pointerup", endPointer);
+      scroller.removeEventListener("pointercancel", endPointer);
+      scroller.removeEventListener("click", preventDraggedClick, true);
       scroller.removeEventListener("wheel", onWheel);
       window.clearTimeout(wheelIdle);
     };
@@ -250,9 +270,9 @@ function TickerBarInner() {
         <div
           ref={scrollerRef}
           className="flex-1 relative ticker-scroller"
-          style={{ overflowX: "auto", overflowY: "hidden", touchAction: "pan-x", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+          style={{ overflow: "hidden", touchAction: "pan-y", cursor: "grab", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
-          <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap">
+          <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
               const dir = delta > 0 ? "up" : delta < 0 ? "down" : r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
