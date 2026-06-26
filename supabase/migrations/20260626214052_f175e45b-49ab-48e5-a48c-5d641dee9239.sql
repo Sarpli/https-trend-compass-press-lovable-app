@@ -1,0 +1,1 @@
+UPDATE public.trends SET image_url = '/__l5e/assets-v1/cad1fefa-524e-4ecf-abab-30e2439ce07d/it-girl.jpeg' WHERE slug = 'it-girl';
