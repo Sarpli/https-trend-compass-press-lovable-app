@@ -23,18 +23,37 @@ export const Route = createFileRoute("/")({
 function Index() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  // Local-date key in the viewer's own time zone (YYYY-MM-DD).
+  // The spotlight rotates once per local calendar day, so each time zone
+  // gets its own "today's edition" without a server-side cron.
+  const localDateKey = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
   const { data: featured } = useQuery({
-    queryKey: ["featured"],
+    queryKey: ["featured", localDateKey],
     queryFn: async () => {
+      // Pull the full pool of candidates ordered deterministically, then pick
+      // one by hashing today's local date. Same date → same pick everywhere
+      // in that time zone; next local midnight → next trend.
       const { data } = await supabase
         .from("trends")
         .select("*")
         .order("featured", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
+        .order("created_at", { ascending: true });
+      const pool = data ?? [];
+      if (pool.length === 0) return null;
+      let h = 2166136261;
+      for (let i = 0; i < localDateKey.length; i++) {
+        h ^= localDateKey.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      const idx = Math.abs(h) % pool.length;
+      return pool[idx];
     },
+    staleTime: 1000 * 60 * 60, // 1h — date key change forces a fresh pick
   });
 
   const { data: top = [] } = useQuery({
