@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — Trenslate" }] }),
@@ -71,6 +72,8 @@ function Account() {
           Sign out
         </button>
       </div>
+
+      <ChangePassword />
     </div>
   );
 }
@@ -81,5 +84,59 @@ function Stat({ label, value }: { label: string; value: string }) {
       <dt className="ui small-caps text-xs text-muted-foreground">{label}</dt>
       <dd className="display text-xl font-bold">{value}</dd>
     </div>
+  );
+}
+
+function ChangePassword() {
+  const [pw, setPw] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pw.length < 8) return toast.error("Password must be at least 8 characters.");
+    if (pw !== confirm) return toast.error("Passwords do not match.");
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) throw error;
+      toast.success("Password updated.");
+      setPw(""); setConfirm("");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="rule-top mt-10 pt-6">
+      <div className="text-xs ui small-caps text-accent-red mb-1">Security</div>
+      <h2 className="display text-2xl font-black mb-4">Change password</h2>
+      <form onSubmit={submit} className="space-y-3 max-w-md">
+        <div>
+          <label className="ui small-caps text-xs block mb-1">New password</label>
+          <input
+            type="password" required minLength={8} maxLength={128}
+            value={pw} onChange={(e) => setPw(e.target.value)}
+            className="w-full border border-ink/40 bg-background px-3 py-2 ui focus:outline-none focus:border-accent-red"
+          />
+        </div>
+        <div>
+          <label className="ui small-caps text-xs block mb-1">Confirm new password</label>
+          <input
+            type="password" required minLength={8} maxLength={128}
+            value={confirm} onChange={(e) => setConfirm(e.target.value)}
+            className="w-full border border-ink/40 bg-background px-3 py-2 ui focus:outline-none focus:border-accent-red"
+          />
+        </div>
+        <button
+          disabled={busy}
+          className="ui small-caps text-xs bg-ink text-newsprint px-4 py-2 hover:bg-accent-red transition-colors disabled:opacity-50"
+        >
+          {busy ? "Updating..." : "Update password"}
+        </button>
+      </form>
+    </section>
   );
 }
