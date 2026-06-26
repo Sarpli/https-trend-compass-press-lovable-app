@@ -27,7 +27,7 @@ export function SiteHeader() {
           {/* Mobile layout */}
           <div className="md:hidden">
             <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 mb-2">
-              <div className="flex items-center justify-self-start">
+              <div className="flex items-center gap-2 justify-self-start min-w-0">
                 {isPro ? (
                   <button
                     onClick={toggle}
@@ -47,6 +47,9 @@ export function SiteHeader() {
                     <Lock className="w-4 h-4" />
                   </Link>
                 ) : null}
+                <div className="text-[9px] leading-tight ui small-caps text-muted-foreground truncate">
+                  {today}<br />Vol. I · No. 1
+                </div>
               </div>
               <div aria-hidden className="h-px" />
               <div className="flex items-center gap-2 text-xs ui justify-self-end">
