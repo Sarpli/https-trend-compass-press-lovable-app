@@ -5,8 +5,6 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-const SEEN_KEY = "trenslate-welcome-seen";
-
 export function WelcomeAuthModal() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
@@ -17,15 +15,11 @@ export function WelcomeAuthModal() {
 
   useEffect(() => {
     if (loading || user) return;
-    try {
-      if (window.localStorage.getItem(SEEN_KEY)) return;
-    } catch {}
     const t = window.setTimeout(() => setOpen(true), 600);
     return () => window.clearTimeout(t);
   }, [user, loading]);
 
   const dismiss = () => {
-    try { window.localStorage.setItem(SEEN_KEY, "1"); } catch {}
     setOpen(false);
   };
 
