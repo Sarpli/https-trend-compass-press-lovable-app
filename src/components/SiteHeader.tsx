@@ -23,22 +23,22 @@ export function SiteHeader() {
     <header>
       <TickerBar />
       <div className="masthead-rule bg-background">
-        <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-3 items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 grid grid-cols-[auto_1fr_auto] md:grid-cols-3 items-center gap-2 md:gap-4">
           <div className="text-xs ui small-caps text-muted-foreground hidden md:block">
             {today} · Vol. I · No. 1
           </div>
-          <Link to="/" className="text-center">
-            <h1 className="display text-4xl md:text-6xl font-black tracking-tight leading-none">
+          <Link to="/" className="text-center min-w-0 md:col-auto">
+            <h1 className="display text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-none">
               Trenslate
             </h1>
-            <div className="text-[10px] ui small-caps mt-1 text-muted-foreground">
+            <div className="text-[9px] md:text-[10px] ui small-caps mt-1 text-muted-foreground">
               The Daily Edition of Internet Culture
             </div>
-            <div className="display italic text-sm md:text-base mt-2 text-foreground/80">
+            <div className="display italic text-xs md:text-base mt-1 md:mt-2 text-foreground/80">
               "Finally in the loop."
             </div>
           </Link>
-          <div className="flex justify-end gap-3 items-center text-sm ui">
+          <div className="flex justify-end gap-2 md:gap-3 items-center text-xs md:text-sm ui shrink-0">
             {isPro ? (
               <button
                 onClick={toggle}
