@@ -23,49 +23,100 @@ export function SiteHeader() {
     <header>
       <TickerBar />
       <div className="masthead-rule bg-background">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 grid grid-cols-3 items-center gap-2 md:gap-4">
-          <div className="text-xs ui small-caps text-muted-foreground hidden md:block">
-            {today} · Vol. I · No. 1
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5">
+          {/* Mobile layout */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center">
+                {isPro ? (
+                  <button
+                    onClick={toggle}
+                    aria-label="Toggle dark mode"
+                    title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
+                    className="p-1.5 rounded hover:bg-foreground/10 transition-colors"
+                  >
+                    {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  </button>
+                ) : user ? (
+                  <Link
+                    to="/pricing"
+                    aria-label="Dark mode is a Pro feature"
+                    title="Dark mode — Pro only"
+                    className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Lock className="w-4 h-4" />
+                  </Link>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2 text-xs ui">
+                {user ? (
+                  <>
+                    {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
+                    <Link to="/account" className="hover:underline">Account</Link>
+                  </>
+                ) : (
+                  <Link to="/auth" className="hover:underline small-caps text-xs">Sign in</Link>
+                )}
+              </div>
+            </div>
+            <Link to="/" className="block text-center">
+              <div className="text-[9px] ui small-caps text-muted-foreground">
+                The Daily Edition of Internet Culture
+              </div>
+              <h1 className="display text-4xl font-black tracking-tight leading-none mt-1">
+                Trenslate
+              </h1>
+              <div className="display italic text-xs mt-1 text-foreground/80">
+                "Finally in the loop."
+              </div>
+            </Link>
           </div>
-          <Link to="/" className="text-center min-w-0 md:col-auto">
-            <h1 className="display text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-none">
-              Trenslate
-            </h1>
-            <div className="text-[9px] md:text-[10px] ui small-caps mt-1 text-muted-foreground">
-              The Daily Edition of Internet Culture
+
+          {/* Desktop layout */}
+          <div className="hidden md:grid grid-cols-3 items-center gap-4">
+            <div className="text-xs ui small-caps text-muted-foreground">
+              {today} · Vol. I · No. 1
             </div>
-            <div className="display italic text-xs md:text-base mt-1 md:mt-2 text-foreground/80">
-              "Finally in the loop."
+            <Link to="/" className="text-center min-w-0">
+              <h1 className="display text-6xl font-black tracking-tight leading-none">
+                Trenslate
+              </h1>
+              <div className="text-[10px] ui small-caps mt-1 text-muted-foreground">
+                The Daily Edition of Internet Culture
+              </div>
+              <div className="display italic text-base mt-2 text-foreground/80">
+                "Finally in the loop."
+              </div>
+            </Link>
+            <div className="flex justify-end gap-3 items-center text-sm ui shrink-0">
+              {isPro ? (
+                <button
+                  onClick={toggle}
+                  aria-label="Toggle dark mode"
+                  title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
+                  className="p-1.5 rounded hover:bg-foreground/10 transition-colors"
+                >
+                  {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              ) : user ? (
+                <Link
+                  to="/pricing"
+                  aria-label="Dark mode is a Pro feature"
+                  title="Dark mode — Pro only"
+                  className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Lock className="w-4 h-4" />
+                </Link>
+              ) : null}
+              {user ? (
+                <>
+                  {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
+                  <Link to="/account" className="hover:underline">Account</Link>
+                </>
+              ) : (
+                <Link to="/auth" className="hover:underline small-caps text-xs">Sign in</Link>
+              )}
             </div>
-          </Link>
-          <div className="flex justify-end gap-2 md:gap-3 items-center text-xs md:text-sm ui shrink-0">
-            {isPro ? (
-              <button
-                onClick={toggle}
-                aria-label="Toggle dark mode"
-                title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
-                className="p-1.5 rounded hover:bg-foreground/10 transition-colors"
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-            ) : user ? (
-              <Link
-                to="/pricing"
-                aria-label="Dark mode is a Pro feature"
-                title="Dark mode — Pro only"
-                className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Lock className="w-4 h-4" />
-              </Link>
-            ) : null}
-            {user ? (
-              <>
-                {isPro && <span className="small-caps text-xs text-accent-red">Pro</span>}
-                <Link to="/account" className="hover:underline">Account</Link>
-              </>
-            ) : (
-              <Link to="/auth" className="hover:underline small-caps text-xs">Sign in</Link>
-            )}
           </div>
         </div>
         <nav className="border-t border-foreground/80 border-b border-foreground/30 bg-background">
