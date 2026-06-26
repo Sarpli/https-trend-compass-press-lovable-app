@@ -124,9 +124,19 @@ function TickerBarInner() {
     const hoverResume = (e: PointerEvent) => {
       if (e.pointerType === "mouse") resume();
     };
+    let docMove: ((e: MouseEvent) => void) | null = null;
     if (canHover) {
       scroller.addEventListener("pointerenter", hoverPause);
       scroller.addEventListener("pointerleave", hoverResume);
+      // Belt-and-suspenders: pointerleave can be missed if the cursor exits
+      // via the viewport edge or a fast flick. A document-level mousemove
+      // unambiguously tells us whether the pointer is currently over the
+      // scroller, so we resume the tape whenever it isn't.
+      docMove = (e: MouseEvent) => {
+        const target = e.target as Node | null;
+        if (!target || !scroller.contains(target)) resume();
+      };
+      document.addEventListener("mousemove", docMove);
     }
     // Active interaction always pauses, then resumes when the user lets go.
     scroller.addEventListener("pointerdown", pause);
@@ -159,6 +169,7 @@ function TickerBarInner() {
       if (canHover) {
         scroller.removeEventListener("pointerenter", hoverPause);
         scroller.removeEventListener("pointerleave", hoverResume);
+        if (docMove) document.removeEventListener("mousemove", docMove);
       }
       scroller.removeEventListener("pointerdown", pause);
       scroller.removeEventListener("pointerup", resume);
