@@ -91,6 +91,7 @@ function ChangePassword() {
   const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,10 +111,17 @@ function ChangePassword() {
   };
 
   return (
-    <section className="rule-top mt-10 pt-6">
-      <div className="text-xs ui small-caps text-accent-red mb-1">Security</div>
-      <h2 className="display text-2xl font-black mb-4">Change password</h2>
-      <form onSubmit={submit} className="space-y-3 max-w-md">
+    <div className="rule-top mt-10 pt-6 max-w-md">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between border border-ink/40 px-4 py-3 ui small-caps text-xs hover:bg-ink hover:text-newsprint transition-colors"
+      >
+        <span>Change password</span>
+        <span aria-hidden>{open ? "−" : "+"}</span>
+      </button>
+      {open && (
+      <form onSubmit={submit} className="space-y-3 mt-4">
         <div>
           <label className="ui small-caps text-xs block mb-1">New password</label>
           <input
@@ -137,6 +145,7 @@ function ChangePassword() {
           {busy ? "Updating..." : "Update password"}
         </button>
       </form>
-    </section>
+      )}
+    </div>
   );
 }
