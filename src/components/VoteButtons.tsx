@@ -146,26 +146,26 @@ export function VoteButtons({ trendId, category, compact }: Props) {
   };
 
   return (
-    <div className={cn("inline-flex items-center gap-1 ui", compact ? "text-xs" : "text-sm")}>
+    <div className={cn("inline-flex items-center gap-1.5 ui", compact ? "text-xs" : "text-sm")}>
       <button
         onClick={() => handle("up")}
         className={cn(
-          "px-1.5 py-0.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
+          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors active:scale-95",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
       >
-        <ChevronUp className="w-3.5 h-3.5" />
+        <ChevronUp className="w-6 h-6" strokeWidth={2.5} />
       </button>
       <button
         onClick={() => handle("down")}
         className={cn(
-          "px-1.5 py-0.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
+          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors active:scale-95",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
       >
-        <ChevronDown className="w-3.5 h-3.5" />
+        <ChevronDown className="w-6 h-6" strokeWidth={2.5} />
       </button>
     </div>
   );
