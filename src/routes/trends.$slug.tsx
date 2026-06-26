@@ -6,7 +6,7 @@ import { CATEGORY_LABEL } from "@/lib/period";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ShieldAlert } from "lucide-react";
-import { trendImage } from "@/lib/trend-image";
+import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
 
 export const Route = createFileRoute("/trends/$slug")({
@@ -98,9 +98,13 @@ function TrendPage() {
         Trend Entry · {trend.category}
       </div>
       <h1 className="display text-5xl md:text-7xl font-black leading-[0.95] mb-4">{trend.term}</h1>
-      <img
-        src={trendImage(trend, 1400, 800)}
-        alt={trend.term}
+      <TrendCover
+        trend={trend}
+        width={1400}
+        height={800}
+        eager
+        fetchpriority="high"
+        sizes="(min-width: 1024px) 900px, 100vw"
         className="w-full aspect-[16/9] object-cover grayscale-[15%] mb-5 border border-ink/20"
       />
       <p className="text-xl leading-relaxed mb-6">{trend.plain_language}</p>

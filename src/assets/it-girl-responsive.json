@@ -1,0 +1,17 @@
+{
+  "avif": {
+    "240": "/__l5e/assets-v1/4955f762-a77f-4ba1-9657-5b70447a072e/it-girl-240.avif",
+    "360": "/__l5e/assets-v1/47c76ef1-7056-46f6-856c-80f62a586b11/it-girl-360.avif",
+    "480": "/__l5e/assets-v1/6273ee32-0caa-4507-9af6-027e0857d7ba/it-girl-480.avif"
+  },
+  "webp": {
+    "240": "/__l5e/assets-v1/4c30c542-48ca-402d-8b0b-701f2cff8d65/it-girl-240.webp",
+    "360": "/__l5e/assets-v1/10acca6e-4bde-41ff-9ab3-b9401c28ab37/it-girl-360.webp",
+    "480": "/__l5e/assets-v1/da4e771b-d91a-474a-93fb-866931b62eaf/it-girl-480.webp"
+  },
+  "jpg": {
+    "240": "/__l5e/assets-v1/1abc4ff2-c40f-49c7-9c2e-2086b2303837/it-girl-240.jpg",
+    "360": "/__l5e/assets-v1/b63b051a-9b3c-4569-9129-1b452032196c/it-girl-360.jpg",
+    "480": "/__l5e/assets-v1/348fa4d7-6cda-417a-bd15-704dc5870168/it-girl-480.jpg"
+  }
+}

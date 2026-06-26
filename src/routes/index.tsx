@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
-import { trendImage } from "@/lib/trend-image";
+import { TrendCover } from "@/components/TrendCover";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -192,10 +192,13 @@ function Index() {
           {featured ? (
             <article className="rule-bottom pb-8">
               <Link to="/trends/$slug" params={{ slug: featured.slug }}>
-                <img
-                  src={trendImage(featured, 1200, 700)}
-                  alt={featured.term}
-                  loading="eager"
+                <TrendCover
+                  trend={featured}
+                  width={1200}
+                  height={700}
+                  eager
+                  fetchpriority="high"
+                  sizes="(min-width: 1024px) 800px, 100vw"
                   className="w-full aspect-[16/9] object-cover grayscale-[20%] mb-4 border border-ink/20"
                 />
                 <h2 className="display text-5xl md:text-6xl font-black leading-[0.95] mb-4 hover:text-accent-red transition-colors">
@@ -231,10 +234,11 @@ function Index() {
               <article key={s.id} className="rule-top pt-3">
                 <div className="text-[9px] ui small-caps text-accent-red mb-1">{s.category}</div>
                 <Link to="/trends/$slug" params={{ slug: s.slug }}>
-                  <img
-                    src={trendImage(s, 400, 240)}
-                    alt={s.term}
-                    loading="lazy"
+                  <TrendCover
+                    trend={s}
+                    width={400}
+                    height={240}
+                    sizes="(min-width: 1024px) 400px, 50vw"
                     className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
                   />
                   <h3 className="display text-base sm:text-lg font-bold leading-tight hover:text-accent-red transition-colors">
