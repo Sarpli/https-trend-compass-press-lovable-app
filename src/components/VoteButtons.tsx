@@ -150,7 +150,7 @@ export function VoteButtons({ trendId, category, compact }: Props) {
       <button
         onClick={() => handle("up")}
         className={cn(
-          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors active:scale-95",
+          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
@@ -160,7 +160,7 @@ export function VoteButtons({ trendId, category, compact }: Props) {
       <button
         onClick={() => handle("down")}
         className={cn(
-          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors active:scale-95",
+          "px-2.5 py-1.5 border border-ink/30 hover:bg-ink hover:text-newsprint transition-colors",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
