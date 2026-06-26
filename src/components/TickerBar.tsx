@@ -104,12 +104,20 @@ function TickerBarInner() {
     const pause = () => { pausedRef.current = true; };
     const resume = () => { pausedRef.current = false; last = performance.now(); };
     // Keep the loop seamless when the user scrolls past the seam manually.
+    // The auto-scroller writes scrollLeft every frame, so this fires ~60fps —
+    // persist to sessionStorage on a throttle to avoid synchronous storage
+    // writes on every frame (a known cause of desktop ticker jank).
+    let lastSave = 0;
     const onScroll = () => {
       const half = track.scrollWidth / 2;
       if (half <= 0) return;
       if (scroller.scrollLeft >= half) scroller.scrollLeft -= half;
       else if (scroller.scrollLeft < 0) scroller.scrollLeft += half;
-      try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
+      const now = performance.now();
+      if (now - lastSave > 500) {
+        lastSave = now;
+        try { sessionStorage.setItem(STORAGE_KEY, String(scroller.scrollLeft)); } catch {}
+      }
     };
     // Hover-pause only for devices with a true hover (desktop mice/trackpads).
     // Touchscreens fire pointerenter on tap and often skip pointerleave, which
@@ -124,19 +132,13 @@ function TickerBarInner() {
     const hoverResume = (e: PointerEvent) => {
       if (e.pointerType === "mouse") resume();
     };
-    let docMove: ((e: MouseEvent) => void) | null = null;
     if (canHover) {
       scroller.addEventListener("pointerenter", hoverPause);
       scroller.addEventListener("pointerleave", hoverResume);
-      // Belt-and-suspenders: pointerleave can be missed if the cursor exits
-      // via the viewport edge or a fast flick. A document-level mousemove
-      // unambiguously tells us whether the pointer is currently over the
-      // scroller, so we resume the tape whenever it isn't.
-      docMove = (e: MouseEvent) => {
-        const target = e.target as Node | null;
-        if (!target || !scroller.contains(target)) resume();
-      };
-      document.addEventListener("mousemove", docMove);
+      // Safety net for the rare missed pointerleave (cursor exiting via the
+      // viewport edge). `mouseleave` on the scroller itself doesn't bubble,
+      // so it's cheap and only fires when the cursor actually leaves.
+      scroller.addEventListener("mouseleave", resume);
     }
     // Active interaction always pauses, then resumes when the user lets go.
     scroller.addEventListener("pointerdown", pause);
@@ -169,7 +171,7 @@ function TickerBarInner() {
       if (canHover) {
         scroller.removeEventListener("pointerenter", hoverPause);
         scroller.removeEventListener("pointerleave", hoverResume);
-        if (docMove) document.removeEventListener("mousemove", docMove);
+        scroller.removeEventListener("mouseleave", resume);
       }
       scroller.removeEventListener("pointerdown", pause);
       scroller.removeEventListener("pointerup", resume);
