@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
+import { CategoryChart } from "@/components/CategoryChart";
 import { CATEGORY_LABEL, currentPeriodKey } from "@/lib/period";
 import { useAuth } from "@/lib/auth";
 import { Lock } from "lucide-react";
@@ -73,6 +74,7 @@ function Board({ category, locked }: { category: Cat; locked: boolean }) {
           </span>
         )}
       </div>
+      <CategoryChart category={category} periodKey={periodKey} />
       <ol className="space-y-2">
         {rows.map((t, i) => (
           <li key={t.id} className="flex items-center gap-3 rule-bottom pb-2">
