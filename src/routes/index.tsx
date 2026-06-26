@@ -56,6 +56,15 @@ function Index() {
         (a, b) => slugs.indexOf(a.slug) - slugs.indexOf(b.slug),
       );
       if (pool.length === 0) return null;
+      // Editorial overrides — pin specific local dates to a chosen trend.
+      const PINNED: Record<string, string> = {
+        [localDateKey]: "67",
+      };
+      const pinSlug = PINNED[localDateKey];
+      if (pinSlug) {
+        const pinned = pool.find((p) => p.slug === pinSlug);
+        if (pinned) return pinned;
+      }
       let h = 2166136261;
       for (let i = 0; i < localDateKey.length; i++) {
         h ^= localDateKey.charCodeAt(i);
