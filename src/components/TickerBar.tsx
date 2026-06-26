@@ -133,7 +133,8 @@ function TickerBarInner() {
       // so it's cheap and only fires when the cursor actually leaves.
       scroller.addEventListener("mouseleave", resume);
     }
-    // Active drag interaction always pauses, then resumes when the user lets go.
+    // Drag-to-scrub and wheel-scrub are touch-only. On desktop the ticker is
+    // strictly auto-scroll with hover-pause — no user scrolling on the bar.
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
@@ -160,32 +161,13 @@ function TickerBarInner() {
       e.stopPropagation();
       pointerRef.current.moved = false;
     };
-    scroller.addEventListener("pointerdown", onPointerDown);
-    scroller.addEventListener("pointermove", onPointerMove);
-    scroller.addEventListener("pointerup", endPointer);
-    scroller.addEventListener("pointercancel", endPointer);
-    scroller.addEventListener("click", preventDraggedClick, true);
-    // Desktop: let a two-finger trackpad drag (or mouse wheel) scrub the tape.
-    // Translate vertical wheel delta into horizontal scroll when it's the
-    // dominant axis, and pause auto-scroll while the user is gesturing.
-    let wheelIdle = 0;
-    const onWheel = (e: WheelEvent) => {
-      const dx = e.deltaX;
-      const dy = e.deltaY;
-      const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
-      if (delta === 0) return;
-      e.preventDefault();
-      pausedRef.current = true;
-      offsetRef.current = normalize(offsetRef.current + delta);
-      render();
-      window.clearTimeout(wheelIdle);
-      wheelIdle = window.setTimeout(() => {
-        savePosition();
-        pausedRef.current = false;
-        last = performance.now();
-      }, 400);
-    };
-    scroller.addEventListener("wheel", onWheel, { passive: false });
+    if (!canHover) {
+      scroller.addEventListener("pointerdown", onPointerDown);
+      scroller.addEventListener("pointermove", onPointerMove);
+      scroller.addEventListener("pointerup", endPointer);
+      scroller.addEventListener("pointercancel", endPointer);
+      scroller.addEventListener("click", preventDraggedClick, true);
+    }
     return () => {
       cancelAnimationFrame(raf);
       if (canHover) {
@@ -194,13 +176,13 @@ function TickerBarInner() {
         scroller.removeEventListener("mouseleave", resume);
       }
       savePosition();
-      scroller.removeEventListener("pointerdown", onPointerDown);
-      scroller.removeEventListener("pointermove", onPointerMove);
-      scroller.removeEventListener("pointerup", endPointer);
-      scroller.removeEventListener("pointercancel", endPointer);
-      scroller.removeEventListener("click", preventDraggedClick, true);
-      scroller.removeEventListener("wheel", onWheel);
-      window.clearTimeout(wheelIdle);
+      if (!canHover) {
+        scroller.removeEventListener("pointerdown", onPointerDown);
+        scroller.removeEventListener("pointermove", onPointerMove);
+        scroller.removeEventListener("pointerup", endPointer);
+        scroller.removeEventListener("pointercancel", endPointer);
+        scroller.removeEventListener("click", preventDraggedClick, true);
+      }
     };
   }, [rows.length]);
 
