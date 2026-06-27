@@ -309,7 +309,7 @@ function TickerBarInner() {
                   />
                   {isUp && <ArrowUp className="w-3 h-3 text-ticker-up" />}
                   {isDown && <ArrowDown className="w-3 h-3 text-ticker-down" />}
-                  {dir === "flat" && <span className="text-newsprint/40">—</span>}
+                  {/* no flat state — sparkline defaults to up-static until seeded */}
                   {flashing && (
                     <span className={`tabular-nums text-[10px] ${isUp ? "text-ticker-up" : "text-ticker-down"}`}>
                       {delta > 0 ? "+" : ""}{delta.toFixed(0)}
