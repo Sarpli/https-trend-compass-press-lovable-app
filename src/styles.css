@@ -132,6 +132,7 @@
   --ticker-up: oklch(0.50 0.14 150);
   --ticker-down: oklch(0.52 0.20 28);
   --accent-red: oklch(0.46 0.18 28);    /* oxblood — refined, less neon */
+  --brass: oklch(0.55 0.07 75);         /* muted brass for light mode */
   --background: var(--newsprint);
   --foreground: var(--ink);
   --card: oklch(0.99 0.008 85);         /* near-white with a paper warmth */
