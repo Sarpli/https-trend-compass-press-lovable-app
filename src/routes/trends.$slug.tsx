@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ShieldAlert } from "lucide-react";
 import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
+import { LivePriceBar } from "@/components/LivePriceBar";
 
 export const Route = createFileRoute("/trends/$slug")({
   loader: async ({ params }) => {
@@ -132,6 +133,7 @@ function TrendPage() {
       </div>
 
       <div className="my-6">
+        <LivePriceBar trendId={trend.id} term={trend.term} basePrice={Number(trend.base_price)} />
         <PriceChart trendId={trend.id} basePrice={Number(trend.base_price)} />
       </div>
 

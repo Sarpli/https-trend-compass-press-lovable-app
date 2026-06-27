@@ -60,14 +60,12 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   const toX = (t: number) => padX + ((t - xMin) / xRange) * innerW;
   const toY = (v: number) => padY + (1 - (v - yLo) / yRange) * innerH;
 
-  // Stepped line — feels like a stock chart with discrete vote events.
+  // Continuous line — straight segments between points, like a real stock chart.
   const path = points
     .map((p, i) => {
       const x = toX(new Date(p.t).getTime());
       const y = toY(p.price);
-      if (i === 0) return `M${x.toFixed(2)},${y.toFixed(2)}`;
-      const prevY = toY(points[i - 1].price);
-      return `L${x.toFixed(2)},${prevY.toFixed(2)} L${x.toFixed(2)},${y.toFixed(2)}`;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(" ");
 
@@ -103,11 +101,12 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     const svgX = fracX * w;
     // Convert svgX back to a timestamp using the same linear mapping toX uses.
     const t = xMin + ((svgX - padX) / innerW) * xRange;
-    // Stepped chart: pick the last point with t <= cursor t.
+    // Nearest point to the cursor.
     let idx = 0;
+    let bestDiff = Infinity;
     for (let i = 0; i < xs.length; i++) {
-      if (xs[i] <= t) idx = i;
-      else break;
+      const d = Math.abs(xs[i] - t);
+      if (d < bestDiff) { bestDiff = d; idx = i; }
     }
     const pointXPx = (toX(xs[idx]) / w) * rect.width;
     const pointYPx = (toY(points[idx].price) / h) * rect.height;
