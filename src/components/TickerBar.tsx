@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Row = {
   trend_id: string;
@@ -25,36 +24,6 @@ export function TickerBar() {
   return <TickerBarInner />;
 }
 
-function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: boolean }) {
-  const w = 40;
-  const h = 14;
-  if (points.length < 2) {
-    return <svg width={w} height={h} className="opacity-40"><line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth={1} /></svg>;
-  }
-  const min = Math.min(...points);
-  const max = Math.max(...points);
-  const range = max - min || 1;
-  const step = w / (points.length - 1);
-  const d = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(2)},${(h - ((p - min) / range) * h).toFixed(2)}`)
-    .join(" ");
-  const stroke = up ? "var(--ticker-up)" : down ? "var(--ticker-down)" : "currentColor";
-  const fillId = `spk-${Math.random().toString(36).slice(2, 9)}`;
-  const area = `${d} L${w},${h} L0,${h} Z`;
-  return (
-    <svg width={w} height={h} className="overflow-visible">
-      <defs>
-        <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0.42" />
-          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={area} fill={`url(#${fillId})`} />
-      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function TickerBarInner() {
   const qc = useQueryClient();
   const { data: rows = [] } = useQuery({
@@ -64,8 +33,7 @@ function TickerBarInner() {
     refetchOnWindowFocus: true,
   });
   const prevRef = useRef<Record<string, number>>({});
-  const [deltas, setDeltas] = useState<Record<string, number>>({});
-  const [history, setHistory] = useState<Record<string, number[]>>({});
+  const [pcts, setPcts] = useState<Record<string, number>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
@@ -201,70 +169,22 @@ function TickerBarInner() {
     return () => { supabase.removeChannel(ch); };
   }, [qc]);
 
-  // Track per-trend price deltas so we can flash arrows green/red on change.
+  // Track per-trend percentage change so each item reads like a stock ticker.
   useEffect(() => {
     if (rows.length === 0) return;
     const next: Record<string, number> = {};
-    const changed: Record<string, number> = {};
+    const nextPcts: Record<string, number> = {};
     rows.forEach((r) => {
       next[r.trend_id] = r.price;
       const last = prevRef.current[r.trend_id];
-      if (last !== undefined && last !== r.price) changed[r.trend_id] = r.price - last;
+      if (last !== undefined && last !== 0) {
+        nextPcts[r.trend_id] = ((r.price - last) / last) * 100;
+      } else {
+        nextPcts[r.trend_id] = 0;
+      }
     });
     prevRef.current = next;
-    setHistory((h) => {
-      const copy = { ...h };
-      rows.forEach((r) => {
-        const arr = copy[r.trend_id] ? [...copy[r.trend_id]] : [];
-        if (arr.length === 0 || arr[arr.length - 1] !== r.price) arr.push(r.price);
-        if (arr.length > 24) arr.splice(0, arr.length - 24);
-        copy[r.trend_id] = arr;
-      });
-      return copy;
-    });
-    if (Object.keys(changed).length > 0) {
-      setDeltas((d) => ({ ...d, ...changed }));
-      const id = setTimeout(() => {
-        setDeltas((d) => {
-          const copy = { ...d };
-          Object.keys(changed).forEach((k) => delete copy[k]);
-          return copy;
-        });
-      }, 2500);
-      return () => clearTimeout(id);
-    }
-  }, [rows]);
-
-  // Seed each ticker item's sparkline with the tail of its real Price History
-  // so cards show a unique stock graph immediately instead of a flat line.
-  const seededRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (rows.length === 0) return;
-    const toFetch = rows.filter((r) => !seededRef.current.has(r.trend_id));
-    if (toFetch.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      const results = await Promise.all(
-        toFetch.map(async (r) => {
-          seededRef.current.add(r.trend_id);
-          const { data } = await supabase.rpc("get_trend_price_history", { _trend_id: r.trend_id });
-          const pts = ((data ?? []) as { price: number }[])
-            .map((p) => Number(p.price))
-            .filter((n) => Number.isFinite(n))
-            .slice(-24);
-          return [r.trend_id, pts] as const;
-        }),
-      );
-      if (cancelled) return;
-      setHistory((h) => {
-        const copy = { ...h };
-        for (const [id, pts] of results) {
-          if (pts.length > 1) copy[id] = pts;
-        }
-        return copy;
-      });
-    })();
-    return () => { cancelled = true; };
+    setPcts(nextPcts);
   }, [rows]);
 
   if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8" />;
@@ -284,47 +204,22 @@ function TickerBarInner() {
         >
           <div ref={trackRef} className="inline-flex gap-6 sm:gap-8 py-1 sm:py-1.5 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
-              const delta = deltas[r.trend_id] ?? 0;
-              const series = history[r.trend_id] ?? [r.price];
-              // Compare the latest seeded price to the start of the seeded
-              // tail (i.e. the chart segment shown in the sparkline) so the
-              // ticker color matches what the user actually sees.
-              const seriesUp = series.length > 1 && series[series.length - 1] >= series[0];
-              // Until the price-history tail has been fetched, default to a
-              // neutral "up" appearance instead of falling back to net_votes,
-              // which often disagrees with the actual chart trend.
-              const dir = delta > 0 ? "up" : delta < 0 ? "down" :
-                series.length > 1 ? (seriesUp ? "up-static" : "down-static") :
-                "up-static";
-              const flashing = delta !== 0;
-              const isUp = dir === "up" || dir === "up-static";
-              const isDown = dir === "down" || dir === "down-static";
-              // Sleek: no colored border/background. Color lives only in the
-              // sparkline + arrow + delta text.
+              const pct = pcts[r.trend_id] ?? 0;
+              const isUp = pct > 0;
+              const isDown = pct < 0;
               return (
                 <Link
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
                   className={`inline-flex items-center gap-1.5 mx-0.5 sm:mx-1.5 px-1 py-0.5 rounded-md transition-colors hover:bg-newsprint/5 ${
-                    flashing ? (isUp ? "text-ticker-up" : "text-ticker-down") : "hover:text-accent-red"
+                    isUp ? "text-ticker-up" : isDown ? "text-ticker-down" : "hover:text-accent-red"
                   }`}
                 >
-                  <span className="small-caps font-bold tracking-wider">{r.term}</span>
-                  <span className="tabular-nums">{r.price.toFixed(0)}</span>
-                  <Sparkline
-                    points={series}
-                    up={isUp}
-                    down={isDown}
-                  />
-                  {isUp && <ArrowUp className="w-3 h-3 text-ticker-up" />}
-                  {isDown && <ArrowDown className="w-3 h-3 text-ticker-down" />}
-                  {/* no flat state — sparkline defaults to up-static until seeded */}
-                  {flashing && (
-                    <span className={`tabular-nums text-[10px] ${isUp ? "text-ticker-up" : "text-ticker-down"}`}>
-                      {delta > 0 ? "+" : ""}{delta.toFixed(0)}
-                    </span>
-                  )}
+                  <span className="small-caps font-bold tracking-wider uppercase">{r.term}</span>
+                  <span className="tabular-nums text-[10px] sm:text-xs">
+                    {isUp ? "+" : ""}{pct.toFixed(2)}%
+                  </span>
                 </Link>
               );
             })}
