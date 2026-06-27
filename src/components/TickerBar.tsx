@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowDown, ArrowUp, Hand } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Row = {
   trend_id: string;
@@ -66,7 +66,6 @@ function TickerBarInner() {
   const prevRef = useRef<Record<string, number>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [history, setHistory] = useState<Record<string, number[]>>({});
-  const [isScrubbing, setIsScrubbing] = useState(false);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
@@ -129,7 +128,6 @@ function TickerBarInner() {
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
       pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
-      setIsScrubbing(true);
       pause();
       scroller.setPointerCapture?.(e.pointerId);
     };
@@ -144,7 +142,6 @@ function TickerBarInner() {
     const endPointer = (e: PointerEvent) => {
       if (!pointerRef.current.active) return;
       pointerRef.current.active = false;
-      setIsScrubbing(false);
       scroller.releasePointerCapture?.(e.pointerId);
       savePosition();
       resume();
@@ -329,19 +326,6 @@ function TickerBarInner() {
           </div>
         </div>
       </div>
-      {isScrubbing && (
-        <div
-          className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-5 pr-2 pointer-events-none transition-opacity duration-200"
-          style={{
-            background: "linear-gradient(90deg, transparent 0%, var(--ink) 55%, var(--ink) 100%)",
-          }}
-        >
-          <div className="flex items-center gap-1 px-2 py-1 rounded bg-accent-red text-accent-foreground font-bold text-[10px] small-caps shadow-lg">
-            <Hand className="w-3 h-3" />
-            <span>Scrub</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
