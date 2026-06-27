@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { dailyDriftPct } from "@/lib/daily-drift";
 
@@ -7,6 +7,7 @@ type Point = { t: string; price: number };
 
 export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const qc = useQueryClient();
   const [hover, setHover] = useState<{
     idx: number;
     xPx: number;
@@ -22,6 +23,22 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     },
     refetchInterval: 10000,
   });
+
+  // Live updates: refetch this trend's price history whenever any vote lands.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`price-chart-${trendId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["trend-history", trendId] });
+          qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [trendId, qc]);
 
   // The RPC always returns a synthetic first point at Jan 1 of the term's
   // creation year (price = base_price), so we just use the series as-is.
