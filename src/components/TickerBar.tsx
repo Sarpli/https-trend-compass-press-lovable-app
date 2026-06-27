@@ -26,8 +26,8 @@ export function TickerBar() {
 }
 
 function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: boolean }) {
-  const w = 64;
-  const h = 22;
+  const w = 40;
+  const h = 14;
   if (points.length < 2) {
     return <svg width={w} height={h} className="opacity-40"><line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth={1} /></svg>;
   }
@@ -45,12 +45,12 @@ function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: 
     <svg width={w} height={h} className="overflow-visible">
       <defs>
         <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0.45" />
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.42" />
           <stop offset="100%" stopColor={stroke} stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${fillId})`} />
-      <path d={d} fill="none" stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   );
 }
