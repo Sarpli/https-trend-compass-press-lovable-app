@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowDown, ArrowUp, Hand } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 type Row = {
   trend_id: string;
