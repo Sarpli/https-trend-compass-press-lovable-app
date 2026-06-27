@@ -233,7 +233,7 @@ function TickerBarInner() {
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider uppercase">{r.term}</span>
-                  <span className="tabular-nums text-sm sm:text-base">
+                  <span className="tabular-nums text-xs sm:text-sm">
                     {isUp ? "+" : ""}{pct.toFixed(2)}%
                   </span>
                 </Link>
