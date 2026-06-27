@@ -122,12 +122,9 @@ function TickerBarInner() {
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
     const resume = () => { pausedRef.current = false; last = performance.now(); };
-    // Per spec: the tape must never stop scrolling. No hover-pause on any
-    // device — desktop and touch both run continuously like Apple's Stocks
-    // ticker. Pause is reserved for active drag-scrubbing on touch.
-    const canHover = false;
-    // Drag-to-scrub is touch/pen only (mobile + iPad). Desktop mouse is
-    // strictly auto-scroll — no user scrubbing on the bar.
+    // Desktop: pause on hover so the mouse can read items. Mobile/touch:
+    // auto-scroll continues and users can drag-to-scrub the tape.
+    const canHover = true;
     const SCRUB_MULTIPLIER = 1.7; // looser scroll: 1 px finger drag = 1.7 px tape
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
@@ -158,22 +155,28 @@ function TickerBarInner() {
       e.stopPropagation();
       pointerRef.current.moved = false;
     };
-    if (!canHover) {
-      scroller.addEventListener("pointerdown", onPointerDown);
-      scroller.addEventListener("pointermove", onPointerMove);
-      scroller.addEventListener("pointerup", endPointer);
-      scroller.addEventListener("pointercancel", endPointer);
-      scroller.addEventListener("click", preventDraggedClick, true);
+    const onMouseEnter = () => { pause(); };
+    const onMouseLeave = () => { resume(); };
+    scroller.addEventListener("pointerdown", onPointerDown);
+    scroller.addEventListener("pointermove", onPointerMove);
+    scroller.addEventListener("pointerup", endPointer);
+    scroller.addEventListener("pointercancel", endPointer);
+    scroller.addEventListener("click", preventDraggedClick, true);
+    if (canHover) {
+      scroller.addEventListener("mouseenter", onMouseEnter);
+      scroller.addEventListener("mouseleave", onMouseLeave);
     }
     return () => {
       cancelAnimationFrame(raf);
       savePosition();
-      if (!canHover) {
-        scroller.removeEventListener("pointerdown", onPointerDown);
-        scroller.removeEventListener("pointermove", onPointerMove);
-        scroller.removeEventListener("pointerup", endPointer);
-        scroller.removeEventListener("pointercancel", endPointer);
-        scroller.removeEventListener("click", preventDraggedClick, true);
+      scroller.removeEventListener("pointerdown", onPointerDown);
+      scroller.removeEventListener("pointermove", onPointerMove);
+      scroller.removeEventListener("pointerup", endPointer);
+      scroller.removeEventListener("pointercancel", endPointer);
+      scroller.removeEventListener("click", preventDraggedClick, true);
+      if (canHover) {
+        scroller.removeEventListener("mouseenter", onMouseEnter);
+        scroller.removeEventListener("mouseleave", onMouseLeave);
       }
     };
   }, [rows.length]);
