@@ -112,6 +112,7 @@
   --color-ticker-up: var(--ticker-up);
   --color-ticker-down: var(--ticker-down);
   --color-accent-red: var(--accent-red);
+  --color-brass: var(--brass);
   --font-display: "Playfair Display", "Times New Roman", serif;
   --font-serif: "Source Serif 4", Georgia, serif;
   --font-sans: "Inter", system-ui, sans-serif;
@@ -131,6 +132,7 @@
   --ticker-up: oklch(0.50 0.14 150);
   --ticker-down: oklch(0.52 0.20 28);
   --accent-red: oklch(0.46 0.18 28);    /* oxblood — refined, less neon */
+  --brass: oklch(0.55 0.07 75);         /* muted brass for light mode */
   --background: var(--newsprint);
   --foreground: var(--ink);
   --card: oklch(0.99 0.008 85);         /* near-white with a paper warmth */
@@ -167,35 +169,36 @@
 
 .dark {
   /*
-   * "After Hours" edition — inspired by the FT's nighttime palette.
-   * Warm sepia-tinted near-black background like newsprint under a desk lamp,
-   * soft parchment foreground, brighter accent red, gold-tinged rule lines.
+   * "After Hours" — Midnight Newsprint edition.
+   * Cool near-black surfaces, soft cream ink, muted brass accent,
+   * rose-red live indicator, hair-thin white rule lines.
    */
-  --ink: oklch(0.93 0.025 80);          /* parchment cream — primary text */
-  --newsprint: oklch(0.18 0.012 60);    /* warm charcoal — page surface */
-  --rule: oklch(0.55 0.04 75);          /* aged gold rule */
-  --ticker-up: oklch(0.74 0.17 145);
-  --ticker-down: oklch(0.70 0.18 25);
-  --accent-red: oklch(0.66 0.21 25);
-  --background: oklch(0.16 0.012 60);
+  --ink: oklch(0.92 0.004 260);         /* #e2e2e2 — soft paper white */
+  --newsprint: oklch(0.14 0.005 265);   /* #0f1115 — page surface */
+  --rule: oklch(1 0 0 / 12%);           /* hair-thin white rule */
+  --ticker-up: oklch(0.74 0.17 152);
+  --ticker-down: oklch(0.67 0.22 18);
+  --accent-red: oklch(0.62 0.23 18);    /* rose-600 live indicator */
+  --brass: oklch(0.68 0.06 75);         /* #a88d6c — muted brass accent */
+  --background: oklch(0.10 0.004 260);  /* #0a0b0d — outer page */
   --foreground: var(--ink);
-  --card: oklch(0.21 0.014 60);
+  --card: oklch(0.14 0.005 265);
   --card-foreground: var(--ink);
-  --popover: oklch(0.21 0.014 60);
+  --popover: oklch(0.16 0.005 265);
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--newsprint);
-  --secondary: oklch(0.25 0.013 60);
+  --secondary: oklch(0.19 0.005 265);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.24 0.012 60);
-  --muted-foreground: oklch(0.70 0.03 75);
-  --accent: var(--accent-red);
+  --muted: oklch(0.18 0.005 265);
+  --muted-foreground: oklch(0.68 0.01 260);
+  --accent: var(--brass);
   --accent-foreground: oklch(0.98 0.01 80);
   --destructive: var(--ticker-down);
   --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.75 0.04 75 / 22%);
-  --input: oklch(0.75 0.04 75 / 28%);
-  --ring: oklch(0.66 0.21 25);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.06 75);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
