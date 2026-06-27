@@ -264,9 +264,8 @@ function TickerBarInner() {
   return (
     <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
       <div className="flex items-stretch">
-        <div className="px-2 py-1 sm:px-3 sm:py-1.5 small-caps bg-newsprint/10 backdrop-blur-md text-newsprint flex items-center font-bold text-[9px] sm:text-xs shrink-0 border-r border-newsprint/15">
-          <span className="sm:hidden">Live</span>
-          <span className="hidden sm:inline">Live · Trend Tape</span>
+        <div className="w-9 h-9 sm:w-11 sm:h-11 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-[10px] sm:text-xs shrink-0 border-r border-newsprint/15">
+          Live
         </div>
         <div
           ref={scrollerRef}
