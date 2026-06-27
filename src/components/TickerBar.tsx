@@ -257,14 +257,14 @@ function TickerBarInner() {
     return () => { cancelled = true; };
   }, [rows]);
 
-  if (rows.length === 0) return <div className="glass-dark glass-sheen text-newsprint h-8" />;
+  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8" />;
 
   const items = [...rows, ...rows]; // duplicate for seamless scroll
 
   return (
-    <div className="glass-dark glass-sheen text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
+    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
       <div className="flex items-stretch">
-        <div className="px-2 py-1 sm:px-3 sm:py-2 small-caps bg-accent-red/90 backdrop-blur-md text-accent-foreground flex items-center font-bold text-[9px] sm:text-xs shrink-0 border-r border-newsprint/15">
+        <div className="px-2 py-1 sm:px-3 sm:py-1.5 small-caps bg-accent-red/90 backdrop-blur-md text-accent-foreground flex items-center font-bold text-[9px] sm:text-xs shrink-0 border-r border-newsprint/15">
           <span className="sm:hidden">Live</span>
           <span className="hidden sm:inline">Live · Trend Tape</span>
         </div>
@@ -273,7 +273,7 @@ function TickerBarInner() {
           className="flex-1 relative ticker-scroller"
           style={{ overflow: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
-          <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap will-change-transform">
+          <div ref={trackRef} className="inline-flex gap-6 sm:gap-8 py-1 sm:py-1.5 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
               const series = history[r.trend_id] ?? [r.price];
