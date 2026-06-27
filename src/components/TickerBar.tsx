@@ -298,33 +298,42 @@ function TickerBarInner() {
           <div ref={trackRef} className="inline-flex gap-10 py-1 sm:py-2 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
-              const dir = delta > 0 ? "up" : delta < 0 ? "down" : r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
+              const series = history[r.trend_id] ?? [r.price];
+              const seriesUp = series.length > 1 && series[series.length - 1] >= series[0];
+              const dir = delta > 0 ? "up" : delta < 0 ? "down" :
+                series.length > 1 ? (seriesUp ? "up-static" : "down-static") :
+                r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
               const flashing = delta !== 0;
+              const isUp = dir === "up" || dir === "up-static";
+              const isDown = dir === "down" || dir === "down-static";
+              const tint = isUp
+                ? "bg-[color:var(--ticker-up)]/10 border-[color:var(--ticker-up)]/40"
+                : isDown
+                ? "bg-[color:var(--ticker-down)]/10 border-[color:var(--ticker-down)]/40"
+                : "bg-newsprint/5 border-newsprint/20";
               return (
                 <Link
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-1.5 sm:gap-2 mx-2 sm:mx-4 transition-colors ${
+                  className={`inline-flex items-center gap-2 mx-1 sm:mx-2 px-2 py-1 border rounded-sm transition-colors ${tint} ${
                     flashing
-                      ? dir === "up"
-                        ? "text-ticker-up"
-                        : "text-ticker-down"
+                      ? isUp ? "text-ticker-up" : "text-ticker-down"
                       : "hover:text-accent-red"
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider">{r.term}</span>
                   <span className="tabular-nums">{r.price.toFixed(0)}</span>
                   <Sparkline
-                    points={history[r.trend_id] ?? [r.price]}
-                    up={dir === "up" || dir === "up-static"}
-                    down={dir === "down" || dir === "down-static"}
+                    points={series}
+                    up={isUp}
+                    down={isDown}
                   />
-                  {(dir === "up" || dir === "up-static") && <ArrowUp className="w-3 h-3 text-ticker-up" />}
-                  {(dir === "down" || dir === "down-static") && <ArrowDown className="w-3 h-3 text-ticker-down" />}
+                  {isUp && <ArrowUp className="w-3 h-3 text-ticker-up" />}
+                  {isDown && <ArrowDown className="w-3 h-3 text-ticker-down" />}
                   {dir === "flat" && <span className="text-newsprint/40">—</span>}
                   {flashing && (
-                    <span className={`tabular-nums text-[10px] ${dir === "up" ? "text-ticker-up" : "text-ticker-down"}`}>
+                    <span className={`tabular-nums text-[10px] ${isUp ? "text-ticker-up" : "text-ticker-down"}`}>
                       {delta > 0 ? "+" : ""}{delta.toFixed(0)}
                     </span>
                   )}
