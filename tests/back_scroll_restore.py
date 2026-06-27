@@ -89,7 +89,7 @@ async def run_scenario(context, scenario) -> dict:
         target = before
         for _ in range(20):
             await page.wait_for_timeout(150)
-            cur = await page.evaluate("window.scrollY"); h = await page.evaluate("document.documentElement.scrollHeight"); print(f"  poll cur={cur} height={h}")
+            cur = await page.evaluate("window.scrollY")
             if abs(cur - target) <= TOLERANCE:
                 break
         after = await page.evaluate("window.scrollY")
