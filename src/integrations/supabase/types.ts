@@ -158,6 +158,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trend_popularity: {
+        Row: {
+          created_at: string
+          intensity: number
+          month: number
+          trend_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          intensity: number
+          month: number
+          trend_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          intensity?: number
+          month?: number
+          trend_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trend_popularity_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "trend_popularity_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trends: {
         Row: {
           base_price: number
@@ -170,6 +209,7 @@ export type Database = {
           origin: string
           origin_year: number | null
           plain_language: string
+          popularity_history: Json
           safety_tips: string
           slug: string
           term: string
@@ -185,6 +225,7 @@ export type Database = {
           origin: string
           origin_year?: number | null
           plain_language: string
+          popularity_history?: Json
           safety_tips: string
           slug: string
           term: string
@@ -200,6 +241,7 @@ export type Database = {
           origin?: string
           origin_year?: number | null
           plain_language?: string
+          popularity_history?: Json
           safety_tips?: string
           slug?: string
           term?: string
@@ -340,7 +382,6 @@ export type Database = {
       get_trend_scores: {
         Args: never
         Returns: {
-          base_price: number
           net_votes: number
           price: number
           slug: string
