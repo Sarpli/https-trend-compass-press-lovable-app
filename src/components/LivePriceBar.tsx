@@ -37,11 +37,15 @@ export function LivePriceBar({
 
   const series = data ?? [];
   const last = series[series.length - 1]?.price ?? Number(basePrice);
-  const prev =
-    series.length > 1
-      ? series[series.length - 2].price
-      : Number(basePrice);
-  const open = Number(basePrice);
+  // Compare against the FIRST point of the actual price history so the
+  // up/down indicator matches the chart the user sees, not the abstract
+  // base price (which the history curve doesn't start at).
+  const open = series.length > 0 ? series[0].price : Number(basePrice);
+  // "Day" delta: compare last point to ~24 points ago (roughly 2 years of
+  // monthly anchors) so short-term movement is meaningful instead of the
+  // tiny month-over-month tick.
+  const prevIdx = Math.max(0, series.length - 1 - 12);
+  const prev = series.length > 1 ? series[prevIdx].price : open;
   const day = last - prev;
   const dayPct = prev ? (day / prev) * 100 : 0;
   const total = last - open;
@@ -55,8 +59,8 @@ export function LivePriceBar({
   const h = 28;
   const xs = tail.map((_, i) => i);
   const ys = tail.map((p) => p.price);
-  const yMin = Math.min(...ys, open);
-  const yMax = Math.max(...ys, open);
+  const yMin = ys.length ? Math.min(...ys) : open;
+  const yMax = ys.length ? Math.max(...ys) : open;
   const yRange = yMax - yMin || 1;
   const path = tail
     .map((p, i) => {
