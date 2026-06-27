@@ -121,27 +121,10 @@ function TickerBarInner() {
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
     const resume = () => { pausedRef.current = false; last = performance.now(); };
-    // Hover-pause only for devices with a true hover (desktop mice/trackpads).
-    // Touchscreens fire pointerenter on tap and often skip pointerleave, which
-    // would leave the tape stuck paused after a single touch — so we gate the
-    // hover listeners on a fine pointer with hover capability.
-    const canHover =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
-    const hoverPause = (e: PointerEvent) => {
-      if (e.pointerType === "mouse") pause();
-    };
-    const hoverResume = (e: PointerEvent) => {
-      if (e.pointerType === "mouse") resume();
-    };
-    if (canHover) {
-      scroller.addEventListener("pointerenter", hoverPause);
-      scroller.addEventListener("pointerleave", hoverResume);
-      // Safety net for the rare missed pointerleave (cursor exiting via the
-      // viewport edge). `mouseleave` on the scroller itself doesn't bubble,
-      // so it's cheap and only fires when the cursor actually leaves.
-      scroller.addEventListener("mouseleave", resume);
-    }
+    // Per spec: the tape must never stop scrolling. No hover-pause on any
+    // device — desktop and touch both run continuously like Apple's Stocks
+    // ticker. Pause is reserved for active drag-scrubbing on touch.
+    const canHover = false;
     // Drag-to-scrub and wheel-scrub are touch-only. On desktop the ticker is
     // strictly auto-scroll with hover-pause — no user scrolling on the bar.
     const onPointerDown = (e: PointerEvent) => {
@@ -179,11 +162,6 @@ function TickerBarInner() {
     }
     return () => {
       cancelAnimationFrame(raf);
-      if (canHover) {
-        scroller.removeEventListener("pointerenter", hoverPause);
-        scroller.removeEventListener("pointerleave", hoverResume);
-        scroller.removeEventListener("mouseleave", resume);
-      }
       savePosition();
       if (!canHover) {
         scroller.removeEventListener("pointerdown", onPointerDown);
