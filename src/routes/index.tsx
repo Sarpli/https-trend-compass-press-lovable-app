@@ -229,29 +229,29 @@ function Index() {
           )}
 
           {/* Front-page columns */}
-          <div className="grid grid-cols-2 gap-4 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
             {stories.map((s) => (
-              <article key={s.id} className="rule-top pt-3">
-                <div className="text-[9px] ui small-caps text-accent-red mb-1">{s.category}</div>
+              <article key={s.id} className="rule-top pt-4">
+                <div className="text-[9px] ui small-caps text-accent-red mb-1.5">{s.category}</div>
                 <Link to="/trends/$slug" params={{ slug: s.slug }}>
                   <TrendCover
                     trend={s}
                     width={400}
                     height={240}
-                    sizes="(min-width: 1024px) 400px, 50vw"
-                    className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
+                    sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
+                    className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-3 border border-ink/20"
                   />
-                  <h3 className="display text-base sm:text-lg font-bold leading-tight hover:text-accent-red transition-colors">
+                  <h3 className="display text-lg sm:text-xl font-bold leading-tight hover:text-accent-red transition-colors">
                     {s.term}
                   </h3>
                 </Link>
-                <p className="mt-1 text-xs leading-snug text-foreground/90 line-clamp-2">
+                <p className="mt-1.5 text-sm leading-snug text-foreground/90 line-clamp-2">
                   {s.plain_language}
                 </p>
                 <Link
                   to="/trends/$slug"
                   params={{ slug: s.slug }}
-                  className="ui small-caps text-[9px] mt-1 inline-block underline"
+                  className="ui small-caps text-[10px] mt-2 inline-block underline"
                 >
                   Continue reading
                 </Link>
