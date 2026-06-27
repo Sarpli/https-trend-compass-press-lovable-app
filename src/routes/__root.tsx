@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { WelcomeAuthModal } from "../components/WelcomeAuthModal";
+import { ScrollMemory } from "../lib/scroll-memory";
 import { AuthProvider } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
 import { Toaster } from "../components/ui/sonner";
@@ -166,6 +167,7 @@ function RootComponent() {
           <SiteFooter />
         </div>
         <WelcomeAuthModal />
+        <ScrollMemory />
         <Toaster />
         </ThemeProvider>
       </AuthProvider>

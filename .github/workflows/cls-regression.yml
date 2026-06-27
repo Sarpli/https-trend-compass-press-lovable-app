@@ -63,6 +63,22 @@ jobs:
         id: cls
         run: python3 tests/cls_vote.py
 
+      - name: Run Back-button scroll restoration check
+        id: back
+        env:
+          BACK_ARTIFACT_DIR: ${{ github.workspace }}/back-artifacts
+          SCROLL_TOLERANCE: '8'
+        run: python3 tests/back_scroll_restore.py
+
+      - name: Upload Back-button debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: back-scroll-debug-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/back-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Stop preview server
         if: always()
         run: |
