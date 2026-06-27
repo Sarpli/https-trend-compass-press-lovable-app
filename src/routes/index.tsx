@@ -163,7 +163,7 @@ function Index() {
           e.preventDefault();
           navigate({ to: "/archive", search: { q: q.trim() } });
         }}
-        className="py-2 mb-4 flex flex-col sm:flex-row gap-3 sm:items-center border-b border-ink/10"
+        className="pt-0 pb-2 mb-3 flex flex-col sm:flex-row gap-3 sm:items-center border-b border-ink/10"
       >
         <div className="flex-1">
           <div className="ui small-caps text-[10px] text-accent-red mb-1">Look it up</div>
