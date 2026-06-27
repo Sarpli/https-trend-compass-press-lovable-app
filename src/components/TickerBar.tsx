@@ -26,8 +26,8 @@ export function TickerBar() {
 }
 
 function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: boolean }) {
-  const w = 36;
-  const h = 12;
+  const w = 64;
+  const h = 22;
   if (points.length < 2) {
     return <svg width={w} height={h} className="opacity-40"><line x1={0} y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth={1} /></svg>;
   }
@@ -39,9 +39,18 @@ function Sparkline({ points, up, down }: { points: number[]; up: boolean; down: 
     .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(2)},${(h - ((p - min) / range) * h).toFixed(2)}`)
     .join(" ");
   const stroke = up ? "var(--ticker-up)" : down ? "var(--ticker-down)" : "currentColor";
+  const fillId = `spk-${Math.random().toString(36).slice(2, 9)}`;
+  const area = `${d} L${w},${h} L0,${h} Z`;
   return (
     <svg width={w} height={h} className="overflow-visible">
-      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
+      <defs>
+        <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.45" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${fillId})`} />
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   );
 }
