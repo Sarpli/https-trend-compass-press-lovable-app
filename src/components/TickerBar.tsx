@@ -203,14 +203,14 @@ function TickerBarInner() {
     setPcts(nextPcts);
   }, [rows]);
 
-  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-7 sm:h-8" />;
+  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8 sm:h-9" />;
 
   const items = Array.from({ length: loopCopies }, () => rows).flat();
 
   return (
-    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
+    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm">
       <div className="flex items-stretch">
-        <div className="w-7 h-7 sm:w-8 sm:h-8 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-[10px] sm:text-xs shrink-0 border-r border-newsprint/15">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15">
           Live
         </div>
         <div
@@ -218,7 +218,7 @@ function TickerBarInner() {
           className="flex-1 relative ticker-scroller"
           style={{ overflow: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
-          <div ref={trackRef} className="inline-flex gap-1.5 sm:gap-2 py-0.5 sm:py-1 whitespace-nowrap will-change-transform">
+          <div ref={trackRef} className="inline-flex gap-2 sm:gap-2.5 py-1 sm:py-1.5 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
               const pct = pcts[r.trend_id] ?? 0;
               const isUp = pct > 0;
