@@ -345,3 +345,100 @@
     mix-blend-mode: overlay;
   }
 }
+
+/*
+ * Liquid Glass ambient layer — fixed, behind everything, in both themes.
+ * Three soft color "blobs" diffused behind translucent surfaces so cards,
+ * the masthead, and the ticker pick up subtle iridescence without changing
+ * any layout or component composition.
+ */
+.liquid-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.liquid-ambient::before,
+.liquid-ambient::after {
+  content: "";
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  filter: blur(80px) saturate(140%);
+  opacity: 0.55;
+  will-change: transform;
+}
+.liquid-ambient::before {
+  top: -22vmax;
+  left: -18vmax;
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in oklab, var(--brass) 55%, transparent),
+    transparent 62%
+  );
+  animation: liquid-drift-a 28s ease-in-out infinite alternate;
+}
+.liquid-ambient::after {
+  bottom: -26vmax;
+  right: -20vmax;
+  background: radial-gradient(
+    circle at 60% 60%,
+    color-mix(in oklab, var(--accent-red) 30%, transparent),
+    transparent 62%
+  );
+  animation: liquid-drift-b 36s ease-in-out infinite alternate;
+}
+.dark .liquid-ambient::before { opacity: 0.32; }
+.dark .liquid-ambient::after  { opacity: 0.22; }
+
+@keyframes liquid-drift-a {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+}
+@keyframes liquid-drift-b {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-5vmax, -3vmax, 0) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-ambient::before,
+  .liquid-ambient::after { animation: none; }
+}
+
+/*
+ * Promote shadcn cards to liquid-glass surfaces in both themes. The
+ * translucent fill + hairline edge + soft specular highlight reads as
+ * frosted glass on top of the ambient blobs above, without touching any
+ * card markup.
+ */
+[data-slot="card"],
+.bg-card {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 78%, transparent) 0%,
+      color-mix(in oklab, var(--card) 58%, transparent) 100%
+    );
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid color-mix(in oklab, var(--rule) 38%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 22%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, var(--ink) 8%, transparent) inset,
+    0 10px 30px -18px color-mix(in oklab, var(--ink) 45%, transparent);
+}
+.dark [data-slot="card"],
+.dark .bg-card {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--card) 70%, transparent) 0%,
+      color-mix(in oklab, var(--card) 45%, transparent) 100%
+    );
+  border: 1px solid color-mix(in oklab, white 10%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 40%, transparent) inset,
+    0 14px 38px -20px color-mix(in oklab, black 65%, transparent);
+}
