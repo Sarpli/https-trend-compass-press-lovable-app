@@ -322,8 +322,8 @@
   background:
     linear-gradient(
       90deg,
-      color-mix(in oklab, var(--accent-red) 92%, transparent) 0%,
-      color-mix(in oklab, var(--ink) 86%, transparent) 100%
+      color-mix(in oklab, var(--ink) 88%, transparent) 0%,
+      color-mix(in oklab, var(--rule) 72%, transparent) 100%
     );
   backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid color-mix(in oklab, var(--rule) 28%, transparent);
@@ -340,7 +340,7 @@
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      color-mix(in oklab, white 18%, transparent) 0%,
+      color-mix(in oklab, white 14%, transparent) 0%,
       transparent 40%,
       transparent 60%,
       color-mix(in oklab, black 10%, transparent) 100%
