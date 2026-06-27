@@ -163,7 +163,7 @@ function Index() {
           e.preventDefault();
           navigate({ to: "/archive", search: { q: q.trim() } });
         }}
-        className="rule-double py-5 mb-8 flex flex-col sm:flex-row gap-3 sm:items-center"
+        className="py-5 mb-8 flex flex-col sm:flex-row gap-3 sm:items-center border-b border-ink/10"
       >
         <div className="flex-1">
           <div className="ui small-caps text-[10px] text-accent-red mb-1">Look it up</div>
