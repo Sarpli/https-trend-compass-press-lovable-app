@@ -84,6 +84,8 @@ function TickerBarInner() {
     let raf = 0;
     let last = performance.now();
     const PX_PER_SEC = 40; // matches ~180s loop feel
+    const EASE_IN_SEC = 0.3; // ramp from 0 back to full speed after a pause
+    let speed = 1; // current velocity multiplier; resets to 0 on resume
     const getHalf = () => track.scrollWidth / 2;
     const normalize = (value: number) => {
       const half = getHalf();
@@ -113,14 +115,17 @@ function TickerBarInner() {
       const dt = (now - last) / 1000;
       last = now;
       if (!pausedRef.current) {
-        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * dt);
+        // Ramp speed back up after a pause/drag so the tape doesn't snap
+        // instantly from 0 to full velocity.
+        speed = Math.min(1, speed + dt / EASE_IN_SEC);
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * speed * dt);
         render();
       }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
-    const resume = () => { pausedRef.current = false; last = performance.now(); };
+    const resume = () => { pausedRef.current = false; last = performance.now(); speed = 0; };
     // Desktop: pause on hover so the mouse can read items. Mobile/touch:
     // auto-scroll continues and users can drag-to-scrub the tape.
     const canHover = true;

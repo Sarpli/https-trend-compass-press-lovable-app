@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -15,9 +16,14 @@ const NAV = [
 export function SiteHeader() {
   const { user, isPro } = useAuth();
   const { theme, toggle } = useTheme();
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    setToday(
+      new Date().toLocaleDateString(undefined, {
+        weekday: "long", year: "numeric", month: "long", day: "numeric",
+      }),
+    );
+  }, []);
 
   return (
     <header>
@@ -48,7 +54,7 @@ export function SiteHeader() {
                   </Link>
                 ) : null}
                 <div className="text-[9px] leading-tight ui small-caps text-muted-foreground truncate">
-                  {today}<br />Vol. I · No. 1
+                  {today ?? "\u00A0"}<br />Vol. I · No. 1
                 </div>
               </div>
               <div aria-hidden className="h-px" />
@@ -79,7 +85,7 @@ export function SiteHeader() {
           {/* Desktop layout */}
           <div className="hidden md:grid grid-cols-3 items-center gap-4">
             <div className="text-[10px] ui small-caps text-muted-foreground">
-              {today} · Vol. I · No. 1
+              {today ?? "\u00A0"} · Vol. I · No. 1
             </div>
             <Link to="/" className="text-center min-w-0">
               <h1 className="display text-5xl font-black tracking-tight leading-none">
