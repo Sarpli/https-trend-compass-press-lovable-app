@@ -31,12 +31,14 @@ export function ScrollMemory() {
 
     let currentHref = window.location.href;
     let rafId = 0;
+    let navigating = false;
     const persist = () => {
       const m = read();
       m[currentHref] = window.scrollY;
       write(m);
     };
     const onScroll = () => {
+      if (navigating) return;
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = 0;
@@ -66,6 +68,7 @@ export function ScrollMemory() {
 
     const unsubBefore = router.subscribe("onBeforeNavigate", () => {
       persist();
+      navigating = true;
     });
     const unsubResolved = router.subscribe("onResolved", () => {
       currentHref = window.location.href;
@@ -75,6 +78,10 @@ export function ScrollMemory() {
       } else {
         window.scrollTo(0, 0);
       }
+      // Re-enable scroll persistence after restoration settles.
+      window.setTimeout(() => {
+        navigating = false;
+      }, 700);
     });
 
     return () => {
