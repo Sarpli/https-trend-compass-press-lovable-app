@@ -203,7 +203,7 @@ function TickerBarInner() {
     setPcts(nextPcts);
   }, [rows]);
 
-  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8" />;
+  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-12 sm:h-14" />;
 
   const items = Array.from({ length: loopCopies }, () => rows).flat();
 
