@@ -326,6 +326,19 @@ function TickerBarInner() {
           </div>
         </div>
       </div>
+      {isScrubbing && (
+        <div
+          className="absolute right-0 top-0 bottom-0 z-10 flex items-center pl-5 pr-2 pointer-events-none transition-opacity duration-200"
+          style={{
+            background: "linear-gradient(90deg, transparent 0%, var(--ink) 55%, var(--ink) 100%)",
+          }}
+        >
+          <div className="flex items-center gap-1 px-2 py-1 rounded bg-accent-red text-accent-foreground font-bold text-[10px] small-caps shadow-lg">
+            <Hand className="w-3 h-3" />
+            <span>Scrub</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
