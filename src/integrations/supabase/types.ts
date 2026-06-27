@@ -170,6 +170,7 @@ export type Database = {
           origin: string
           origin_year: number | null
           plain_language: string
+          popularity_history: Json
           safety_tips: string
           slug: string
           term: string
@@ -185,6 +186,7 @@ export type Database = {
           origin: string
           origin_year?: number | null
           plain_language: string
+          popularity_history?: Json
           safety_tips: string
           slug: string
           term: string
@@ -200,6 +202,7 @@ export type Database = {
           origin?: string
           origin_year?: number | null
           plain_language?: string
+          popularity_history?: Json
           safety_tips?: string
           slug?: string
           term?: string
