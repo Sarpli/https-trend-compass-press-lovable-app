@@ -128,22 +128,26 @@ function TickerBarInner() {
     const canHover = false;
     // Drag-to-scrub is touch/pen only (mobile + iPad). Desktop mouse is
     // strictly auto-scroll — no user scrubbing on the bar.
+    const SCRUB_MULTIPLIER = 1.7; // looser scroll: 1 px finger drag = 1.7 px tape
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
       pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
+      setIsScrubbing(true);
       pause();
       scroller.setPointerCapture?.(e.pointerId);
     };
     const onPointerMove = (e: PointerEvent) => {
       if (!pointerRef.current.active) return;
-      const dx = e.clientX - pointerRef.current.startX;
-      if (Math.abs(dx) > 3) pointerRef.current.moved = true;
+      const rawDx = e.clientX - pointerRef.current.startX;
+      if (Math.abs(rawDx) > 3) pointerRef.current.moved = true;
+      const dx = rawDx * SCRUB_MULTIPLIER;
       offsetRef.current = normalize(pointerRef.current.startOffset - dx);
       render();
     };
     const endPointer = (e: PointerEvent) => {
       if (!pointerRef.current.active) return;
       pointerRef.current.active = false;
+      setIsScrubbing(false);
       scroller.releasePointerCapture?.(e.pointerId);
       savePosition();
       resume();
