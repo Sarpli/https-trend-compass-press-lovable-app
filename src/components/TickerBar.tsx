@@ -284,20 +284,15 @@ function TickerBarInner() {
               const flashing = delta !== 0;
               const isUp = dir === "up" || dir === "up-static";
               const isDown = dir === "down" || dir === "down-static";
-              const tint = isUp
-                ? "bg-[color:var(--ticker-up)]/10 border-[color:var(--ticker-up)]/40"
-                : isDown
-                ? "bg-[color:var(--ticker-down)]/10 border-[color:var(--ticker-down)]/40"
-                : "bg-newsprint/5 border-newsprint/20";
+              // Sleek: no colored border/background. Color lives only in the
+              // sparkline + arrow + delta text.
               return (
                 <Link
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-2 mx-1 sm:mx-2 px-2 py-1 border rounded-sm transition-colors ${tint} ${
-                    flashing
-                      ? isUp ? "text-ticker-up" : "text-ticker-down"
-                      : "hover:text-accent-red"
+                  className={`inline-flex items-center gap-2 mx-1 sm:mx-2 px-1.5 py-0.5 rounded-md transition-colors hover:bg-newsprint/5 ${
+                    flashing ? (isUp ? "text-ticker-up" : "text-ticker-down") : "hover:text-accent-red"
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider">{r.term}</span>
