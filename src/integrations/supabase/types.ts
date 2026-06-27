@@ -343,7 +343,6 @@ export type Database = {
       get_trend_scores: {
         Args: never
         Returns: {
-          base_price: number
           net_votes: number
           price: number
           slug: string
