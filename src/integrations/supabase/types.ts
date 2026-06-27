@@ -158,6 +158,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trend_popularity: {
+        Row: {
+          created_at: string
+          intensity: number
+          month: number
+          trend_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          intensity: number
+          month: number
+          trend_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          intensity?: number
+          month?: number
+          trend_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trend_popularity_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "trend_popularity_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trends: {
         Row: {
           base_price: number
