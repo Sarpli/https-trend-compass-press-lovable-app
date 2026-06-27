@@ -276,10 +276,16 @@ function TickerBarInner() {
             {items.map((r, i) => {
               const delta = deltas[r.trend_id] ?? 0;
               const series = history[r.trend_id] ?? [r.price];
+              // Compare the latest seeded price to the start of the seeded
+              // tail (i.e. the chart segment shown in the sparkline) so the
+              // ticker color matches what the user actually sees.
               const seriesUp = series.length > 1 && series[series.length - 1] >= series[0];
+              // Until the price-history tail has been fetched, default to a
+              // neutral "up" appearance instead of falling back to net_votes,
+              // which often disagrees with the actual chart trend.
               const dir = delta > 0 ? "up" : delta < 0 ? "down" :
                 series.length > 1 ? (seriesUp ? "up-static" : "down-static") :
-                r.net_votes > 0 ? "up-static" : r.net_votes < 0 ? "down-static" : "flat";
+                "up-static";
               const flashing = delta !== 0;
               const isUp = dir === "up" || dir === "up-static";
               const isDown = dir === "down" || dir === "down-static";
