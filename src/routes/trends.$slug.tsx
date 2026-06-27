@@ -132,10 +132,7 @@ function TrendPage() {
       </div>
 
       <div className="my-6">
-        <PriceChart
-          trendId={trend.id}
-          history={((trend as { popularity_history?: unknown }).popularity_history as { date: string; score: number }[]) ?? []}
-        />
+        <PriceChart trendId={trend.id} basePrice={Number(trend.base_price)} />
       </div>
 
       <div className="grid md:grid-cols-12 gap-8 mt-4">

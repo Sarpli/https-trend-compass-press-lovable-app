@@ -1,14 +1,10 @@
-import { useRef, useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-type HistoryPoint = { date: string; score: number };
+type Point = { t: string; price: number };
 
-export function PriceChart({
-  trendId,
-  history,
-}: {
-  trendId: string;
-  history: HistoryPoint[];
-}) {
+export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hover, setHover] = useState<{
     idx: number;
@@ -16,22 +12,31 @@ export function PriceChart({
     yPx: number;
     containerW: number;
   } | null>(null);
-  // Normalize the popularity_history column into chart points.
-  // Each entry is a calendar day with the raw vote count for that day.
-  const points = useMemo(() => {
-    const safe = Array.isArray(history) ? history : [];
-    const cleaned = safe
-      .filter((p) => p && typeof p.date === "string")
-      .map((p) => ({ t: p.date, price: Number(p.score) || 0 }));
-    if (cleaned.length === 0) {
-      const today = new Date().toISOString().slice(0, 10);
-      cleaned.push({ t: today, price: 0 });
-    }
-    if (cleaned.length === 1) {
-      cleaned.unshift({ t: cleaned[0].t, price: 0 });
-    }
-    return cleaned;
-  }, [history]);
+  const { data } = useQuery({
+    queryKey: ["trend-history", trendId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trend_price_history", { _trend_id: trendId });
+      if (error) throw error;
+      return ((data ?? []) as Point[]).map((p) => ({ t: p.t, price: Number(p.price) }));
+    },
+    refetchInterval: 10000,
+  });
+
+  // The RPC always returns a synthetic first point at Jan 1 of the term's
+  // creation year (price = base_price), so we just use the series as-is.
+  // Append a trailing "now" point so the chart extends to the current time
+  // even when there are no recent votes.
+  const series: Point[] = (data ?? []).map((p) => ({ t: p.t, price: Number(p.price) }));
+  if (series.length === 0) {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+    series.push({ t: startOfYear, price: Number(basePrice) });
+  }
+  const last = series[series.length - 1];
+  const nowIso = new Date().toISOString();
+  if (new Date(last.t).getTime() < Date.now() - 1000) {
+    series.push({ t: nowIso, price: last.price });
+  }
+  const points = series;
 
   const w = 800;
   const h = 220;
@@ -45,9 +50,9 @@ export function PriceChart({
   const xMin = Math.min(...xs);
   const xMax = Math.max(...xs);
   const xRange = xMax - xMin || 1;
-  const yMin = Math.min(...ys, 0);
-  const yMax = Math.max(...ys, 1);
-  const yPad = Math.max(1, (yMax - yMin) * 0.15);
+  const yMin = Math.min(...ys, Number(basePrice));
+  const yMax = Math.max(...ys, Number(basePrice));
+  const yPad = Math.max(2, (yMax - yMin) * 0.1);
   const yLo = yMin - yPad;
   const yHi = yMax + yPad;
   const yRange = yHi - yLo || 1;
@@ -55,17 +60,19 @@ export function PriceChart({
   const toX = (t: number) => padX + ((t - xMin) / xRange) * innerW;
   const toY = (v: number) => padY + (1 - (v - yLo) / yRange) * innerH;
 
-  // Smooth line — daily popularity over time.
+  // Stepped line — feels like a stock chart with discrete vote events.
   const path = points
     .map((p, i) => {
       const x = toX(new Date(p.t).getTime());
       const y = toY(p.price);
-      return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+      if (i === 0) return `M${x.toFixed(2)},${y.toFixed(2)}`;
+      const prevY = toY(points[i - 1].price);
+      return `L${x.toFixed(2)},${prevY.toFixed(2)} L${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(" ");
 
   const lastPrice = points[points.length - 1].price;
-  const firstPrice = points[0].price;
+  const firstPrice = Number(basePrice);
   const up = lastPrice >= firstPrice;
   const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
   const areaPath = `${path} L${toX(xMax).toFixed(2)},${(h - padY).toFixed(2)} L${toX(xMin).toFixed(2)},${(h - padY).toFixed(2)} Z`;
@@ -86,11 +93,7 @@ export function PriceChart({
       : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
   const fmtTooltipTime = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    new Date(iso).toLocaleDateString(undefined, { month: "short", year: "numeric" });
 
   const handlePointer = (e: React.PointerEvent<SVGSVGElement>) => {
     const svg = svgRef.current;
@@ -116,9 +119,9 @@ export function PriceChart({
   return (
     <div className="border border-ink/20 bg-card p-4">
       <div className="flex items-baseline justify-between mb-2">
-        <h3 className="display text-lg font-bold">Popularity history</h3>
+        <h3 className="display text-lg font-bold">Price history</h3>
         <div className="ui small-caps text-xs text-muted-foreground">
-          Today <span className={up ? "text-ticker-up" : "text-ticker-down"}>{lastPrice.toFixed(0)}</span> votes
+          Base {firstPrice.toFixed(0)} → Now <span className={up ? "text-ticker-up" : "text-ticker-down"}>{lastPrice.toFixed(0)}</span>
         </div>
       </div>
       <div className="relative">
@@ -146,8 +149,8 @@ export function PriceChart({
             </text>
           </g>
         ))}
-        {/* Zero baseline */}
-        <line x1={padX} x2={w - padX} y1={toY(0)} y2={toY(0)} stroke="currentColor" strokeOpacity={0.3} strokeDasharray="4 4" />
+        {/* Base price reference */}
+        <line x1={padX} x2={w - padX} y1={toY(firstPrice)} y2={toY(firstPrice)} stroke="currentColor" strokeOpacity={0.3} strokeDasharray="4 4" />
         <path d={areaPath} fill={`url(#grad-${trendId})`} />
         <path d={path} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
         {/* X-axis labels: first and last */}
@@ -193,16 +196,16 @@ export function PriceChart({
             {fmtTooltipTime(tooltipPoint.t)}
           </div>
           <div className="tabular-nums font-semibold">
-            {Number(tooltipPoint.price).toFixed(0)} votes
+            {Number(tooltipPoint.price).toFixed(0)}
           </div>
         </div>
       )}
       </div>
       <div
         className="ui small-caps text-[11px] text-muted-foreground mt-1"
-        style={{ visibility: points.every((p) => p.price === 0) ? "visible" : "hidden" }}
+        style={{ visibility: !data || data.length === 0 ? "visible" : "hidden" }}
       >
-        No votes yet — chart will fill in as people vote.
+        No votes yet — chart starts at base price.
       </div>
     </div>
   );
