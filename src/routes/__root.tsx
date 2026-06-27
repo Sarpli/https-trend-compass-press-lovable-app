@@ -160,11 +160,14 @@ function RootComponent() {
       <AuthProvider>
         <ThemeProvider>
         <div className={`min-h-screen flex flex-col bg-background text-foreground${introPlayed ? "" : " intro-fluid-drop"}`}>
-          <SiteHeader />
-          <main className="flex-1">
-            <RouteTransition />
-          </main>
-          <SiteFooter />
+          <div className="liquid-ambient" aria-hidden="true" />
+          <div className="relative z-10 flex flex-1 flex-col">
+            <SiteHeader />
+            <main className="flex-1">
+              <RouteTransition />
+            </main>
+            <SiteFooter />
+          </div>
         </div>
         <WelcomeAuthModal />
         <ScrollMemory />
