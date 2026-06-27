@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { dailyDriftPct } from "@/lib/daily-drift";
 
 type Point = { t: string; price: number };
 
@@ -33,8 +34,15 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   }
   const last = series[series.length - 1];
   const nowIso = new Date().toISOString();
+  // Apply the same deterministic daily drift used by the top ticker so the
+  // chart's "now" point reflects today's fake percentage move when there are
+  // no recent votes. Real votes are already baked into `last.price` by the RPC.
+  const drift = dailyDriftPct(trendId) / 100;
+  const nowPrice = Math.max(1, last.price * (1 + drift));
   if (new Date(last.t).getTime() < Date.now() - 1000) {
-    series.push({ t: nowIso, price: last.price });
+    series.push({ t: nowIso, price: nowPrice });
+  } else {
+    series[series.length - 1] = { t: last.t, price: nowPrice };
   }
   const points = series;
 
