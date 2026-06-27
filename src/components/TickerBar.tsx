@@ -34,6 +34,7 @@ function TickerBarInner() {
     refetchOnWindowFocus: true,
   });
   const [pcts, setPcts] = useState<Record<string, number>>({});
+  const [loopCopies, setLoopCopies] = useState(4);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
@@ -41,6 +42,28 @@ function TickerBarInner() {
   const offsetRef = useRef(0);
   const pointerRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false });
   const STORAGE_KEY = "trenslate.ticker.scrollLeft";
+
+  // Ensure the scrolling track is always at least 2.5× the viewport width so
+  // the ticker never runs out of content and there is no empty strip on the
+  // right, regardless of screen size or number of terms.
+  useEffect(() => {
+    if (rows.length === 0) return;
+    const scroller = scrollerRef.current;
+    const track = trackRef.current;
+    if (!scroller || !track) return;
+    const ensureCoverage = () => {
+      const viewport = scroller.clientWidth;
+      if (!viewport || !track.scrollWidth) return;
+      const singleCopy = track.scrollWidth / loopCopies;
+      if (singleCopy <= 0) return;
+      const needed = Math.ceil((viewport * 2.5) / singleCopy);
+      const next = Math.max(4, needed);
+      if (next !== loopCopies) setLoopCopies(next);
+    };
+    ensureCoverage();
+    window.addEventListener("resize", ensureCoverage);
+    return () => window.removeEventListener("resize", ensureCoverage);
+  }, [rows.length, loopCopies]);
 
   // Auto-scroll the tape with a GPU transform instead of writing scrollLeft on
   // every frame. That keeps desktop motion smooth while preserving drag/wheel
