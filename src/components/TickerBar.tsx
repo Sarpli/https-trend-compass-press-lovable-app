@@ -291,7 +291,7 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-2 mx-1 sm:mx-2 px-1.5 py-0.5 rounded-md transition-colors hover:bg-newsprint/5 ${
+                  className={`inline-flex items-center gap-1.5 mx-0.5 sm:mx-1.5 px-1 py-0.5 rounded-md transition-colors hover:bg-newsprint/5 ${
                     flashing ? (isUp ? "text-ticker-up" : "text-ticker-down") : "hover:text-accent-red"
                   }`}
                 >
