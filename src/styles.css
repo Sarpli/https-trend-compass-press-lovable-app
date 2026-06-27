@@ -112,6 +112,7 @@
   --color-ticker-up: var(--ticker-up);
   --color-ticker-down: var(--ticker-down);
   --color-accent-red: var(--accent-red);
+  --color-brass: var(--brass);
   --font-display: "Playfair Display", "Times New Roman", serif;
   --font-serif: "Source Serif 4", Georgia, serif;
   --font-sans: "Inter", system-ui, sans-serif;
