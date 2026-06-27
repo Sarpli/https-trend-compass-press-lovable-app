@@ -205,7 +205,7 @@ function TickerBarInner() {
 
   if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8" />;
 
-  const items = [...rows, ...rows]; // duplicate for seamless scroll
+  const items = Array.from({ length: loopCopies }, () => rows).flat();
 
   return (
     <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-sm sm:text-base">
