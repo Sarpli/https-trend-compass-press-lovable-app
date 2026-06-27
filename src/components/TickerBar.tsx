@@ -247,6 +247,38 @@ function TickerBarInner() {
     }
   }, [rows]);
 
+  // Seed each ticker item's sparkline with the tail of its real Price History
+  // so cards show a unique stock graph immediately instead of a flat line.
+  const seededRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (rows.length === 0) return;
+    const toFetch = rows.filter((r) => !seededRef.current.has(r.trend_id));
+    if (toFetch.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        toFetch.map(async (r) => {
+          seededRef.current.add(r.trend_id);
+          const { data } = await supabase.rpc("get_trend_price_history", { _trend_id: r.trend_id });
+          const pts = ((data ?? []) as { price: number }[])
+            .map((p) => Number(p.price))
+            .filter((n) => Number.isFinite(n))
+            .slice(-24);
+          return [r.trend_id, pts] as const;
+        }),
+      );
+      if (cancelled) return;
+      setHistory((h) => {
+        const copy = { ...h };
+        for (const [id, pts] of results) {
+          if (pts.length > 1) copy[id] = pts;
+        }
+        return copy;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [rows]);
+
   if (rows.length === 0) return <div className="glass-dark glass-sheen text-newsprint h-8" />;
 
   const items = [...rows, ...rows]; // duplicate for seamless scroll
