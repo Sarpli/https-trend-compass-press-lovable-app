@@ -95,6 +95,7 @@ function TrendPage() {
 
   return (
     <article className="max-w-4xl mx-auto px-6 py-8">
+      <LivePriceBar trendId={trend.id} term={trend.term} basePrice={Number(trend.base_price)} />
       <div className="text-xs ui small-caps text-accent-red mb-2">
         Trend Entry · {trend.category}
       </div>
@@ -133,7 +134,6 @@ function TrendPage() {
       </div>
 
       <div className="my-6">
-        <LivePriceBar trendId={trend.id} term={trend.term} basePrice={Number(trend.base_price)} />
         <PriceChart trendId={trend.id} basePrice={Number(trend.base_price)} />
       </div>
 
