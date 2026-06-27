@@ -185,9 +185,9 @@ function TickerBarInner() {
   const items = [...rows, ...rows]; // duplicate for seamless scroll
 
   return (
-    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-[10px] sm:text-xs">
+    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-sm sm:text-base">
       <div className="flex items-stretch">
-        <div className="w-9 h-9 sm:w-11 sm:h-11 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-[10px] sm:text-xs shrink-0 border-r border-newsprint/15">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-sm sm:text-base shrink-0 border-r border-newsprint/15">
           Live
         </div>
         <div
@@ -195,7 +195,7 @@ function TickerBarInner() {
           className="flex-1 relative ticker-scroller"
           style={{ overflow: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
-          <div ref={trackRef} className="inline-flex gap-6 sm:gap-8 py-1 sm:py-1.5 whitespace-nowrap will-change-transform">
+          <div ref={trackRef} className="inline-flex gap-3 sm:gap-4 py-2 sm:py-2.5 whitespace-nowrap will-change-transform">
             {items.map((r, i) => {
               const pct = pcts[r.trend_id] ?? 0;
               const isUp = pct > 0;
@@ -205,12 +205,12 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-1.5 mx-0.5 sm:mx-1.5 px-1 py-0.5 rounded-md transition-colors hover:bg-newsprint/5 ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 mx-1 sm:mx-2 px-1.5 py-1 rounded-md transition-colors hover:bg-newsprint/5 ${
                     isUp ? "text-ticker-up" : isDown ? "text-ticker-down" : "hover:text-accent-red"
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider uppercase">{r.term}</span>
-                  <span className="tabular-nums text-[10px] sm:text-xs">
+                  <span className="tabular-nums text-sm sm:text-base">
                     {isUp ? "+" : ""}{pct.toFixed(2)}%
                   </span>
                 </Link>
