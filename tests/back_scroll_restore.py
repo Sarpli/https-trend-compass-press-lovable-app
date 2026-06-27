@@ -85,7 +85,13 @@ async def run_scenario(context, scenario) -> dict:
         await page.click('button[aria-label="Go back to previous page"]')
         await page.wait_for_url(f"**{scenario['path']}*", timeout=10_000)
         # Let TanStack Router's scroll restoration fire.
-        await page.wait_for_timeout(400)
+        # Poll for scroll restoration after async content fills in
+        target = before
+        for _ in range(20):
+            await page.wait_for_timeout(150)
+            cur = await page.evaluate("window.scrollY")
+            if abs(cur - target) <= TOLERANCE:
+                break
         after = await page.evaluate("window.scrollY")
 
         delta = abs(after - before)
