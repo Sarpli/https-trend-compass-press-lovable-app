@@ -6,6 +6,7 @@ import { CATEGORY_LABEL } from "@/lib/period";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck, ShieldAlert } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
 import { LivePriceBar } from "@/components/LivePriceBar";
@@ -95,6 +96,13 @@ function TrendPage() {
 
   return (
     <article className="max-w-4xl mx-auto px-6 py-8">
+      <button
+        onClick={() => router.history.back()}
+        className="ui small-caps text-xs inline-flex items-center gap-1.5 mb-3 text-muted-foreground hover:text-accent-red transition-colors"
+        aria-label="Go back to previous page"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" /> Back
+      </button>
       <div className="text-xs ui small-caps text-accent-red mb-2">
         Trend Entry · {trend.category}
       </div>
