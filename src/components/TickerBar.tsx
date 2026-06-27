@@ -125,10 +125,10 @@ function TickerBarInner() {
     // device — desktop and touch both run continuously like Apple's Stocks
     // ticker. Pause is reserved for active drag-scrubbing on touch.
     const canHover = false;
-    // Drag-to-scrub and wheel-scrub are touch-only. On desktop the ticker is
-    // strictly auto-scroll with hover-pause — no user scrolling on the bar.
+    // Drag-to-scrub is touch/pen only (mobile + iPad). Desktop mouse is
+    // strictly auto-scroll — no user scrubbing on the bar.
     const onPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0 && e.pointerType === "mouse") return;
+      if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
       pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
       pause();
       scroller.setPointerCapture?.(e.pointerId);
