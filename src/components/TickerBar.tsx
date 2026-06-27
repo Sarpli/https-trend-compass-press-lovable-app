@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { combinedDailyPct } from "@/lib/daily-drift";
 
 type Row = {
   trend_id: string;
@@ -32,7 +33,6 @@ function TickerBarInner() {
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
-  const prevRef = useRef<Record<string, number>>({});
   const [pcts, setPcts] = useState<Record<string, number>>({});
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -169,21 +169,14 @@ function TickerBarInner() {
     return () => { supabase.removeChannel(ch); };
   }, [qc]);
 
-  // Track per-trend percentage change so each item reads like a stock ticker.
+  // Each ticker shows a fake-but-stable daily drift plus the live vote impact,
+  // so percentages stay non-zero and feel alive even with no recent votes.
   useEffect(() => {
     if (rows.length === 0) return;
-    const next: Record<string, number> = {};
     const nextPcts: Record<string, number> = {};
     rows.forEach((r) => {
-      next[r.trend_id] = r.price;
-      const last = prevRef.current[r.trend_id];
-      if (last !== undefined && last !== 0) {
-        nextPcts[r.trend_id] = ((r.price - last) / last) * 100;
-      } else {
-        nextPcts[r.trend_id] = 0;
-      }
+      nextPcts[r.trend_id] = combinedDailyPct(r.trend_id, r.net_votes);
     });
-    prevRef.current = next;
     setPcts(nextPcts);
   }, [rows]);
 
