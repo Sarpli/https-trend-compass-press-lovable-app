@@ -157,7 +157,7 @@ function Index() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-5 md:py-8">
+    <div className="max-w-7xl mx-auto px-6 pt-4 pb-6 md:py-8">
       <form
         onSubmit={(e) => {
           e.preventDefault();
