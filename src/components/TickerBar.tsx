@@ -66,7 +66,6 @@ function TickerBarInner() {
   const prevRef = useRef<Record<string, number>>({});
   const [deltas, setDeltas] = useState<Record<string, number>>({});
   const [history, setHistory] = useState<Record<string, number[]>>({});
-  const [isScrubbing, setIsScrubbing] = useState(false);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
@@ -129,7 +128,6 @@ function TickerBarInner() {
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
       pointerRef.current = { active: true, startX: e.clientX, startOffset: offsetRef.current, moved: false };
-      setIsScrubbing(true);
       pause();
       scroller.setPointerCapture?.(e.pointerId);
     };
@@ -144,7 +142,6 @@ function TickerBarInner() {
     const endPointer = (e: PointerEvent) => {
       if (!pointerRef.current.active) return;
       pointerRef.current.active = false;
-      setIsScrubbing(false);
       scroller.releasePointerCapture?.(e.pointerId);
       savePosition();
       resume();
