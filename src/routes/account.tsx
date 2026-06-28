@@ -160,8 +160,8 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
 
           <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
             {active
-              ? "Keep voting or searching daily to keep the flame alive. Your streak resets after a missed day."
-              : "Your streak starts the first day you vote or search. Come back tomorrow and the flame keeps growing!"}
+              ? "Vote or search once a day to keep your streak. Miss a day and the count resets."
+              : "Vote or search one term today to start your streak. Return tomorrow to keep it growing."}
           </p>
           {!active && (
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
