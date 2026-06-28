@@ -145,15 +145,34 @@ function Index() {
   });
 
   const { data: stories = [] } = useQuery({
-    queryKey: ["front-stories"],
+    queryKey: ["front-stories", localDateKey, featured?.id ?? null],
     queryFn: async () => {
       const { data } = await supabase
         .from("trends")
-        .select("id,slug,term,plain_language,category,image_url")
-        .neq("featured", true)
-        .limit(6);
-      return data ?? [];
+        .select("id,slug,term,plain_language,category,image_url");
+      const pool = (data ?? []).filter((t) => t.id !== featured?.id);
+      if (pool.length === 0) return [];
+      // Deterministic daily shuffle: seed from local date so every viewer in
+      // the same time zone sees the same 6 stories, and they rotate at local
+      // midnight along with the spotlight.
+      let h = 2166136261;
+      const key = `stories:${localDateKey}`;
+      for (let i = 0; i < key.length; i++) {
+        h ^= key.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      const rand = () => {
+        h ^= h << 13; h ^= h >>> 17; h ^= h << 5;
+        return ((h >>> 0) % 100000) / 100000;
+      };
+      const shuffled = pool.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, 6);
     },
+    staleTime: 1000 * 60 * 60,
   });
 
   return (
