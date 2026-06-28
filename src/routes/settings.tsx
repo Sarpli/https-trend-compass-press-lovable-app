@@ -101,12 +101,32 @@ function SettingsPage() {
         </div>
       </section>
 
-      {isPro && (
-        <div className="rule-top mt-10 pt-6">
-          <div className="ui small-caps text-xs text-muted-foreground mb-2">Pro · Notifications</div>
+      <div className="rule-top mt-10 pt-6">
+        <div className="ui small-caps text-xs text-muted-foreground mb-2">Pro · Notifications</div>
+        {isPro ? (
           <PushNotificationsToggle />
-        </div>
-      )}
+        ) : (
+          <div className="grid gap-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <div className="display text-lg font-bold">Push notifications</div>
+                <div className="ui text-xs text-muted-foreground max-w-md">
+                  Daily streak reminders delivered to your device. Available exclusively with a Pro subscription.
+                </div>
+              </div>
+              <Link
+                to="/pricing"
+                className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 hover:bg-ink transition-colors"
+              >
+                Upgrade to Pro
+              </Link>
+            </div>
+            <div className="ui text-xs text-muted-foreground border-l-2 border-ink/30 pl-3">
+              Pro includes unlimited archive access, 2× vote weight on annual plans, and priority trend submissions.
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="rule-top mt-10 pt-6 grid gap-5">
         <div>
