@@ -6,14 +6,20 @@ import { toast } from "sonner";
 import { haptic, celebrate } from "@/lib/haptics";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { todayLocalISO } from "@/lib/timezone";
+import { useLocalDateKey } from "@/lib/use-local-date";
 import { useSettings } from "@/lib/settings";
 import { StreakCelebration } from "./StreakCelebration";
 
 export function LearnedBanner({ trendId }: { trendId: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const today = todayLocalISO();
+  const { date: today } = useLocalDateKey();
+  // On local-midnight rollover, refetch streak + marked-today so the banner
+  // flips back to "mark as learned" for the new day without a reload.
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: ["effective-streak"] });
+    qc.invalidateQueries({ queryKey: ["marked-today"] });
+  }, [today, qc]);
   const mountedRef = useRef(true);
   const { motionReduced, streakAnimations } = useSettings();
   const animOK = streakAnimations && !motionReduced;
