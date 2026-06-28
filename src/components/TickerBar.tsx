@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { combinedDailyPct } from "@/lib/daily-drift";
 
 type Row = {
@@ -187,11 +188,15 @@ function TickerBarInner() {
     const flush = () => {
       pending = false;
       timer = null;
-      qc.invalidateQueries({ queryKey: ["ticker"] });
-      qc.invalidateQueries({ queryKey: ["leaderboard"] });
-      qc.invalidateQueries({ queryKey: ["trend-score"] });
-      qc.invalidateQueries({ queryKey: ["myvote"] });
-      qc.invalidateQueries({ queryKey: ["trend-history"] });
+      // Defer if a local vote mutation is still in flight, so realtime
+      // refetches can't clobber the optimistic score mid-write.
+      runOrDeferRealtime("ticker:invalidate-all", () => {
+        qc.invalidateQueries({ queryKey: ["ticker"] });
+        qc.invalidateQueries({ queryKey: ["leaderboard"] });
+        qc.invalidateQueries({ queryKey: ["trend-score"] });
+        qc.invalidateQueries({ queryKey: ["myvote"] });
+        qc.invalidateQueries({ queryKey: ["trend-history"] });
+      });
     };
     const schedule = () => {
       if (pending) return;
