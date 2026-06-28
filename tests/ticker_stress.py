@@ -112,6 +112,15 @@ async def main() -> int:
             ],
         )
         context = await browser.new_context(viewport={"width": 1280, "height": 800})
+        # Headless Chromium reports the page as hidden, which throttles rAF
+        # to ~6fps. Force visibility before any page script runs so the
+        # ticker animates at the real display rate.
+        await context.add_init_script(
+            """
+            Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+            Object.defineProperty(document, 'hidden', { configurable: true, get: () => false });
+            """
+        )
         page = await context.new_page()
         await page.bring_to_front()
         page.on("console", lambda msg: console_fh.write(f"[{msg.type}] {msg.text}\n"))
