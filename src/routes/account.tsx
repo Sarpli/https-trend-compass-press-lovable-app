@@ -156,39 +156,29 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
   const bumping = useBump(streak, { bumpOnInitial: completedToday });
   const today = new Date().toISOString().slice(0, 10);
   const last = lastActive ? lastActive.slice(0, 10) : null;
-  const status = last === today
-    ? "Streak active today"
-    : last
-    ? `Last active ${lastActive!.slice(0, 10)}`
-    : "Start your streak today";
 
   return (
-    <div className="rule-top mt-6 pt-4">
-      <div className="flex items-center gap-4">
-        <div
-          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl shadow transition-transform duration-300 ${
-            active
-              ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5 shadow-accent-red/20"
-              : "border-ink/20 bg-ink/5 grayscale"
-          } ${bumping ? "scale-110" : ""}`}
-          aria-hidden="true"
-        >
-          🔥
-          {active && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
-              {streak}
-            </span>
-          )}
+    <div className="flex items-center gap-3">
+      <div
+        className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 text-lg ${
+          active ? "border-accent-red bg-accent-red/10" : "border-ink/20 bg-ink/5 grayscale"
+        } ${bumping ? "scale-110" : ""}`}
+        aria-hidden="true"
+      >
+        🔥
+        {active && (
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent-red text-newsprint text-[8px] font-bold">
+            {streak}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={`display text-sm sm:text-base font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
+          {active ? `${streak} day${streak === 1 ? "" : "s"}` : "No streak"}
         </div>
-        <div className="flex-1">
-          <div className="ui small-caps text-[10px] text-muted-foreground">{status}</div>
-          <div className={`display text-xl sm:text-2xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
-            {active ? `${streak} day${streak === 1 ? "" : "s"}` : "No streak"}
-          </div>
-          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
-            Vote or search once a day to keep it. Miss a day and it resets.
-          </p>
-        </div>
+        <p className="ui text-[10px] text-muted-foreground leading-tight">
+          {last === today ? "Active today" : "Vote or search daily"}
+        </p>
       </div>
     </div>
   );
@@ -207,41 +197,22 @@ function MaxStreakSection({
   const isCurrentBest = hasRecord && currentStreak === maxStreak && currentStreak > 0;
 
   return (
-    <div className="rule-top mt-6 pt-4">
-      <div className="flex items-center gap-4">
-        <div
-          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl ${
-            hasRecord
-              ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5"
-              : "border-ink/20 bg-ink/5 grayscale"
-          }`}
-          aria-hidden="true"
-        >
-          🔥
-          {hasRecord && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
-              {maxStreak}
-            </span>
-          )}
+    <div className="flex items-center gap-3">
+      <div
+        className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 text-lg ${
+          hasRecord ? "border-accent-red bg-accent-red/10" : "border-ink/20 bg-ink/5 grayscale"
+        }`}
+        aria-hidden="true"
+      >
+        🏆
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="display text-sm sm:text-base font-black leading-tight">
+          {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record"}
         </div>
-        <div className="flex-1">
-          <div className="ui small-caps text-[10px] text-muted-foreground">All-time best</div>
-          <div className="display text-xl sm:text-2xl font-black leading-tight">
-            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record"}
-          </div>
-          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
-            {isCurrentBest
-              ? "Your current streak is your best."
-              : hasRecord
-              ? "Best run before it was lost."
-              : "Build a streak to see your longest run."}
-          </p>
-          {hasRecord && !isActiveToday && currentStreak > 0 && (
-            <p className="ui text-[10px] text-muted-foreground mt-0.5">
-              Current: {currentStreak} day{currentStreak === 1 ? "" : "s"}
-            </p>
-          )}
-        </div>
+        <p className="ui text-[10px] text-muted-foreground leading-tight">
+          {isCurrentBest ? "Current best" : "All-time best"}
+        </p>
       </div>
     </div>
   );
