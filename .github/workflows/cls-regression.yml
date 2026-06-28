@@ -86,6 +86,30 @@ jobs:
           GATING_ARTIFACT_DIR: ${{ github.workspace }}/gating-artifacts
         run: python3 tests/pro_gating.py
 
+      - name: Run Gated no-writes check
+        id: gated_nowrite
+        env:
+          GATED_NOWRITE_ARTIFACT_DIR: ${{ github.workspace }}/gated-nowrite-artifacts
+        # Exit code 2 = skipped (signed-in user is Pro, so gating doesn't apply).
+        run: |
+          set +e
+          python3 tests/gated_no_writes.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Gated no-writes test skipped (Pro session)."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Gated no-writes artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gated-nowrite-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/gated-nowrite-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run Pro voting check
         id: pro_voting
         env:
