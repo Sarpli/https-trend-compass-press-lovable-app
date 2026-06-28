@@ -18,6 +18,7 @@ import { WelcomeAuthModal } from "../components/WelcomeAuthModal";
 import { ScrollMemory } from "../lib/scroll-memory";
 import { AuthProvider } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
+import { SettingsProvider } from "../lib/settings";
 import { Toaster } from "../components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -173,6 +174,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
+        <SettingsProvider>
         <div className={`min-h-screen flex flex-col bg-background text-foreground${introPlayed ? "" : " intro-fluid-drop"}`}>
           <div className="liquid-ambient" aria-hidden="true" />
           <div className="relative z-10 flex flex-1 flex-col">
@@ -186,6 +188,7 @@ function RootComponent() {
         <WelcomeAuthModal />
         <ScrollMemory />
         <Toaster />
+        </SettingsProvider>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
