@@ -210,6 +210,30 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Gated REST-rejected check
+        id: gated_rest
+        env:
+          GATED_REST_ARTIFACT_DIR: ${{ github.workspace }}/gated-rest-artifacts
+        # Exit code 2 = skipped (no non-Pro session injected).
+        run: |
+          set +e
+          python3 tests/gated_rest_rejected.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Gated REST-rejected test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Gated REST-rejected artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gated-rest-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/gated-rest-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
