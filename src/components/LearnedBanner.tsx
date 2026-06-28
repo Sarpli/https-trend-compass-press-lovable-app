@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { haptic } from "@/lib/haptics";
+import { haptic, celebrate } from "@/lib/haptics";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 import { useSettings } from "@/lib/settings";
+import { StreakCelebration } from "./StreakCelebration";
 
 export function LearnedBanner({ trendId }: { trendId: string }) {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
   const [dismissed, setDismissed] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [burst, setBurst] = useState(0);
+  const [celebration, setCelebration] = useState<{ key: number; streak: number } | null>(null);
 
   useEffect(() => {
     return () => {
@@ -97,17 +99,25 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
 
   const mark = useMutation({
     mutationFn: async () => {
+      // Capture whether this mark will be the *first* of the local day
+      // (before we invalidate `marked-today`).
+      const wasFirstToday = !markedToday;
       const { data, error } = await supabase.rpc("mark_trend_learned", {
         _trend_id: trendId,
         _local_date: today,
       });
       if (error) throw error;
-      return Number(data ?? 0);
+      return { newCount: Number(data ?? 0), wasFirstToday };
     },
-    onSuccess: (newCount) => {
+    onSuccess: ({ newCount, wasFirstToday }) => {
       haptic("up");
       // Trigger confetti burst + dismiss the banner with a fade-out.
       setBurst((n) => n + 1);
+      // First mark of the local day → full-screen celebration + chime.
+      if (wasFirstToday && animOK) {
+        setCelebration({ key: Date.now(), streak: newCount });
+        try { celebrate(); } catch {}
+      }
       toast.success(`🔥 Streak: ${newCount} day${newCount === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["learned", trendId] });
       qc.invalidateQueries({ queryKey: ["effective-streak"] });
@@ -120,7 +130,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
         window.setTimeout(() => {
           if (mountedRef.current) setDismissed(true);
         }, 320);
-      }, 700);
+      }, wasFirstToday && animOK ? 1500 : 700);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -136,7 +146,12 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
     );
   }
 
-  if (learnedLoading || dismissedLoading || learned || dismissed) return null;
+  if (learnedLoading || dismissedLoading || learned || dismissed) {
+    // Still render the celebration overlay if it was triggered before dismissal.
+    return celebration ? (
+      <StreakCelebration key={celebration.key} streak={celebration.streak} />
+    ) : null;
+  }
 
   const hasStreak = (streak ?? 0) > 0;
   const alreadyToday = !!markedToday;
@@ -158,6 +173,8 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
   };
 
   return (
+    <>
+    {celebration && <StreakCelebration key={celebration.key} streak={celebration.streak} />}
     <div
       className={`mt-6 relative overflow-visible border border-accent-red/50 bg-accent-red/5 hover:bg-accent-red/10 ${
         animOK ? "transition-all duration-300" : ""
@@ -198,6 +215,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
         <X className="h-4 w-4" />
       </button>
     </div>
+    </>
   );
 }
 
