@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { deviceTimezone } from "@/lib/timezone";
+import { deviceTimezone, useUserTimezone, todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
+
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — Trenslate" }] }),
@@ -44,6 +45,14 @@ function Account() {
 
   if (!user) return null;
 
+  const tz = useUserTimezone();
+  const today = todayLocalISO(tz);
+  const yesterday = yesterdayLocalISO(tz);
+  const lastLocal = profile?.last_active_local_date;
+  const effectiveStreak = lastLocal === today || lastLocal === yesterday ? (profile?.streak_count ?? 0) : 0;
+  const isActiveToday = lastLocal === today;
+  const maxStreak = profile?.max_streak ?? 0;
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Subscriber Services</div>
@@ -54,17 +63,21 @@ function Account() {
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
+        <Stat label="Max streak" value={`${maxStreak} day${maxStreak === 1 ? "" : "s"}`} />
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
 
       <StreakSection streak={profile?.streak_count ?? 0} lastActive={profile?.last_active_date} />
 
+      <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
+
       <StreakCalendar userId={user.id} streak={profile?.streak_count ?? 0} />
 
       <StreakHistory userId={user.id} />
 
       <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
+
 
       <div className="rule-top mt-10 pt-6 flex gap-3">
         {!isPro && (
@@ -162,6 +175,61 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
     </div>
   );
 }
+
+function MaxStreakSection({
+  maxStreak,
+  currentStreak,
+  isActiveToday,
+}: {
+  maxStreak: number;
+  currentStreak: number;
+  isActiveToday: boolean;
+}) {
+  const hasRecord = maxStreak > 0;
+  const isCurrentBest = hasRecord && currentStreak === maxStreak && currentStreak > 0;
+
+  return (
+    <div className="rule-top mt-10 pt-6">
+      <div className="ui small-caps text-xs text-muted-foreground mb-1">Record books</div>
+      <h2 className="display text-2xl font-black mb-4">All-time best streak</h2>
+      <div className="flex items-center gap-5 sm:gap-6">
+        <div
+          className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 text-4xl ${
+            hasRecord
+              ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5"
+              : "border-ink/20 bg-ink/5 grayscale"
+          }`}
+          aria-hidden="true"
+        >
+          🔥
+          {hasRecord && (
+            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+              {maxStreak}
+            </span>
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="display text-3xl sm:text-4xl font-black leading-tight">
+            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record yet"}
+          </div>
+          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
+            {isCurrentBest
+              ? "Your current streak is your all-time best. Keep it going!"
+              : hasRecord
+              ? "Best run before it was lost."
+              : "Build a streak to see your longest run here."}
+          </p>
+          {hasRecord && !isActiveToday && currentStreak > 0 && (
+            <p className="ui text-xs text-muted-foreground mt-1">
+              Current streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function ChangePassword() {
   return _ChangePassword();
