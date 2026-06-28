@@ -116,7 +116,8 @@ function TickerBarInner() {
       if (!pausedRef.current) {
         rawRamp = Math.min(1, rawRamp + dt / EASE_IN_SEC);
         ramp = easeOutCubic(rawRamp);
-        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt);
+        const mul = Math.max(0, tickerSpeedRef.current || 0);
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt * mul);
         render();
       }
       raf = requestAnimationFrame(step);
