@@ -33,17 +33,17 @@ export function StreakBadge({ className = "" }: { className?: string }) {
       <span
         data-testid="streak-badge"
         data-streak-count={count}
-        aria-label={label}
-        title={label}
-        className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[12px] leading-none ${className}`}
+        className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[12px] leading-none text-foreground ${className}`}
       >
         <span
-          aria-hidden="true"
+          aria-label="Streak flame indicator"
           className={`text-[14px] leading-none ${active ? "" : "grayscale opacity-60"}`}
         >
           🔥
         </span>
-        <span data-testid="streak-count" className="font-semibold">{count}</span>
+        <span aria-label={`${count} day streak`} data-testid="streak-count" className="font-semibold">
+          {count}
+        </span>
       </span>
       {user && (
         <span className="relative">
@@ -56,14 +56,15 @@ export function StreakBadge({ className = "" }: { className?: string }) {
             onMouseLeave={() => setShowTip(false)}
             onFocus={() => setShowTip(true)}
             onBlur={() => setShowTip(false)}
-            className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-ink/30 text-[10px] leading-none text-muted-foreground hover:border-accent-red hover:text-accent-red transition-colors"
+            className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-foreground/40 bg-background text-[11px] leading-none text-foreground hover:border-accent-red hover:text-accent-red transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             ?
           </button>
           <span
             id="streak-help"
             role="tooltip"
-            className={`pointer-events-none absolute top-full right-0 mt-2 w-56 sm:w-64 rounded border border-ink/10 bg-newsprint p-2 shadow-lg text-[11px] leading-snug text-ink z-50 transition-opacity duration-150 ${
+            aria-hidden={!showTip}
+            className={`pointer-events-none absolute top-full right-0 mt-2 w-56 sm:w-64 rounded border border-border bg-popover p-2 shadow-lg text-[11px] leading-snug text-popover-foreground z-50 transition-opacity duration-150 ${
               showTip ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -75,11 +76,11 @@ export function StreakBadge({ className = "" }: { className?: string }) {
   );
 
   return user ? (
-    <Link to="/account" className="hover:opacity-80 transition-opacity">
+    <Link to="/account" aria-label={label} className="hover:opacity-80 transition-opacity">
       {inner}
     </Link>
   ) : (
-    <Link to="/auth" className="hover:opacity-80 transition-opacity">
+    <Link to="/auth" aria-label={label} className="hover:opacity-80 transition-opacity">
       {inner}
     </Link>
   );
