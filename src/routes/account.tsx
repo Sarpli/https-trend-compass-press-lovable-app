@@ -350,18 +350,14 @@ function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: st
   })();
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Streak timezone</div>
-      <h2 className="display text-2xl font-black mb-2">Daily reset timezone</h2>
-      <p className="ui text-sm text-muted-foreground mb-4 max-w-xl">
-        Your streak rolls over at midnight in this timezone, no matter which device you're on. Defaults to this device's timezone.
-      </p>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+    <div className="rule-top mt-6 pt-4">
+      <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Streak timezone</div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <select
           aria-label="Streak timezone"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="ui text-sm border border-ink/40 bg-background px-3 py-2 max-w-sm w-full"
+          className="ui text-xs border border-ink/40 bg-background px-3 py-2 max-w-sm w-full"
         >
           {!zones.includes(value) && <option value={value}>{value}</option>}
           {zones.map((z) => (
@@ -372,22 +368,22 @@ function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: st
           type="button"
           disabled={saving || value === effective}
           onClick={() => save(value)}
-          className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 disabled:opacity-50"
+          className="ui small-caps text-xs bg-ink text-newsprint px-3 py-2 disabled:opacity-50 hover:bg-accent-red transition-colors"
         >
-          {saving ? "Saving…" : "Save timezone"}
+          {saving ? "Saving…" : "Save"}
         </button>
         {value !== device && (
           <button
             type="button"
             onClick={() => { setValue(device); save(device); }}
-            className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
+            className="ui small-caps text-[10px] border border-ink/40 px-2 py-1 hover:bg-ink hover:text-newsprint transition-colors"
           >
             Use this device ({device})
           </button>
         )}
       </div>
-      <div className="ui text-xs text-muted-foreground mt-2">
-        Current time in <span className="font-semibold">{value.replace(/_/g, " ")}</span>: {nowInZone}
+      <div className="ui text-[10px] text-muted-foreground mt-1">
+        Reset at midnight · <span className="font-semibold">{value.replace(/_/g, " ")}</span>: {nowInZone}
       </div>
     </div>
   );
