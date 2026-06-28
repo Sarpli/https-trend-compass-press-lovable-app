@@ -20,7 +20,19 @@ export function StreakBadge({ className = "" }: { className?: string }) {
       return Number(data ?? 0);
     },
   });
-  const active = count > 0;
+  const { data: markedToday } = useQuery({
+    queryKey: ["marked-today", user?.id, today],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("last_active_local_date")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data?.last_active_local_date === today;
+    },
+  });
+  const completedToday = !!markedToday;
   const label = user
     ? `Daily streak: ${count} day${count === 1 ? "" : "s"}`
     : "Sign in to start your daily streak";
@@ -33,8 +45,8 @@ export function StreakBadge({ className = "" }: { className?: string }) {
         className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[12px] leading-none text-foreground ${className}`}
       >
         <span
-          aria-label="Streak flame indicator"
-          className={`text-[14px] leading-none ${active ? "" : "grayscale opacity-60"}`}
+          aria-label={completedToday ? "Streak completed today" : "Daily streak not yet completed"}
+          className={`text-[14px] leading-none ${completedToday ? "" : "grayscale opacity-60"}`}
         >
           🔥
         </span>
