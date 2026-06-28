@@ -14,22 +14,11 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-function SignOutButton() {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
+function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+  const { tickerSpeed, setTickerSpeed, streakAnimations, setStreakAnimations } = useSettings();
+
   return (
-    <button
-      type="button"
-      onClick={async () => {
-        await signOut();
-        navigate({ to: "/", replace: true });
-      }}
-      className="ui small-caps text-xs bg-ink text-newsprint px-4 py-2 hover:bg-accent-red transition-colors"
-    >
-      Sign out
-    </button>
-  );
-}
     <div className="max-w-3xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Preferences</div>
       <h1 className="display text-4xl font-black mb-6">Settings</h1>
@@ -127,5 +116,22 @@ function SignOutButton() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function SignOutButton() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await signOut();
+        navigate({ to: "/", replace: true });
+      }}
+      className="ui small-caps text-xs bg-ink text-newsprint px-4 py-2 hover:bg-accent-red transition-colors"
+    >
+      Sign out
+    </button>
   );
 }
