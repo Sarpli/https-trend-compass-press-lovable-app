@@ -515,3 +515,92 @@ function scorePassword(pw: string): { score: number; label: string; color: strin
     hint: score >= 4 ? "" : `Add ${missing.slice(0, 2).join(", ")}`,
   };
 }
+
+function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: string | null }) {
+  const qc = useQueryClient();
+  const device = deviceTimezone();
+  const effective = currentTz || device;
+  const [value, setValue] = useState(effective);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setValue(effective); }, [effective]);
+
+  const zones: string[] = (() => {
+    const anyIntl = Intl as unknown as { supportedValuesOf?: (k: string) => string[] };
+    if (typeof anyIntl.supportedValuesOf === "function") {
+      try { return anyIntl.supportedValuesOf("timeZone"); } catch { /* noop */ }
+    }
+    return [
+      "UTC","America/New_York","America/Chicago","America/Denver","America/Los_Angeles",
+      "America/Anchorage","America/Phoenix","America/Toronto","America/Mexico_City",
+      "America/Sao_Paulo","Europe/London","Europe/Paris","Europe/Berlin","Europe/Madrid",
+      "Europe/Rome","Europe/Moscow","Africa/Cairo","Africa/Johannesburg",
+      "Asia/Dubai","Asia/Karachi","Asia/Kolkata","Asia/Bangkok","Asia/Singapore",
+      "Asia/Hong_Kong","Asia/Shanghai","Asia/Tokyo","Asia/Seoul",
+      "Australia/Perth","Australia/Sydney","Pacific/Auckland",
+    ];
+  })();
+
+  const save = async (next: string) => {
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ timezone: next }).eq("id", userId);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Timezone updated — streak will reset at midnight local time.");
+    qc.invalidateQueries({ queryKey: ["profile"] });
+    qc.invalidateQueries({ queryKey: ["profile-timezone"] });
+    qc.invalidateQueries({ queryKey: ["effective-streak"] });
+    qc.invalidateQueries({ queryKey: ["marked-today"] });
+  };
+
+  const nowInZone = (() => {
+    try {
+      return new Intl.DateTimeFormat(undefined, {
+        timeZone: value, hour: "2-digit", minute: "2-digit", weekday: "short", month: "short", day: "numeric",
+      }).format(new Date());
+    } catch { return "—"; }
+  })();
+
+  return (
+    <div className="rule-top mt-10 pt-6">
+      <div className="ui small-caps text-xs text-muted-foreground mb-1">Streak timezone</div>
+      <h2 className="display text-2xl font-black mb-2">Daily reset timezone</h2>
+      <p className="ui text-sm text-muted-foreground mb-4 max-w-xl">
+        Your streak rolls over at midnight in this timezone, no matter which device you're on. Defaults to this device's timezone.
+      </p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <select
+          aria-label="Streak timezone"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="ui text-sm border border-ink/40 bg-background px-3 py-2 max-w-sm w-full"
+        >
+          {!zones.includes(value) && <option value={value}>{value}</option>}
+          {zones.map((z) => (
+            <option key={z} value={z}>{z.replace(/_/g, " ")}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={saving || value === effective}
+          onClick={() => save(value)}
+          className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save timezone"}
+        </button>
+        {value !== device && (
+          <button
+            type="button"
+            onClick={() => { setValue(device); save(device); }}
+            className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
+          >
+            Use this device ({device})
+          </button>
+        )}
+      </div>
+      <div className="ui text-xs text-muted-foreground mt-2">
+        Current time in <span className="font-semibold">{value.replace(/_/g, " ")}</span>: {nowInZone}
+      </div>
+    </div>
+  );
+}
