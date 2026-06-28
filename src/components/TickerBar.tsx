@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { combinedDailyPct } from "@/lib/daily-drift";
 
 type Row = {
