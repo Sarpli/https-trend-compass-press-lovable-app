@@ -818,4 +818,3 @@ button[data-slot="button"]:not([data-variant="link"]) {
 .dark .ticker-bar .text-newsprint {
   color: var(--color-foreground);
 }
-}
