@@ -124,24 +124,8 @@ function Account() {
       <ChangePassword />
     </div>
   );
-
-  useEffect(() => {
-    if (!user || isPro) return;
-    const channel = supabase
-      .channel("account-searches")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "searches", filter: `user_id=eq.${user.id}` },
-        () => {
-          qc.invalidateQueries({ queryKey: ["searches", user.id] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, isPro, qc]);
 }
+
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
