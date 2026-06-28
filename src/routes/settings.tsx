@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/settings";
+import { useAuth } from "@/lib/auth";
+import { ChangePassword } from "@/components/ChangePassword";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -94,6 +96,17 @@ function SettingsPage() {
         </div>
       </section>
 
+      <div className="rule-top mt-10 pt-6 grid gap-5">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div className="ui small-caps text-xs text-muted-foreground">Account</div>
+            <div className="display text-lg font-bold">Session</div>
+          </div>
+          <SignOutButton />
+        </div>
+        <ChangePassword />
+      </div>
+
       <div className="rule-top mt-10 pt-6">
         <Link
           to="/account"
@@ -103,5 +116,22 @@ function SettingsPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function SignOutButton() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await signOut();
+        navigate({ to: "/", replace: true });
+      }}
+      className="ui small-caps text-xs bg-ink text-newsprint px-4 py-2 hover:bg-accent-red transition-colors"
+    >
+      Sign out
+    </button>
   );
 }
