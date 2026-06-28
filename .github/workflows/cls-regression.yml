@@ -110,6 +110,30 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Free-tier voting check
+        id: free_voting
+        env:
+          FREE_VOTING_ARTIFACT_DIR: ${{ github.workspace }}/free-voting-artifacts
+        # Exit code 2 = skipped (no free-tier session injected in CI).
+        run: |
+          set +e
+          python3 tests/free_voting.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Free voting test skipped (no free-tier session in CI)."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Free voting artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-voting-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/free-voting-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
