@@ -25,6 +25,8 @@ function Archive() {
   const [useAI, setUseAI] = useState(true);
   const aiSearch = useServerFn(aiSearchTrends);
 
+  if (!isPro) return <ArchivePaywall signedIn={!!user} />;
+
   useEffect(() => {
     if (initialQ && initialQ !== submitted) {
       setQ(initialQ);
@@ -144,6 +146,64 @@ function Archive() {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function ArchivePaywall({ signedIn }: { signedIn: boolean }) {
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-16">
+      <div className="text-xs ui small-caps text-accent-red mb-2">Subscribers Only</div>
+      <h1 className="display text-5xl md:text-6xl font-black leading-[1.05] mb-4">
+        The Archive is a Pro privilege.
+      </h1>
+      <p className="rule-top pt-4 text-lg text-foreground/90 mb-8 max-w-2xl">
+        Free readers get today’s Front Page — the terms in circulation right now.
+        Pro members unlock the full back catalog: every term we’ve ever filed,
+        searchable without limit, with AI-assisted lookup and complete price
+        history on each entry.
+      </p>
+
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
+        <div className="border border-ink/30 p-5">
+          <div className="ui small-caps text-[10px] text-muted-foreground mb-2">Free</div>
+          <h2 className="display text-2xl font-bold mb-2">The Front Page</h2>
+          <ul className="text-sm space-y-1 text-foreground/90">
+            <li>· Today’s rotating spotlight</li>
+            <li>· Daily briefing of trends in play</li>
+            <li>· 3 archive searches per day</li>
+          </ul>
+        </div>
+        <div className="border-2 border-accent-red p-5 bg-accent-red/[0.04]">
+          <div className="ui small-caps text-[10px] text-accent-red mb-2">Pro</div>
+          <h2 className="display text-2xl font-bold mb-2">The Full Archive</h2>
+          <ul className="text-sm space-y-1 text-foreground/90">
+            <li>· Every term, ever — fully searchable</li>
+            <li>· Unlimited AI-assisted search</li>
+            <li>· After Hours dark mode & extras</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          to="/pricing"
+          className="ui small-caps text-xs bg-accent-red text-white px-6 py-3 hover:opacity-90"
+        >
+          Subscribe to Pro
+        </Link>
+        {!signedIn && (
+          <Link
+            to="/auth"
+            className="ui small-caps text-xs border border-ink/40 px-6 py-3 hover:bg-ink hover:text-newsprint"
+          >
+            Sign in
+          </Link>
+        )}
+        <Link to="/" className="ui small-caps text-xs underline text-muted-foreground">
+          ← Back to Front Page
+        </Link>
+      </div>
     </div>
   );
 }
