@@ -785,3 +785,24 @@ button[data-slot="button"]:not([data-variant="link"]) {
     0 14px 40px -20px color-mix(in oklab, var(--ink) 60%, transparent),
     0 0 0 1px color-mix(in oklab, white 4%, transparent);
 }
+
+/*
+ * Dark-mode ticker — in After Hours, --ink resolves to cream, so we
+ * rebuild the ticker fill from the page surface tokens to keep it a
+ * true floating dark glass panel consistent with cards and nav.
+ */
+.dark .ticker-bar {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--card) 78%, transparent) 0%,
+      color-mix(in oklab, var(--card) 52%, transparent) 100%
+    );
+  border-top: 1px solid color-mix(in oklab, white 9%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, white 6%, transparent);
+  box-shadow:
+    0 1px 0 var(--glass-edge) inset,
+    0 -1px 0 var(--glass-edge-bottom) inset,
+    0 14px 40px -20px color-mix(in oklab, black 70%, transparent),
+    0 0 0 1px color-mix(in oklab, white 3%, transparent);
+}
