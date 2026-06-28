@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
 import { LivePriceBar } from "@/components/LivePriceBar";
+import { LearnedBanner } from "@/components/LearnedBanner";
 
 export const Route = createFileRoute("/trends/$slug")({
   loader: async ({ params }) => {
@@ -193,6 +194,7 @@ function TrendPage() {
           </section>
         </aside>
       </div>
+      <LearnedBanner trendId={trend.id} />
     </article>
   );
 }
