@@ -155,6 +155,19 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
+  // Test hook: when the URL includes `?stress=1`, expose the QueryClient on
+  // window so the ticker stress test (tests/ticker_stress.py) can simulate
+  // realtime vote bursts by invalidating the ticker query at high rate. The
+  // hook is gated on the query string so production users never see it.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (new URLSearchParams(window.location.search).get("stress") === "1") {
+        (window as unknown as { __qc?: QueryClient }).__qc = queryClient;
+      }
+    } catch {}
+  }, [queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
