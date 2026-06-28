@@ -55,6 +55,7 @@ export type Database = {
           is_founding_voter: boolean
           last_active_date: string | null
           last_active_local_date: string | null
+          max_streak: number | null
           streak_count: number
           timezone: string | null
           updated_at: string
@@ -66,6 +67,7 @@ export type Database = {
           is_founding_voter?: boolean
           last_active_date?: string | null
           last_active_local_date?: string | null
+          max_streak?: number | null
           streak_count?: number
           timezone?: string | null
           updated_at?: string
@@ -77,6 +79,7 @@ export type Database = {
           is_founding_voter?: boolean
           last_active_date?: string | null
           last_active_local_date?: string | null
+          max_streak?: number | null
           streak_count?: number
           timezone?: string | null
           updated_at?: string
