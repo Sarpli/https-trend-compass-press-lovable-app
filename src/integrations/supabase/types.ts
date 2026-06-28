@@ -56,6 +56,7 @@ export type Database = {
           last_active_date: string | null
           last_active_local_date: string | null
           streak_count: number
+          timezone: string | null
           updated_at: string
         }
         Insert: {
@@ -66,6 +67,7 @@ export type Database = {
           last_active_date?: string | null
           last_active_local_date?: string | null
           streak_count?: number
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           last_active_date?: string | null
           last_active_local_date?: string | null
           streak_count?: number
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []
