@@ -162,7 +162,8 @@ function RootComponent() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (new URLSearchParams(window.location.search).get("stress") === "1") {
+      const qs = new URLSearchParams(window.location.search);
+      if (qs.get("stress") === "1" || qs.get("qc") === "1") {
         (window as unknown as { __qc?: QueryClient }).__qc = queryClient;
       }
     } catch {}
