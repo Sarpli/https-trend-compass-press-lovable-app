@@ -86,8 +86,6 @@ function Account() {
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <StreakHistory userId={user.id} />
-
       <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
 
 
@@ -219,89 +217,6 @@ function MaxStreakSection({
 
 
 
-function formatDateLabel(iso: string) {
-  const d = new Date(`${iso}T00:00:00`);
-  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-}
-
-function StreakHistory({ userId }: { userId: string }) {
-  const { data: learnedDays } = useQuery({
-    queryKey: ["learned-days", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("learned_trends")
-        .select("created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      const grouped = new Map<string, number>();
-      (data ?? []).forEach((r: { created_at: string }) => {
-        const key = r.created_at.slice(0, 10);
-        grouped.set(key, (grouped.get(key) ?? 0) + 1);
-      });
-      return Array.from(grouped.entries())
-        .slice(0, 7)
-        .map(([date, count]) => ({ date, count }));
-    },
-  });
-
-  const { data: lastIncrease } = useQuery({
-    queryKey: ["streak-history", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("streak_history")
-        .select("action_date, new_streak_count")
-        .eq("user_id", userId)
-        .order("action_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  return (
-    <div className="rule-top mt-6 pt-4">
-      <div className="ui small-caps text-[10px] text-muted-foreground mb-2">Streak history</div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Most recent learned days</div>
-          {learnedDays && learnedDays.length > 0 ? (
-            <ul className="space-y-1">
-              {learnedDays.map((day) => (
-                <li
-                  key={day.date}
-                  className="flex items-center justify-between ui text-xs border-b border-ink/10 py-1"
-                >
-                  <span>{formatDateLabel(day.date)}</span>
-                  <span className="text-muted-foreground">
-                    {day.count} term{day.count === 1 ? "" : "s"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="ui text-xs text-muted-foreground">No learned days yet.</p>
-          )}
-        </div>
-        <div>
-          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Last streak increase</div>
-          {lastIncrease ? (
-            <div className="p-2 rounded border border-ink/10 bg-ink/5">
-              <div className="display text-base font-black">{formatDateLabel(lastIncrease.action_date)}</div>
-              <div className="ui text-xs text-muted-foreground">
-                Reached {lastIncrease.new_streak_count} day
-                {lastIncrease.new_streak_count === 1 ? "" : "s"}
-              </div>
-            </div>
-          ) : (
-            <p className="ui text-xs text-muted-foreground">No streak increases yet.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 
 function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: string | null }) {
