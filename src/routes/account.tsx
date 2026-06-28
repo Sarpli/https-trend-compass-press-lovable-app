@@ -18,6 +18,8 @@ export const Route = createFileRoute("/account")({
 function Account() {
   const { user, tier, isPro, isAnnual, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
