@@ -203,14 +203,14 @@ function TickerBarInner() {
     setPcts(nextPcts);
   }, [rows]);
 
-  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-8 sm:h-9" />;
+  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-9 sm:h-10" />;
 
   const items = Array.from({ length: loopCopies }, () => rows).flat();
 
   return (
-    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm h-8 sm:h-9">
+    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm h-9 sm:h-10">
       <div className="flex items-center h-full">
-        <div className="w-8 h-8 sm:w-9 sm:h-9 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15">
           Live
         </div>
         <div
@@ -218,7 +218,7 @@ function TickerBarInner() {
           className="flex-1 relative ticker-scroller h-full"
           style={{ overflow: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
         >
-          <div ref={trackRef} className="inline-flex items-center gap-2 sm:gap-2.5 h-full whitespace-nowrap will-change-transform">
+          <div ref={trackRef} className="inline-flex items-center h-full whitespace-nowrap will-change-transform px-1 sm:px-2">
             {items.map((r, i) => {
               const pct = pcts[r.trend_id] ?? 0;
               const isUp = pct > 0;
@@ -228,12 +228,12 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-1 mx-0.5 sm:mx-1 px-1 rounded-sm transition-colors hover:bg-newsprint/5 ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 mx-0.5 sm:mx-1 rounded-sm transition-colors hover:bg-newsprint/5 ${
                     isUp ? "text-ticker-up" : isDown ? "text-ticker-down" : "hover:text-accent-red"
                   }`}
                 >
-                  <span className="small-caps font-bold tracking-wider uppercase">{r.term}</span>
-                  <span className="tabular-nums text-xs sm:text-sm">
+                  <span className="small-caps font-bold tracking-wider uppercase leading-none">{r.term}</span>
+                  <span className="tabular-nums text-xs sm:text-sm leading-none">
                     {isUp ? "+" : ""}{pct.toFixed(2)}%
                   </span>
                 </Link>
