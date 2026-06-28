@@ -182,38 +182,39 @@
 .dark {
   --glass-edge: color-mix(in oklab, white 14%, transparent);
   --glass-edge-bottom: color-mix(in oklab, black 38%, transparent);
-  --glass-glow: color-mix(in oklab, var(--brass) 28%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 32%, transparent);
   /*
    * "After Hours" — Midnight Newsprint edition.
-   * Cool near-black surfaces, soft cream ink, muted brass accent,
-   * rose-red live indicator, hair-thin white rule lines.
+   * Deep navy-charcoal page (#0a0a0f), slightly lighter card surfaces
+   * for visible layering, soft paper-white ink (not harsh pure white),
+   * muted brass accent with a faint bloom, rose-red live indicator.
    */
-  --ink: oklch(0.92 0.004 260);         /* #e2e2e2 — soft paper white */
-  --newsprint: oklch(0.14 0.005 265);   /* #0f1115 — page surface */
-  --rule: oklch(1 0 0 / 12%);           /* hair-thin white rule */
+  --ink: oklch(0.93 0.006 255);         /* #e6e7ea — soft warm white */
+  --newsprint: oklch(0.165 0.012 265);  /* #14161c — page surface */
+  --rule: oklch(1 0 0 / 10%);           /* hair-thin white rule */
   --ticker-up: oklch(0.74 0.17 152);
   --ticker-down: oklch(0.67 0.22 18);
   --accent-red: oklch(0.62 0.23 18);    /* rose-600 live indicator */
-  --brass: oklch(0.68 0.06 75);         /* #a88d6c — muted brass accent */
-  --background: oklch(0.10 0.004 260);  /* #0a0b0d — outer page */
+  --brass: oklch(0.74 0.08 75);         /* #c0a079 — warmer brass accent */
+  --background: oklch(0.115 0.012 265); /* #0a0a0f — deep charcoal-navy */
   --foreground: var(--ink);
-  --card: oklch(0.14 0.005 265);
+  --card: oklch(0.175 0.013 265);       /* #15171d — layered surface */
   --card-foreground: var(--ink);
-  --popover: oklch(0.16 0.005 265);
+  --popover: oklch(0.20 0.014 265);     /* #1a1d24 — elevated layer */
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--newsprint);
-  --secondary: oklch(0.19 0.005 265);
+  --secondary: oklch(0.215 0.013 265);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.18 0.005 265);
-  --muted-foreground: oklch(0.68 0.01 260);
+  --muted: oklch(0.205 0.012 265);
+  --muted-foreground: oklch(0.72 0.012 260);
   --accent: var(--brass);
   --accent-foreground: oklch(0.98 0.01 80);
   --destructive: var(--ticker-down);
   --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.68 0.06 75);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.74 0.08 75);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -611,6 +612,39 @@ nav[data-slot="navigation-menu"] {
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--ring) 55%, transparent),
     0 0 0 4px color-mix(in oklab, var(--ring) 18%, transparent) !important;
+}
+
+/*
+ * After Hours bloom — subtle colored glow on highlighted/accent surfaces
+ * so brass buttons, live badges, and up/down chips feel illuminated
+ * against the deep navy page. Dark mode only; light mode stays crisp.
+ */
+.dark .bg-accent,
+.dark [data-slot="badge"].bg-accent,
+.dark .bg-accent-red,
+.dark .bg-ticker-up,
+.dark .bg-ticker-down,
+.dark button[data-variant="accent"] {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, currentColor 18%, transparent),
+    0 6px 24px -10px color-mix(in oklab, var(--accent) 45%, transparent),
+    0 2px 10px -4px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.dark .bg-accent-red,
+.dark .bg-ticker-down {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent-red) 22%, transparent),
+    0 6px 22px -10px color-mix(in oklab, var(--accent-red) 50%, transparent);
+}
+.dark .bg-ticker-up {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ticker-up) 22%, transparent),
+    0 6px 22px -10px color-mix(in oklab, var(--ticker-up) 45%, transparent);
+}
+.dark .text-accent-red,
+.dark .text-ticker-up,
+.dark .text-ticker-down {
+  text-shadow: 0 0 14px color-mix(in oklab, currentColor 35%, transparent);
 }
 
 /*
