@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { deviceTimezone } from "@/lib/timezone";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "Account — Trenslate" }] }),
@@ -62,6 +63,8 @@ function Account() {
       <StreakCalendar userId={user.id} streak={profile?.streak_count ?? 0} />
 
       <StreakHistory userId={user.id} />
+
+      <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
 
       <div className="rule-top mt-10 pt-6 flex gap-3">
         {!isPro && (
