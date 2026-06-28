@@ -236,6 +236,30 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Free gated-CTA clicks check
+        id: free_gated_cta
+        env:
+          FREE_GATED_CTA_ARTIFACT_DIR: ${{ github.workspace }}/free-gated-cta-artifacts
+        # Exit code 2 = skipped (no session, or session is Pro).
+        run: |
+          set +e
+          python3 tests/free_gated_cta_clicks.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Free gated-CTA clicks test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Free gated-CTA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-gated-cta-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/free-gated-cta-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run Gated REST-rejected check
         id: gated_rest
         env:
