@@ -45,6 +45,14 @@ function Account() {
 
   if (!user) return null;
 
+  const tz = useUserTimezone();
+  const today = todayLocalISO(tz);
+  const yesterday = yesterdayLocalISO(tz);
+  const lastLocal = profile?.last_active_local_date;
+  const effectiveStreak = lastLocal === today || lastLocal === yesterday ? (profile?.streak_count ?? 0) : 0;
+  const isActiveToday = lastLocal === today;
+  const maxStreak = profile?.max_streak ?? 0;
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Subscriber Services</div>
@@ -55,17 +63,21 @@ function Account() {
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
+        <Stat label="Max streak" value={`${maxStreak} day${maxStreak === 1 ? "" : "s"}`} />
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
 
       <StreakSection streak={profile?.streak_count ?? 0} lastActive={profile?.last_active_date} />
 
+      <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
+
       <StreakCalendar userId={user.id} streak={profile?.streak_count ?? 0} />
 
       <StreakHistory userId={user.id} />
 
       <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
+
 
       <div className="rule-top mt-10 pt-6 flex gap-3">
         {!isPro && (
