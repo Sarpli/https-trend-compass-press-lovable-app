@@ -83,7 +83,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
     mutationFn: async () => {
       const { error } = await supabase
         .from("dismissed_banners")
-        .insert({ user_id: user!.id, trend_id: trendId });
+        .upsert({ user_id: user!.id, trend_id: trendId }, { onConflict: "user_id,trend_id" });
       if (error) throw error;
     },
     onSuccess: () => {
