@@ -45,8 +45,8 @@ export function StreakBadge({ className = "" }: { className?: string }) {
         className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[12px] leading-none text-foreground ${className}`}
       >
         <span
-          aria-label="Streak flame indicator"
-          className={`text-[14px] leading-none ${active ? "" : "grayscale opacity-60"}`}
+          aria-label={completedToday ? "Streak completed today" : "Daily streak not yet completed"}
+          className={`text-[14px] leading-none ${completedToday ? "" : "grayscale opacity-60"}`}
         >
           🔥
         </span>
