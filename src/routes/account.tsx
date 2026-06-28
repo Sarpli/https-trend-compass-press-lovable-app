@@ -358,7 +358,9 @@ function StreakCalendar({ userId, streak }: { userId: string; streak: number }) 
                         : d.count === 1
                         ? "border-accent-red/40 bg-accent-red/30"
                         : "border-ink/15 bg-ink/5"
-                    } ${d.isToday ? "ring-1 ring-ink/60" : ""}`}
+                    } ${d.isToday ? "ring-1 ring-ink/60" : ""} ${
+                      d.isToday && bumping ? "animate-pulse ring-2 ring-accent-red" : ""
+                    }`}
                   />
                 ))}
               </div>
