@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      learned_trends: {
+        Row: {
+          created_at: string
+          trend_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          trend_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          trend_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learned_trends_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "learned_trends_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -21,6 +54,7 @@ export type Database = {
           id: string
           is_founding_voter: boolean
           last_active_date: string | null
+          last_active_local_date: string | null
           streak_count: number
           updated_at: string
         }
@@ -30,6 +64,7 @@ export type Database = {
           id: string
           is_founding_voter?: boolean
           last_active_date?: string | null
+          last_active_local_date?: string | null
           streak_count?: number
           updated_at?: string
         }
@@ -39,6 +74,7 @@ export type Database = {
           id?: string
           is_founding_voter?: boolean
           last_active_date?: string | null
+          last_active_local_date?: string | null
           streak_count?: number
           updated_at?: string
         }
@@ -372,6 +408,7 @@ export type Database = {
           t: string
         }[]
       }
+      get_effective_streak: { Args: { _local_date: string }; Returns: number }
       get_trend_price_history: {
         Args: { _trend_id: string }
         Returns: {
@@ -409,6 +446,10 @@ export type Database = {
       is_annual: { Args: { _user_id: string }; Returns: boolean }
       is_pro: { Args: { _user_id: string }; Returns: boolean }
       is_pro_self: { Args: never; Returns: boolean }
+      mark_trend_learned: {
+        Args: { _local_date: string; _trend_id: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "user"
