@@ -314,6 +314,32 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Pro in-place upgrade check
+        id: pro_upgrade_inplace
+        env:
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PRO_UPGRADE_INPLACE_ARTIFACT_DIR: ${{ github.workspace }}/pro-upgrade-inplace-artifacts
+        # Exit code 2 = skipped (no session / no service key / already Pro).
+        run: |
+          set +e
+          python3 tests/pro_upgrade_inplace.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Pro in-place upgrade test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Pro in-place upgrade artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-upgrade-inplace-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/pro-upgrade-inplace-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Free search-limit artifacts
         if: always()
         uses: actions/upload-artifact@v4
