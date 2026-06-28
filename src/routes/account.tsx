@@ -176,6 +176,61 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
   );
 }
 
+function MaxStreakSection({
+  maxStreak,
+  currentStreak,
+  isActiveToday,
+}: {
+  maxStreak: number;
+  currentStreak: number;
+  isActiveToday: boolean;
+}) {
+  const hasRecord = maxStreak > 0;
+  const isCurrentBest = hasRecord && currentStreak === maxStreak && currentStreak > 0;
+
+  return (
+    <div className="rule-top mt-10 pt-6">
+      <div className="ui small-caps text-xs text-muted-foreground mb-1">Record books</div>
+      <h2 className="display text-2xl font-black mb-4">All-time best streak</h2>
+      <div className="flex items-center gap-5 sm:gap-6">
+        <div
+          className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 text-4xl ${
+            hasRecord
+              ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5"
+              : "border-ink/20 bg-ink/5 grayscale"
+          }`}
+          aria-hidden="true"
+        >
+          🔥
+          {hasRecord && (
+            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+              {maxStreak}
+            </span>
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="display text-3xl sm:text-4xl font-black leading-tight">
+            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record yet"}
+          </div>
+          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
+            {isCurrentBest
+              ? "Your current streak is your all-time best. Keep it going!"
+              : hasRecord
+              ? "Best run before it was lost."
+              : "Build a streak to see your longest run here."}
+          </p>
+          {hasRecord && !isActiveToday && currentStreak > 0 && (
+            <p className="ui text-xs text-muted-foreground mt-1">
+              Current streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function ChangePassword() {
   return _ChangePassword();
 }
