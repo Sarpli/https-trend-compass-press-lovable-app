@@ -6,19 +6,13 @@ import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-
-function localDateISO(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 
 export function LearnedBanner({ trendId }: { trendId: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const today = localDateISO();
+  const tz = useUserTimezone();
+  const today = todayLocalISO(tz);
   const dismissKey = user ? `learned-banner-dismissed:${user.id}:${trendId}` : "";
   const [dismissed, setDismissed] = useState(false);
   const [leaving, setLeaving] = useState(false);

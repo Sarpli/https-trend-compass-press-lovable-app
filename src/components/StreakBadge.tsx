@@ -3,17 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-
-function localDateISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 
 const STREAK_HELP = `Streaks grow once per calendar day in your local timezone. Mark a term as learned to add +1. Miss a full day and the streak resets to zero. Resets happen at midnight your time.`;
 
 export function StreakBadge({ className = "" }: { className?: string }) {
   const { user } = useAuth();
-  const today = localDateISO();
+  const tz = useUserTimezone();
+  const today = todayLocalISO(tz);
   const [showTip, setShowTip] = useState(false);
   const { data: count = 0 } = useQuery({
     queryKey: ["effective-streak", user?.id, today],
