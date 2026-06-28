@@ -177,12 +177,10 @@ function MaxStreakSection({
   const isCurrentBest = hasRecord && currentStreak === maxStreak && currentStreak > 0;
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Record books</div>
-      <h2 className="display text-2xl font-black mb-4">All-time best streak</h2>
-      <div className="flex items-center gap-5 sm:gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="flex items-center gap-4">
         <div
-          className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 text-4xl ${
+          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl ${
             hasRecord
               ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5"
               : "border-ink/20 bg-ink/5 grayscale"
@@ -191,25 +189,26 @@ function MaxStreakSection({
         >
           🔥
           {hasRecord && (
-            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
               {maxStreak}
             </span>
           )}
         </div>
         <div className="flex-1">
-          <div className="display text-3xl sm:text-4xl font-black leading-tight">
-            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record yet"}
+          <div className="ui small-caps text-[10px] text-muted-foreground">All-time best</div>
+          <div className="display text-xl sm:text-2xl font-black leading-tight">
+            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record"}
           </div>
-          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
+          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
             {isCurrentBest
-              ? "Your current streak is your all-time best. Keep it going!"
+              ? "Your current streak is your best."
               : hasRecord
               ? "Best run before it was lost."
-              : "Build a streak to see your longest run here."}
+              : "Build a streak to see your longest run."}
           </p>
           {hasRecord && !isActiveToday && currentStreak > 0 && (
-            <p className="ui text-xs text-muted-foreground mt-1">
-              Current streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
+            <p className="ui text-[10px] text-muted-foreground mt-0.5">
+              Current: {currentStreak} day{currentStreak === 1 ? "" : "s"}
             </p>
           )}
         </div>
