@@ -26,6 +26,15 @@ export function todayLocalISO(tz?: string | null): string {
   }
 }
 
+export function yesterdayLocalISO(tz?: string | null): string {
+  const today = todayLocalISO(tz);
+  const [y, m, d] = today.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() - 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+
 /** Returns the user's preferred timezone (profile.timezone) or device tz. */
 export function useUserTimezone(): string {
   const { user } = useAuth();
