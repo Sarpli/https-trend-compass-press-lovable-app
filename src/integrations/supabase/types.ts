@@ -89,6 +89,8 @@ export type Database = {
           last_active_date: string | null
           last_active_local_date: string | null
           max_streak: number | null
+          push_enabled: boolean
+          push_reminder_hour: number
           streak_count: number
           timezone: string | null
           updated_at: string
@@ -101,6 +103,8 @@ export type Database = {
           last_active_date?: string | null
           last_active_local_date?: string | null
           max_streak?: number | null
+          push_enabled?: boolean
+          push_reminder_hour?: number
           streak_count?: number
           timezone?: string | null
           updated_at?: string
@@ -113,6 +117,8 @@ export type Database = {
           last_active_date?: string | null
           last_active_local_date?: string | null
           max_streak?: number | null
+          push_enabled?: boolean
+          push_reminder_hour?: number
           streak_count?: number
           timezone?: string | null
           updated_at?: string
