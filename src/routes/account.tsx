@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { deviceTimezone, useUserTimezone, todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
+import { ChangePassword } from "@/components/ChangePassword";
 
 
 
