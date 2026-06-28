@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { deviceTimezone, todayLocalISO } from "./timezone";
+import { deviceTimezone, nextLocalMidnightUTC, todayLocalISO } from "./timezone";
 
 /**
  * Reactive local-date key (YYYY-MM-DD) in the device's own time zone.
@@ -22,9 +22,14 @@ export function useLocalDateKey(): { date: string; timeZone: string } {
     };
     const scheduleMidnight = () => {
       const now = new Date();
-      const next = new Date(now);
-      next.setHours(24, 0, 5, 0); // 5s after local midnight
-      const ms = Math.max(1000, next.getTime() - now.getTime());
+      // Compute the next local midnight in the *resolved* IANA zone (not the
+      // system zone, which can differ) and pad +5s so the rollover has
+      // already happened by the time we re-read the date. This works through
+      // DST spring-forward (the missing hour is skipped) and fall-back (the
+      // repeated hour is collapsed) because nextLocalMidnightUTC searches
+      // for the first UTC instant whose local date is "tomorrow".
+      const next = nextLocalMidnightUTC(now, deviceTimezone());
+      const ms = Math.max(1000, next.getTime() - now.getTime() + 5_000);
       return window.setTimeout(() => {
         sync();
         timer = scheduleMidnight();
