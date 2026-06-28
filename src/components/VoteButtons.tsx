@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { currentPeriodKey, CATEGORY_LABEL } from "@/lib/period";
@@ -153,6 +153,7 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
   }
 
   const handle = (d: "up" | "down") => {
+    if (mut.isPending) return;
     if (!user) { navigate({ to: "/auth" }); return; }
     haptic(d);
     mut.mutate(d);
