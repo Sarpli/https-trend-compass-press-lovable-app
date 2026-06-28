@@ -67,16 +67,19 @@ function TickerBarInner() {
 
   // Auto-scroll the tape with a GPU transform instead of writing scrollLeft on
   // every frame. That keeps desktop motion smooth while preserving drag/wheel
-  // scrubbing and the saved ticker position.
+  // scrubbing and the saved ticker position. Resume uses an ease-out cubic so
+  // the tape glides back to full speed instead of snapping after hover/drag.
   useEffect(() => {
     const scroller = scrollerRef.current;
     const track = trackRef.current;
     if (!scroller || !track) return;
     let raf = 0;
     let last = performance.now();
-    const PX_PER_SEC = 40; // matches ~180s loop feel
-    const EASE_IN_SEC = 0.3; // ramp from 0 back to full speed after a pause
-    let speed = 1; // current velocity multiplier; resets to 0 on resume
+    const PX_PER_SEC = 40; // consistent scroll speed on mobile and desktop
+    const EASE_IN_SEC = 0.45; // slightly longer, smoother resume
+    let rawRamp = 1; // 0..1 linear progress
+    let ramp = 1;    // eased progress applied to velocity
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - Math.min(1, t), 3);
     const getHalf = () => track.scrollWidth / 2;
     const normalize = (value: number) => {
       const half = getHalf();
@@ -106,17 +109,16 @@ function TickerBarInner() {
       const dt = (now - last) / 1000;
       last = now;
       if (!pausedRef.current) {
-        // Ramp speed back up after a pause/drag so the tape doesn't snap
-        // instantly from 0 to full velocity.
-        speed = Math.min(1, speed + dt / EASE_IN_SEC);
-        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * speed * dt);
+        rawRamp = Math.min(1, rawRamp + dt / EASE_IN_SEC);
+        ramp = easeOutCubic(rawRamp);
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt);
         render();
       }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
-    const resume = () => { pausedRef.current = false; last = performance.now(); speed = 0; };
+    const resume = () => { pausedRef.current = false; last = performance.now(); rawRamp = 0; ramp = 0; };
     // Desktop: pause on hover so the mouse can read items. Mobile/touch:
     // auto-scroll continues and users can drag-to-scrub the tape.
     const canHover = true;
@@ -210,7 +212,7 @@ function TickerBarInner() {
   return (
     <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm h-9 sm:h-10">
       <div className="flex items-center h-full">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15 transition-transform duration-300 ease-out">
           Live
         </div>
         <div
@@ -228,12 +230,12 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 mx-0.5 sm:mx-1 rounded-sm transition-colors hover:bg-newsprint/5 ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 mx-0.5 sm:mx-1 rounded-sm transition-all duration-300 ease-out hover:bg-newsprint/5 ${
                     isUp ? "text-ticker-up" : isDown ? "text-ticker-down" : "hover:text-accent-red"
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider uppercase leading-none">{r.term}</span>
-                  <span className="tabular-nums text-xs sm:text-sm leading-none">
+                  <span className="tabular-nums text-xs sm:text-sm leading-none transition-colors duration-300 ease-out">
                     {isUp ? "+" : ""}{pct.toFixed(2)}%
                   </span>
                 </Link>
