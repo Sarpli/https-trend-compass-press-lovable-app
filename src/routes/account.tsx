@@ -105,6 +105,7 @@ function Account() {
         <Stat label="Email" value={user.email ?? "—"} />
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
+        {!isPro && <Stat label="Searches today" value={`${searchCount} of 3 used`} />}
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
         <Stat label="Max streak" value={`${maxStreak} day${maxStreak === 1 ? "" : "s"}`} />
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
