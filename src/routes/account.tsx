@@ -86,12 +86,6 @@ function Account() {
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <StreakCalendar
-        userId={user.id}
-        streak={profile?.streak_count ?? 0}
-        completedToday={isActiveToday}
-      />
-
       <StreakHistory userId={user.id} />
 
       <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
@@ -139,10 +133,10 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
     : "Start your streak today";
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="flex items-center gap-5 sm:gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="flex items-center gap-4">
         <div
-          className={`relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 text-5xl shadow-lg transition-transform duration-300 ${
+          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl shadow transition-transform duration-300 ${
             active
               ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5 shadow-accent-red/20"
               : "border-ink/20 bg-ink/5 grayscale"
@@ -151,45 +145,19 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
         >
           🔥
           {active && (
-            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
               {streak}
             </span>
           )}
         </div>
         <div className="flex-1">
-          <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
-          <div className={`display text-3xl sm:text-4xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
-            {active ? `${streak} day${streak === 1 ? "" : "s"} on fire` : "No streak yet"}
+          <div className="ui small-caps text-[10px] text-muted-foreground">{status}</div>
+          <div className={`display text-xl sm:text-2xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
+            {active ? `${streak} day${streak === 1 ? "" : "s"}` : "No streak"}
           </div>
-
-          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
-            {active
-              ? "Vote or search once a day to keep your streak. Miss a day and the count resets."
-              : "Vote or search one term today to start your streak. Return tomorrow to keep it growing."}
+          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
+            Vote or search once a day to keep it. Miss a day and it resets.
           </p>
-          {!active && (
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-              <Link
-                to="/recommended"
-                className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 hover:opacity-90 transition-opacity"
-              >
-                Start streak with today's picks
-              </Link>
-              <span className="text-muted-foreground">or</span>
-              <Link
-                to="/vote"
-                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
-              >
-                Cast a vote
-              </Link>
-              <Link
-                to="/"
-                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
-              >
-                Explore trends
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -209,12 +177,10 @@ function MaxStreakSection({
   const isCurrentBest = hasRecord && currentStreak === maxStreak && currentStreak > 0;
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Record books</div>
-      <h2 className="display text-2xl font-black mb-4">All-time best streak</h2>
-      <div className="flex items-center gap-5 sm:gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="flex items-center gap-4">
         <div
-          className={`relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 text-4xl ${
+          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl ${
             hasRecord
               ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5"
               : "border-ink/20 bg-ink/5 grayscale"
@@ -223,25 +189,26 @@ function MaxStreakSection({
         >
           🔥
           {hasRecord && (
-            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
               {maxStreak}
             </span>
           )}
         </div>
         <div className="flex-1">
-          <div className="display text-3xl sm:text-4xl font-black leading-tight">
-            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record yet"}
+          <div className="ui small-caps text-[10px] text-muted-foreground">All-time best</div>
+          <div className="display text-xl sm:text-2xl font-black leading-tight">
+            {hasRecord ? `${maxStreak} day${maxStreak === 1 ? "" : "s"}` : "No record"}
           </div>
-          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
+          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
             {isCurrentBest
-              ? "Your current streak is your all-time best. Keep it going!"
+              ? "Your current streak is your best."
               : hasRecord
               ? "Best run before it was lost."
-              : "Build a streak to see your longest run here."}
+              : "Build a streak to see your longest run."}
           </p>
           {hasRecord && !isActiveToday && currentStreak > 0 && (
-            <p className="ui text-xs text-muted-foreground mt-1">
-              Current streak: {currentStreak} day{currentStreak === 1 ? "" : "s"}
+            <p className="ui text-[10px] text-muted-foreground mt-0.5">
+              Current: {currentStreak} day{currentStreak === 1 ? "" : "s"}
             </p>
           )}
         </div>
@@ -251,153 +218,6 @@ function MaxStreakSection({
 }
 
 
-function StreakCalendar({ userId, streak, completedToday = false }: { userId: string; streak: number; completedToday?: boolean }) {
-  const WEEKS = 18;
-  const DAYS = WEEKS * 7;
-  const bumping = useBump(streak, { bumpOnInitial: completedToday });
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  // Align grid end to the current week (Saturday on the right)
-  const endOffset = 6 - today.getDay(); // days to add to reach Saturday
-  const gridEnd = new Date(today);
-  gridEnd.setDate(gridEnd.getDate() + endOffset);
-  const gridStart = new Date(gridEnd);
-  gridStart.setDate(gridStart.getDate() - (DAYS - 1));
-
-
-  const startIso = toLocalISO(gridStart);
-
-  const { data: learnedDays } = useQuery({
-    queryKey: ["learned-calendar", userId, startIso],
-    queryFn: async () => {
-      const startUtc = new Date(gridStart);
-      startUtc.setHours(0, 0, 0, 0);
-      const { data } = await supabase
-        .from("learned_trends")
-        .select("created_at")
-        .gte("created_at", startUtc.toISOString());
-      const set = new Set<string>();
-      const counts = new Map<string, number>();
-      (data ?? []).forEach((r: { created_at: string }) => {
-        const d = new Date(r.created_at);
-        const key = toLocalISO(d);
-        set.add(key);
-        counts.set(key, (counts.get(key) ?? 0) + 1);
-      });
-      return { set, counts };
-    },
-  });
-
-  const days: { date: Date; iso: string; count: number; isToday: boolean; isFuture: boolean }[] = [];
-  for (let i = 0; i < DAYS; i++) {
-    const d = new Date(gridStart);
-    d.setDate(d.getDate() + i);
-    const iso = toLocalISO(d);
-    days.push({
-      date: d,
-      iso,
-      count: learnedDays?.counts.get(iso) ?? 0,
-      isToday: iso === toLocalISO(today),
-      isFuture: d.getTime() > today.getTime(),
-    });
-  }
-
-  // Build columns (each week is a column of 7 days, Sun-Sat)
-  const columns: typeof days[] = [];
-  for (let w = 0; w < WEEKS; w++) {
-    columns.push(days.slice(w * 7, w * 7 + 7));
-  }
-
-  const learnedCount = days.filter((d) => d.count > 0 && !d.isFuture).length;
-  const monthLabels: { col: number; label: string }[] = [];
-  let lastMonth = -1;
-  columns.forEach((col, idx) => {
-    const firstNonFuture = col.find((d) => !d.isFuture) ?? col[0];
-    const m = firstNonFuture.date.getMonth();
-    if (m !== lastMonth) {
-      monthLabels.push({ col: idx, label: firstNonFuture.date.toLocaleString(undefined, { month: "short" }) });
-      lastMonth = m;
-    }
-  });
-
-  return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
-        <div>
-          <div className="ui small-caps text-xs text-muted-foreground">Streak progress</div>
-          <h2 className="display text-2xl font-black">Last {WEEKS} weeks</h2>
-        </div>
-        <div className="ui small-caps text-xs text-muted-foreground">
-          {learnedCount} day{learnedCount === 1 ? "" : "s"} learned · {streak} day streak
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <div className="inline-block">
-          {/* Month labels */}
-          <div className="flex gap-[3px] pl-7 mb-1">
-            {columns.map((_, idx) => {
-              const m = monthLabels.find((x) => x.col === idx);
-              return (
-                <div key={idx} className="w-[14px] ui text-[10px] text-muted-foreground">
-                  {m?.label ?? ""}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-[3px]">
-            {/* Day-of-week labels */}
-            <div className="flex flex-col gap-[3px] pr-1 ui text-[9px] text-muted-foreground">
-              {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                <div key={i} className="w-4 h-[14px] leading-[14px] text-right">
-                  {i % 2 === 1 ? d : ""}
-                </div>
-              ))}
-            </div>
-            {columns.map((col, ci) => (
-              <div key={ci} className="flex flex-col gap-[3px]">
-                {col.map((d) => (
-                  <div
-                    key={d.iso}
-                    title={d.isFuture ? "" : `${d.iso} — ${d.count} learned`}
-                    className={`w-[14px] h-[14px] rounded-[2px] border ${
-                      d.isFuture
-                        ? "border-transparent bg-transparent"
-                        : d.count >= 3
-                        ? "border-accent-red bg-accent-red"
-                        : d.count === 2
-                        ? "border-accent-red/60 bg-accent-red/60"
-                        : d.count === 1
-                        ? "border-accent-red/40 bg-accent-red/30"
-                        : "border-ink/15 bg-ink/5"
-                    } ${d.isToday ? "ring-1 ring-ink/60" : ""} ${
-                      d.isToday && bumping ? "animate-pulse ring-2 ring-accent-red" : ""
-                    }`}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mt-3 ui text-[10px] text-muted-foreground">
-            <span>Less</span>
-            <span className="w-[14px] h-[14px] rounded-[2px] border border-ink/15 bg-ink/5" />
-            <span className="w-[14px] h-[14px] rounded-[2px] border border-accent-red/40 bg-accent-red/30" />
-            <span className="w-[14px] h-[14px] rounded-[2px] border border-accent-red/60 bg-accent-red/60" />
-            <span className="w-[14px] h-[14px] rounded-[2px] border border-accent-red bg-accent-red" />
-            <span>More</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function toLocalISO(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 function formatDateLabel(iso: string) {
   const d = new Date(`${iso}T00:00:00`);
@@ -441,18 +261,17 @@ function StreakHistory({ userId }: { userId: string }) {
   });
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Streak history</div>
-      <h2 className="display text-2xl font-black mb-4">Recent activity</h2>
-      <div className="grid sm:grid-cols-2 gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="ui small-caps text-[10px] text-muted-foreground mb-2">Streak history</div>
+      <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <div className="ui small-caps text-xs text-muted-foreground mb-2">Most recent learned days</div>
+          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Most recent learned days</div>
           {learnedDays && learnedDays.length > 0 ? (
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {learnedDays.map((day) => (
                 <li
                   key={day.date}
-                  className="flex items-center justify-between ui text-sm border-b border-ink/10 py-1.5"
+                  className="flex items-center justify-between ui text-xs border-b border-ink/10 py-1"
                 >
                   <span>{formatDateLabel(day.date)}</span>
                   <span className="text-muted-foreground">
@@ -462,21 +281,21 @@ function StreakHistory({ userId }: { userId: string }) {
               ))}
             </ul>
           ) : (
-            <p className="ui text-sm text-muted-foreground">No learned days yet.</p>
+            <p className="ui text-xs text-muted-foreground">No learned days yet.</p>
           )}
         </div>
         <div>
-          <div className="ui small-caps text-xs text-muted-foreground mb-2">Last streak-increasing action</div>
+          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Last streak increase</div>
           {lastIncrease ? (
-            <div className="p-4 rounded border border-ink/10 bg-ink/5">
-              <div className="display text-xl font-black">{formatDateLabel(lastIncrease.action_date)}</div>
-              <div className="ui text-sm text-muted-foreground mt-1">
-                Streak reached {lastIncrease.new_streak_count} day
+            <div className="p-2 rounded border border-ink/10 bg-ink/5">
+              <div className="display text-base font-black">{formatDateLabel(lastIncrease.action_date)}</div>
+              <div className="ui text-xs text-muted-foreground">
+                Reached {lastIncrease.new_streak_count} day
                 {lastIncrease.new_streak_count === 1 ? "" : "s"}
               </div>
             </div>
           ) : (
-            <p className="ui text-sm text-muted-foreground">No streak-increasing actions yet.</p>
+            <p className="ui text-xs text-muted-foreground">No streak increases yet.</p>
           )}
         </div>
       </div>
@@ -531,18 +350,14 @@ function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: st
   })();
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Streak timezone</div>
-      <h2 className="display text-2xl font-black mb-2">Daily reset timezone</h2>
-      <p className="ui text-sm text-muted-foreground mb-4 max-w-xl">
-        Your streak rolls over at midnight in this timezone, no matter which device you're on. Defaults to this device's timezone.
-      </p>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+    <div className="rule-top mt-6 pt-4">
+      <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Streak timezone</div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <select
           aria-label="Streak timezone"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="ui text-sm border border-ink/40 bg-background px-3 py-2 max-w-sm w-full"
+          className="ui text-xs border border-ink/40 bg-background px-3 py-2 max-w-sm w-full"
         >
           {!zones.includes(value) && <option value={value}>{value}</option>}
           {zones.map((z) => (
@@ -553,22 +368,22 @@ function TimezoneSelector({ userId, currentTz }: { userId: string; currentTz: st
           type="button"
           disabled={saving || value === effective}
           onClick={() => save(value)}
-          className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 disabled:opacity-50"
+          className="ui small-caps text-xs bg-ink text-newsprint px-3 py-2 disabled:opacity-50 hover:bg-accent-red transition-colors"
         >
-          {saving ? "Saving…" : "Save timezone"}
+          {saving ? "Saving…" : "Save"}
         </button>
         {value !== device && (
           <button
             type="button"
             onClick={() => { setValue(device); save(device); }}
-            className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
+            className="ui small-caps text-[10px] border border-ink/40 px-2 py-1 hover:bg-ink hover:text-newsprint transition-colors"
           >
             Use this device ({device})
           </button>
         )}
       </div>
-      <div className="ui text-xs text-muted-foreground mt-2">
-        Current time in <span className="font-semibold">{value.replace(/_/g, " ")}</span>: {nowInZone}
+      <div className="ui text-[10px] text-muted-foreground mt-1">
+        Reset at midnight · <span className="font-semibold">{value.replace(/_/g, " ")}</span>: {nowInZone}
       </div>
     </div>
   );
