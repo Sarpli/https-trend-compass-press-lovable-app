@@ -133,10 +133,10 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
     : "Start your streak today";
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="flex items-center gap-5 sm:gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="flex items-center gap-4">
         <div
-          className={`relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 text-5xl shadow-lg transition-transform duration-300 ${
+          className={`relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 text-2xl shadow transition-transform duration-300 ${
             active
               ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5 shadow-accent-red/20"
               : "border-ink/20 bg-ink/5 grayscale"
@@ -145,45 +145,19 @@ function StreakSection({ streak, lastActive, completedToday = false }: { streak:
         >
           🔥
           {active && (
-            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent-red text-newsprint text-[9px] font-bold shadow">
               {streak}
             </span>
           )}
         </div>
         <div className="flex-1">
-          <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
-          <div className={`display text-3xl sm:text-4xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
-            {active ? `${streak} day${streak === 1 ? "" : "s"} on fire` : "No streak yet"}
+          <div className="ui small-caps text-[10px] text-muted-foreground">{status}</div>
+          <div className={`display text-xl sm:text-2xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
+            {active ? `${streak} day${streak === 1 ? "" : "s"}` : "No streak"}
           </div>
-
-          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
-            {active
-              ? "Vote or search once a day to keep your streak. Miss a day and the count resets."
-              : "Vote or search one term today to start your streak. Return tomorrow to keep it growing."}
+          <p className="ui text-xs text-muted-foreground mt-0.5 max-w-md">
+            Vote or search once a day to keep it. Miss a day and it resets.
           </p>
-          {!active && (
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-              <Link
-                to="/recommended"
-                className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 hover:opacity-90 transition-opacity"
-              >
-                Start streak with today's picks
-              </Link>
-              <span className="text-muted-foreground">or</span>
-              <Link
-                to="/vote"
-                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
-              >
-                Cast a vote
-              </Link>
-              <Link
-                to="/"
-                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
-              >
-                Explore trends
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </div>
