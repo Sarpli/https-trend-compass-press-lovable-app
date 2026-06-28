@@ -806,3 +806,16 @@ button[data-slot="button"]:not([data-variant="link"]) {
     0 14px 40px -20px color-mix(in oklab, black 70%, transparent),
     0 0 0 1px color-mix(in oklab, white 3%, transparent);
 }
+
+/*
+ * Dark-mode ticker text: neutral scrolling terms must use the cream foreground
+ * token instead of the dark newsprint background token, which made them nearly
+ * invisible on the slate glass ticker.
+ */
+.dark .ticker-bar {
+  color: var(--color-foreground);
+}
+.dark .ticker-bar .text-newsprint {
+  color: var(--color-foreground);
+}
+}
