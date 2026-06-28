@@ -249,6 +249,32 @@ jobs:
           fi
           exit $rc
 
+      - name: Run Free-tier search limit + streak check
+        id: free_search_limit
+        env:
+          FREE_SEARCH_LIMIT_ARTIFACT_DIR: ${{ github.workspace }}/free-search-limit-artifacts
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        # Exit code 2 = skipped (no session, no service-key fixture, or Pro session).
+        run: |
+          set +e
+          python3 tests/free_search_limit.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Free search-limit test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Free search-limit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-search-limit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/free-search-limit-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Ticker focus artifacts
         if: always()
         uses: actions/upload-artifact@v4
