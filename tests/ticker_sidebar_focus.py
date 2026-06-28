@@ -108,7 +108,7 @@ async def main() -> int:
         results = {"phases": {}, "writes": writes}
 
         # --- Phase 1: ticker bar items ------------------------------------
-        ticker = page.locator("#trenslate-ticker")
+        ticker = page.locator(".ticker-bar").first
         await ticker.wait_for(timeout=5000)
         items = ticker.locator("a, button")
         n = min(await items.count(), 12)
