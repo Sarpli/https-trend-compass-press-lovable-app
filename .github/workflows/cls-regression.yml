@@ -70,6 +70,26 @@ jobs:
           SCROLL_TOLERANCE: '8'
         run: python3 tests/back_scroll_restore.py
 
+      - name: Run ticker realtime-burst stress test
+        id: stress
+        env:
+          STRESS_ARTIFACT_DIR: ${{ github.workspace }}/stress-artifacts
+          STRESS_DURATION_MS: '10000'
+          STRESS_BURSTS: '200'
+          STRESS_P95_MS: '40'
+          STRESS_MAX_MS: '180'
+          STRESS_LONGTASK_MS: '1200'
+        run: python3 tests/ticker_stress.py
+
+      - name: Upload ticker stress artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ticker-stress-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/stress-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Back-button debug artifacts
         if: failure()
         uses: actions/upload-artifact@v4
