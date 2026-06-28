@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { dailyDriftPct } from "@/lib/daily-drift";
+import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 
 type Point = { t: string; price: number };
 
@@ -32,8 +33,12 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
         () => {
-          qc.invalidateQueries({ queryKey: ["trend-history", trendId] });
-          qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+          // If a local vote is mid-flight, defer the realtime refetch so it
+          // can't overwrite the optimistic score before the mutation settles.
+          runOrDeferRealtime(`price-chart:${trendId}`, () => {
+            qc.invalidateQueries({ queryKey: ["trend-history", trendId] });
+            qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+          });
         },
       )
       .subscribe();
