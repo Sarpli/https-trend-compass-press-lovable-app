@@ -184,6 +184,32 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Pro Year+OAT voting check
+        id: pro_year_oat
+        env:
+          PRO_YEAR_OAT_ARTIFACT_DIR: ${{ github.workspace }}/pro-year-oat-artifacts
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        # Exit code 2 = skipped (no session or no fixture key to upgrade).
+        run: |
+          set +e
+          python3 tests/pro_year_oat_voting.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Pro Year+OAT voting test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Pro Year+OAT artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-year-oat-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/pro-year-oat-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
