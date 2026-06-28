@@ -119,7 +119,19 @@
 }
 
 :root {
-  --radius: 0.125rem;
+  /*
+   * Apple-style Liquid Glass requires soft, generous rounding on every
+   * surface. Bumping the base radius cascades through every shadcn
+   * component (cards, dialogs, popovers, dropdowns, sheets, inputs,
+   * buttons) because their classes derive from --radius.
+   */
+  --radius: 0.875rem;
+  /* Shared frosted surface tunables, reused by every glass utility below. */
+  --glass-blur: 22px;
+  --glass-saturate: 170%;
+  --glass-edge: color-mix(in oklab, white 55%, transparent);
+  --glass-edge-bottom: color-mix(in oklab, var(--ink) 10%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 40%, transparent);
   /*
    * "Morning Edition" — warm ivory newsprint with deep espresso ink.
    * Inspired by uncoated book stock and letterpress: softer than pure white,
@@ -168,6 +180,9 @@
 }
 
 .dark {
+  --glass-edge: color-mix(in oklab, white 14%, transparent);
+  --glass-edge-bottom: color-mix(in oklab, black 38%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 28%, transparent);
   /*
    * "After Hours" — Midnight Newsprint edition.
    * Cool near-black surfaces, soft cream ink, muted brass accent,
