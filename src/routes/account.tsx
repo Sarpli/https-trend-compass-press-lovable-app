@@ -18,6 +18,8 @@ export const Route = createFileRoute("/account")({
 function Account() {
   const { user, tier, isPro, isAnnual, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -46,6 +48,37 @@ function Account() {
     },
   });
 
+  const { data: searchCount = 0 } = useQuery({
+    queryKey: ["searches", user?.id],
+    enabled: !!user && !isPro,
+    queryFn: async () => {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from("searches")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .gte("created_at", since.toISOString());
+      return count ?? 0;
+    },
+  });
+
+  useEffect(() => {
+    if (!user || isPro) return;
+    const channel = supabase
+      .channel("account-searches")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "searches", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["searches", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isPro, qc]);
+
   if (!user) return null;
 
   const tz = useUserTimezone();
@@ -72,6 +105,7 @@ function Account() {
         <Stat label="Email" value={user.email ?? "—"} />
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
+        {!isPro && <Stat label="Searches today" value={`${searchCount} of 3 used`} />}
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
         <Stat label="Max streak" value={`${maxStreak} day${maxStreak === 1 ? "" : "s"}`} />
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
@@ -109,6 +143,7 @@ function Account() {
     </div>
   );
 }
+
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (

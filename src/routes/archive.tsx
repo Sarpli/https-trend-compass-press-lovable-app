@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -24,6 +24,7 @@ function Archive() {
   const [submitted, setSubmitted] = useState(initialQ ?? "");
   const [useAI, setUseAI] = useState(true);
   const aiSearch = useServerFn(aiSearchTrends);
+  const qc = useQueryClient();
 
   if (!isPro) return <ArchivePaywall signedIn={!!user} />;
 
@@ -91,6 +92,7 @@ function Archive() {
     }
     if (user && q) {
       await supabase.from("searches").insert({ user_id: user.id, query: q });
+      qc.invalidateQueries({ queryKey: ["searches", user.id] });
     }
     setSubmitted(q);
   };
