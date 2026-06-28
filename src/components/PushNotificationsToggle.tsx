@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-
-const STORAGE_KEY = "trenslate.push.enabled";
-const REMINDER_KEY = "trenslate.push.reminderHour";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 type PermissionState = "default" | "granted" | "denied" | "unsupported";
 
@@ -11,6 +10,7 @@ function getPermission(): PermissionState {
 }
 
 export function PushNotificationsToggle() {
+  const { user } = useAuth();
   const [permission, setPermission] = useState<PermissionState>("default");
   const [enabled, setEnabled] = useState(false);
   const [reminderHour, setReminderHour] = useState(20);
@@ -18,12 +18,49 @@ export function PushNotificationsToggle() {
 
   useEffect(() => {
     setPermission(getPermission());
-    try {
-      setEnabled(localStorage.getItem(STORAGE_KEY) === "1");
-      const h = Number(localStorage.getItem(REMINDER_KEY));
-      if (Number.isFinite(h) && h >= 0 && h <= 23) setReminderHour(h);
-    } catch {}
   }, []);
+
+  // Load + subscribe to realtime profile changes so prefs sync across devices.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("push_enabled, push_reminder_hour")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      setEnabled(Boolean(data.push_enabled));
+      const h = Number(data.push_reminder_hour);
+      if (Number.isFinite(h) && h >= 0 && h <= 23) setReminderHour(h);
+    })();
+
+    const channel = supabase
+      .channel(`profile-push-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { push_enabled?: boolean; push_reminder_hour?: number };
+          if (typeof row.push_enabled === "boolean") setEnabled(row.push_enabled);
+          const h = Number(row.push_reminder_hour);
+          if (Number.isFinite(h) && h >= 0 && h <= 23) setReminderHour(h);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  async function persist(patch: { push_enabled?: boolean; push_reminder_hour?: number }) {
+    if (!user) return;
+    await supabase.from("profiles").update(patch).eq("id", user.id);
+  }
 
   const supported = permission !== "unsupported";
 
@@ -39,11 +76,11 @@ export function PushNotificationsToggle() {
         }
         if (perm !== "granted") {
           setEnabled(false);
-          localStorage.setItem(STORAGE_KEY, "0");
+          await persist({ push_enabled: false });
           return;
         }
         setEnabled(true);
-        localStorage.setItem(STORAGE_KEY, "1");
+        await persist({ push_enabled: true });
         try {
           new Notification("Trenslate notifications on", {
             body: "We'll remind you to keep your streak alive.",
@@ -51,7 +88,7 @@ export function PushNotificationsToggle() {
         } catch {}
       } else {
         setEnabled(false);
-        localStorage.setItem(STORAGE_KEY, "0");
+        await persist({ push_enabled: false });
       }
     } finally {
       setBusy(false);
@@ -60,7 +97,7 @@ export function PushNotificationsToggle() {
 
   function handleReminderChange(h: number) {
     setReminderHour(h);
-    try { localStorage.setItem(REMINDER_KEY, String(h)); } catch {}
+    void persist({ push_reminder_hour: h });
   }
 
   return (
