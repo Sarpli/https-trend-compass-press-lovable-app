@@ -46,6 +46,20 @@ function Account() {
     },
   });
 
+  const { data: searchCount = 0 } = useQuery({
+    queryKey: ["searches", user?.id],
+    enabled: !!user && !isPro,
+    queryFn: async () => {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from("searches")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .gte("created_at", since.toISOString());
+      return count ?? 0;
+    },
+  });
+
   if (!user) return null;
 
   const tz = useUserTimezone();
