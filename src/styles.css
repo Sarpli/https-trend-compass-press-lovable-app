@@ -206,54 +206,54 @@
 }
 
 .dark {
-  --glass-edge: color-mix(in oklab, white 22%, transparent);
-  --glass-edge-bottom: color-mix(in oklab, black 42%, transparent);
-  --glass-glow: color-mix(in oklab, var(--brass) 38%, transparent);
+  --glass-edge: color-mix(in oklab, white 14%, transparent);
+  --glass-edge-bottom: color-mix(in oklab, black 55%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 30%, transparent);
   /*
-   * "After Hours" — Midnight Newsprint edition.
-   * Deep navy-charcoal page (#0a0a0f), slightly lighter card surfaces
-   * for visible layering, soft paper-white ink (not harsh pure white),
-   * muted brass accent with a faint bloom, rose-red live indicator.
+   * "After Hours" — Midnight Newsprint, refined.
+   * Warm slate-charcoal page with subtle blue undertone, gently layered
+   * surfaces, soft cream-white ink (never harsh), antique brass accent,
+   * and a muted terracotta live indicator. Tuned for low eye strain.
    */
-  --ink: oklch(0.93 0.006 255);         /* #e6e7ea — soft warm white */
-  --newsprint: oklch(0.165 0.012 265);  /* #14161c — page surface */
-  --rule: oklch(1 0 0 / 10%);           /* hair-thin white rule */
-  --ticker-up: oklch(0.74 0.17 152);
-  --ticker-down: oklch(0.67 0.22 18);
-  --accent-red: oklch(0.62 0.23 18);    /* rose-600 live indicator */
-  --brass: oklch(0.74 0.08 75);         /* #c0a079 — warmer brass accent */
-  --background: oklch(0.115 0.012 265); /* #0a0a0f — deep charcoal-navy */
+  --ink: oklch(0.91 0.012 85);          /* soft warm cream */
+  --newsprint: oklch(0.20 0.010 250);   /* page surface — warm slate */
+  --rule: oklch(1 0 0 / 8%);            /* hair-thin white rule */
+  --ticker-up: oklch(0.78 0.13 155);    /* sage green — easy on eyes */
+  --ticker-down: oklch(0.70 0.14 25);   /* warm terracotta */
+  --accent-red: oklch(0.68 0.14 28);    /* muted terracotta indicator */
+  --brass: oklch(0.78 0.09 78);         /* antique brass accent */
+  --background: oklch(0.17 0.010 250);  /* deep warm slate page */
   --foreground: var(--ink);
-  --card: oklch(0.175 0.013 265);       /* #15171d — layered surface */
+  --card: oklch(0.225 0.011 250);       /* layered surface */
   --card-foreground: var(--ink);
-  --popover: oklch(0.20 0.014 265);     /* #1a1d24 — elevated layer */
+  --popover: oklch(0.255 0.012 250);    /* elevated layer */
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--newsprint);
-  --secondary: oklch(0.215 0.013 265);
+  --secondary: oklch(0.255 0.011 250);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.205 0.012 265);
-  --muted-foreground: oklch(0.72 0.012 260);
+  --muted: oklch(0.235 0.010 250);
+  --muted-foreground: oklch(0.72 0.014 80);
   --accent: var(--brass);
-  --accent-foreground: oklch(0.98 0.01 80);
+  --accent-foreground: oklch(0.18 0.010 250);
   --destructive: var(--ticker-down);
-  --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.74 0.08 75);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --destructive-foreground: oklch(0.96 0.01 80);
+  --border: oklch(1 0 0 / 7%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.78 0.09 78);
+  --chart-1: oklch(0.78 0.09 78);
+  --chart-2: oklch(0.78 0.13 155);
+  --chart-3: oklch(0.72 0.12 240);
+  --chart-4: oklch(0.75 0.14 50);
+  --chart-5: oklch(0.70 0.14 25);
+  --sidebar: oklch(0.225 0.011 250);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brass);
+  --sidebar-primary-foreground: oklch(0.18 0.010 250);
+  --sidebar-accent: oklch(0.265 0.012 250);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.78 0.09 78);
 }
 
 @layer base {
