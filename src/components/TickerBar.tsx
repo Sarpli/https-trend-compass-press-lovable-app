@@ -177,32 +177,65 @@ function TickerBarInner() {
   }, [rows.length]);
 
   useEffect(() => {
+    // Batch realtime invalidations: under heavy voting traffic many INSERTs
+    // arrive in quick succession. Coalesce them into a single invalidation
+    // pass per ~250ms window so the ticker doesn't thrash refetches and
+    // re-renders, which kept transitions smooth in load tests.
+    let pending = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const BATCH_MS = 250;
+    const flush = () => {
+      pending = false;
+      timer = null;
+      qc.invalidateQueries({ queryKey: ["ticker"] });
+      qc.invalidateQueries({ queryKey: ["leaderboard"] });
+      qc.invalidateQueries({ queryKey: ["trend-score"] });
+      qc.invalidateQueries({ queryKey: ["myvote"] });
+      qc.invalidateQueries({ queryKey: ["trend-history"] });
+    };
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      timer = setTimeout(flush, BATCH_MS);
+    };
     const ch = supabase
       .channel("ticker-vote-events")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["ticker"] });
-          qc.invalidateQueries({ queryKey: ["leaderboard"] });
-          qc.invalidateQueries({ queryKey: ["trend-score"] });
-          qc.invalidateQueries({ queryKey: ["myvote"] });
-          qc.invalidateQueries({ queryKey: ["trend-history"] });
-        },
+        schedule,
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(ch);
+    };
   }, [qc]);
 
   // Each ticker shows a fake-but-stable daily drift plus the live vote impact,
   // so percentages stay non-zero and feel alive even with no recent votes.
+  // Recompute on an animation frame and skip the setState if nothing changed
+  // — this prevents a re-render storm when many vote events land at once.
   useEffect(() => {
     if (rows.length === 0) return;
-    const nextPcts: Record<string, number> = {};
-    rows.forEach((r) => {
-      nextPcts[r.trend_id] = combinedDailyPct(r.trend_id, r.net_votes);
+    let raf = requestAnimationFrame(() => {
+      const next: Record<string, number> = {};
+      for (const r of rows) {
+        next[r.trend_id] = combinedDailyPct(r.trend_id, r.net_votes);
+      }
+      setPcts((prev) => {
+        const keys = Object.keys(next);
+        if (keys.length === Object.keys(prev).length) {
+          let same = true;
+          for (const k of keys) {
+            if (Math.abs((prev[k] ?? 0) - next[k]) > 0.005) { same = false; break; }
+          }
+          if (same) return prev;
+        }
+        return next;
+      });
     });
-    setPcts(nextPcts);
+    return () => cancelAnimationFrame(raf);
   }, [rows]);
 
   if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-9 sm:h-10" />;
