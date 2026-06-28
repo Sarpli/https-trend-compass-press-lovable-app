@@ -158,6 +158,32 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Pro upgrade flow check
+        id: pro_upgrade
+        env:
+          PRO_UPGRADE_ARTIFACT_DIR: ${{ github.workspace }}/pro-upgrade-artifacts
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        # Exit code 2 = skipped (no service-role key or no free session in CI).
+        run: |
+          set +e
+          python3 tests/pro_upgrade_flow.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Pro upgrade flow test skipped (missing fixture secret or session)."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Pro upgrade artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-upgrade-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/pro-upgrade-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
