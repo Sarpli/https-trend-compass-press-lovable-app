@@ -371,22 +371,6 @@
     0 6px 24px -10px color-mix(in oklab, var(--ink) 40%, transparent);
 }
 
-@utility ticker-bar-sheen {
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, white 14%, transparent) 0%,
-      transparent 40%,
-      transparent 60%,
-      color-mix(in oklab, black 10%, transparent) 100%
-    );
-    mix-blend-mode: overlay;
-  }
-}
 
 /*
  * Liquid Glass ambient layer — fixed, behind everything, in both themes.
