@@ -261,18 +261,17 @@ function StreakHistory({ userId }: { userId: string }) {
   });
 
   return (
-    <div className="rule-top mt-10 pt-6">
-      <div className="ui small-caps text-xs text-muted-foreground mb-1">Streak history</div>
-      <h2 className="display text-2xl font-black mb-4">Recent activity</h2>
-      <div className="grid sm:grid-cols-2 gap-6">
+    <div className="rule-top mt-6 pt-4">
+      <div className="ui small-caps text-[10px] text-muted-foreground mb-2">Streak history</div>
+      <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <div className="ui small-caps text-xs text-muted-foreground mb-2">Most recent learned days</div>
+          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Most recent learned days</div>
           {learnedDays && learnedDays.length > 0 ? (
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {learnedDays.map((day) => (
                 <li
                   key={day.date}
-                  className="flex items-center justify-between ui text-sm border-b border-ink/10 py-1.5"
+                  className="flex items-center justify-between ui text-xs border-b border-ink/10 py-1"
                 >
                   <span>{formatDateLabel(day.date)}</span>
                   <span className="text-muted-foreground">
@@ -282,21 +281,21 @@ function StreakHistory({ userId }: { userId: string }) {
               ))}
             </ul>
           ) : (
-            <p className="ui text-sm text-muted-foreground">No learned days yet.</p>
+            <p className="ui text-xs text-muted-foreground">No learned days yet.</p>
           )}
         </div>
         <div>
-          <div className="ui small-caps text-xs text-muted-foreground mb-2">Last streak-increasing action</div>
+          <div className="ui small-caps text-[10px] text-muted-foreground mb-1">Last streak increase</div>
           {lastIncrease ? (
-            <div className="p-4 rounded border border-ink/10 bg-ink/5">
-              <div className="display text-xl font-black">{formatDateLabel(lastIncrease.action_date)}</div>
-              <div className="ui text-sm text-muted-foreground mt-1">
-                Streak reached {lastIncrease.new_streak_count} day
+            <div className="p-2 rounded border border-ink/10 bg-ink/5">
+              <div className="display text-base font-black">{formatDateLabel(lastIncrease.action_date)}</div>
+              <div className="ui text-xs text-muted-foreground">
+                Reached {lastIncrease.new_streak_count} day
                 {lastIncrease.new_streak_count === 1 ? "" : "s"}
               </div>
             </div>
           ) : (
-            <p className="ui text-sm text-muted-foreground">No streak-increasing actions yet.</p>
+            <p className="ui text-xs text-muted-foreground">No streak increases yet.</p>
           )}
         </div>
       </div>
