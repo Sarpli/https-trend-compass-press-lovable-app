@@ -251,10 +251,6 @@ function MaxStreakSection({
 }
 
 
-function ChangePassword() {
-  return _ChangePassword();
-}
-
 function StreakCalendar({ userId, streak, completedToday = false }: { userId: string; streak: number; completedToday?: boolean }) {
   const WEEKS = 18;
   const DAYS = WEEKS * 7;
