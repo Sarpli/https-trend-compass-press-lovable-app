@@ -92,6 +92,7 @@ function Archive() {
     }
     if (user && q) {
       await supabase.from("searches").insert({ user_id: user.id, query: q });
+      qc.invalidateQueries({ queryKey: ["searches", user.id] });
     }
     setSubmitted(q);
   };
