@@ -242,6 +242,7 @@ function ChangePassword() {
 function StreakCalendar({ userId, streak }: { userId: string; streak: number }) {
   const WEEKS = 18;
   const DAYS = WEEKS * 7;
+  const bumping = useBump(streak);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   // Align grid end to the current week (Saturday on the right)
@@ -250,6 +251,7 @@ function StreakCalendar({ userId, streak }: { userId: string; streak: number }) 
   gridEnd.setDate(gridEnd.getDate() + endOffset);
   const gridStart = new Date(gridEnd);
   gridStart.setDate(gridStart.getDate() - (DAYS - 1));
+
 
   const startIso = toLocalISO(gridStart);
 
