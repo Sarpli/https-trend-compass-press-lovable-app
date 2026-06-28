@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { currentPeriodKey, CATEGORY_LABEL } from "@/lib/period";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
+import { beginVoteMutation, endVoteMutation } from "@/lib/vote-reconcile";
 
 type Category = "week" | "month" | "year" | "oat";
 
@@ -60,6 +61,7 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       }
     },
     onMutate: async (direction: "up" | "down") => {
+      beginVoteMutation();
       const weight = isAnnual ? 2 : 1;
       // Compute the net-vote delta this click produces.
       let delta = 0;
@@ -139,6 +141,8 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       qc.invalidateQueries({ queryKey: ["leaderboard"] });
       qc.invalidateQueries({ queryKey: ["myvote", trendId] });
       qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+      // Release any realtime invalidations that arrived during the mutation.
+      endVoteMutation();
     },
   });
 
