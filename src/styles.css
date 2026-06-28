@@ -151,13 +151,13 @@
    * component (cards, dialogs, popovers, dropdowns, sheets, inputs,
    * buttons) because their classes derive from --radius.
    */
-  --radius: 0.875rem;
+  --radius: 1.25rem;
   /* Shared frosted surface tunables, reused by every glass utility below. */
-  --glass-blur: 22px;
-  --glass-saturate: 170%;
-  --glass-edge: color-mix(in oklab, white 55%, transparent);
-  --glass-edge-bottom: color-mix(in oklab, var(--ink) 10%, transparent);
-  --glass-glow: color-mix(in oklab, var(--brass) 40%, transparent);
+  --glass-blur: 28px;
+  --glass-saturate: 185%;
+  --glass-edge: color-mix(in oklab, white 72%, transparent);
+  --glass-edge-bottom: color-mix(in oklab, var(--ink) 8%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 45%, transparent);
   /*
    * "Morning Edition" — warm ivory newsprint with deep espresso ink.
    * Inspired by uncoated book stock and letterpress: softer than pure white,
@@ -206,9 +206,9 @@
 }
 
 .dark {
-  --glass-edge: color-mix(in oklab, white 14%, transparent);
-  --glass-edge-bottom: color-mix(in oklab, black 38%, transparent);
-  --glass-glow: color-mix(in oklab, var(--brass) 32%, transparent);
+  --glass-edge: color-mix(in oklab, white 22%, transparent);
+  --glass-edge-bottom: color-mix(in oklab, black 42%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 38%, transparent);
   /*
    * "After Hours" — Midnight Newsprint edition.
    * Deep navy-charcoal page (#0a0a0f), slightly lighter card surfaces
