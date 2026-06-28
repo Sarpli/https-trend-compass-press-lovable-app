@@ -130,13 +130,24 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
               : "Your streak starts the first day you vote or search. Come back tomorrow and the flame keeps growing!"}
           </p>
           {!active && (
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Ready to begin?</span>
-              <Link to="/vote" className="ui small-caps text-xs bg-accent-red text-accent-foreground px-3 py-1.5 hover:opacity-90 transition-opacity">
-                Cast a vote
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+              <Link
+                to="/recommended"
+                className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 hover:opacity-90 transition-opacity"
+              >
+                Start streak with today's picks
               </Link>
               <span className="text-muted-foreground">or</span>
-              <Link to="/" className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors">
+              <Link
+                to="/vote"
+                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
+              >
+                Cast a vote
+              </Link>
+              <Link
+                to="/"
+                className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors"
+              >
                 Explore trends
               </Link>
             </div>
