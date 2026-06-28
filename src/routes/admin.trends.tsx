@@ -9,6 +9,7 @@ import { Upload } from "lucide-react";
 import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
 import { useServerFn } from "@tanstack/react-start";
 import { importTrendImageFromUrl } from "@/lib/admin-image.functions";
+import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -87,6 +88,8 @@ function AdminTrends() {
 
       <SpotlightPin trends={trends ?? []} />
 
+      <StreakOverride />
+
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
@@ -105,6 +108,129 @@ function AdminTrends() {
 }
 
 type TrendRow = { id: string; slug: string; term: string; category: string | null; image_url: string | null };
+
+function StreakOverride() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const tz = useUserTimezone();
+  const today = todayLocalISO(tz);
+
+  const { data: profile } = useQuery({
+    queryKey: ["admin-self-profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("streak_count, max_streak, last_active_local_date, last_active_date")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const [streak, setStreak] = useState<string>("");
+  const [maxStreak, setMaxStreak] = useState<string>("");
+  const [lastDate, setLastDate] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    setStreak(String(profile.streak_count ?? 0));
+    setMaxStreak(String(profile.max_streak ?? 0));
+    setLastDate(profile.last_active_local_date ?? profile.last_active_date ?? today);
+  }, [profile, today]);
+
+  async function save() {
+    if (!user) return;
+    const s = Math.max(0, Math.floor(Number(streak) || 0));
+    const m = Math.max(s, Math.max(0, Math.floor(Number(maxStreak) || 0)));
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        streak_count: s,
+        max_streak: m,
+        last_active_local_date: lastDate || today,
+        last_active_date: lastDate || today,
+      })
+      .eq("id", user.id);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Streak updated");
+    qc.invalidateQueries({ queryKey: ["admin-self-profile", user.id] });
+    qc.invalidateQueries({ queryKey: ["profile-streak"] });
+    qc.invalidateQueries({ queryKey: ["effective-streak"] });
+    qc.invalidateQueries({ queryKey: ["streak-history"] });
+  }
+
+  async function markToday() {
+    setLastDate(today);
+  }
+
+  return (
+    <section className="border border-ink/40 bg-background p-4 mb-6">
+      <div className="text-[10px] ui small-caps text-accent-red mb-1">Streak override</div>
+      <h2 className="display text-2xl font-black mb-1">Edit your streak</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Owner-only adjustment of your own streak. Local date is in {tz}.
+      </p>
+      <div className="grid sm:grid-cols-[1fr_1fr_1.2fr_auto] gap-2 items-end">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] ui small-caps text-muted-foreground">Current streak</span>
+          <input
+            type="number"
+            min={0}
+            value={streak}
+            onChange={(e) => setStreak(e.target.value)}
+            className="border border-ink/40 bg-background px-2 py-1 text-sm tabular-nums"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] ui small-caps text-muted-foreground">All-time best</span>
+          <input
+            type="number"
+            min={0}
+            value={maxStreak}
+            onChange={(e) => setMaxStreak(e.target.value)}
+            className="border border-ink/40 bg-background px-2 py-1 text-sm tabular-nums"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] ui small-caps text-muted-foreground">Last active (local)</span>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={lastDate}
+              onChange={(e) => setLastDate(e.target.value)}
+              className="flex-1 border border-ink/40 bg-background px-2 py-1 text-sm"
+            />
+            <button
+              type="button"
+              onClick={markToday}
+              className="border border-ink/40 px-2 py-1 text-[10px] ui small-caps"
+            >
+              Today
+            </button>
+          </div>
+        </label>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="bg-accent-red text-accent-foreground px-4 py-2 text-xs ui small-caps disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save streak"}
+        </button>
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-2">
+        Tip: set last active to yesterday and the streak will tick up by one the next time you mark a term as learned.
+      </p>
+    </section>
+  );
+}
 
 function SpotlightPin({ trends }: { trends: TrendRow[] }) {
   const qc = useQueryClient();
