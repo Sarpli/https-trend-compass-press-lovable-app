@@ -416,6 +416,32 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Free glossary gating check
+        id: free_glossary_gated
+        env:
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          FREE_GLOSSARY_ARTIFACT_DIR: ${{ github.workspace }}/free-glossary-gated-artifacts
+        # Exit code 2 = skipped (no session / no service key).
+        run: |
+          set +e
+          python3 tests/free_glossary_gated.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Free glossary gating test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Free glossary gating artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-glossary-gated-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/free-glossary-gated-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Free search-limit artifacts
         if: always()
         uses: actions/upload-artifact@v4
