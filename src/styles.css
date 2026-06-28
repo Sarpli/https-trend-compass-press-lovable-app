@@ -457,3 +457,172 @@
     0 -1px 0 color-mix(in oklab, black 40%, transparent) inset,
     0 14px 38px -20px color-mix(in oklab, black 65%, transparent);
 }
+
+/*
+ * Universal Liquid Glass cascade.
+ * Every floating shadcn surface (dialogs, popovers, dropdowns, menus,
+ * sheets, command palette, hover-cards, tooltips, alert-dialogs) gets the
+ * same frosted-glass treatment — translucent fill, backdrop blur, soft
+ * glowing edge, inset specular highlight, soft drop shadow. Markup stays
+ * untouched; this only restyles the data-slot surfaces shadcn already emits.
+ */
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"],
+[data-slot="menubar-content"],
+[data-slot="context-menu-content"],
+[data-slot="hover-card-content"],
+[data-slot="navigation-menu-content"],
+[data-slot="command"],
+[data-slot="sheet-content"],
+[data-slot="drawer-content"],
+[data-slot="tooltip-content"] {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--popover) 80%, transparent) 0%,
+      color-mix(in oklab, var(--popover) 58%, transparent) 100%
+    ) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid color-mix(in oklab, var(--rule) 42%, transparent) !important;
+  box-shadow:
+    0 1px 0 var(--glass-edge) inset,
+    0 -1px 0 var(--glass-edge-bottom) inset,
+    0 0 0 1px color-mix(in oklab, white 6%, transparent),
+    0 24px 60px -22px color-mix(in oklab, var(--ink) 55%, transparent),
+    0 6px 18px -12px color-mix(in oklab, var(--ink) 35%, transparent) !important;
+  border-radius: calc(var(--radius) + 6px);
+}
+
+.dark [data-slot="dialog-content"],
+.dark [data-slot="alert-dialog-content"],
+.dark [data-slot="popover-content"],
+.dark [data-slot="dropdown-menu-content"],
+.dark [data-slot="select-content"],
+.dark [data-slot="menubar-content"],
+.dark [data-slot="context-menu-content"],
+.dark [data-slot="hover-card-content"],
+.dark [data-slot="navigation-menu-content"],
+.dark [data-slot="command"],
+.dark [data-slot="sheet-content"],
+.dark [data-slot="drawer-content"],
+.dark [data-slot="tooltip-content"] {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--popover) 72%, transparent) 0%,
+      color-mix(in oklab, var(--popover) 42%, transparent) 100%
+    ) !important;
+  border: 1px solid color-mix(in oklab, white 12%, transparent) !important;
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 9%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 45%, transparent) inset,
+    0 0 0 1px color-mix(in oklab, white 4%, transparent),
+    0 30px 70px -24px color-mix(in oklab, black 75%, transparent),
+    0 8px 22px -14px color-mix(in oklab, black 55%, transparent) !important;
+}
+
+/* Dialog/Sheet overlay: tinted glass scrim rather than flat black. */
+[data-slot="dialog-overlay"],
+[data-slot="alert-dialog-overlay"],
+[data-slot="sheet-overlay"],
+[data-slot="drawer-overlay"] {
+  background: color-mix(in oklab, var(--ink) 38%, transparent) !important;
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+}
+.dark [data-slot="dialog-overlay"],
+.dark [data-slot="alert-dialog-overlay"],
+.dark [data-slot="sheet-overlay"],
+.dark [data-slot="drawer-overlay"] {
+  background: color-mix(in oklab, black 55%, transparent) !important;
+}
+
+/*
+ * Inputs, textareas, and selects pick up a thin glass tint so forms feel
+ * consistent with the surrounding surfaces.
+ */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+textarea,
+select,
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  background: color-mix(in oklab, var(--card) 55%, transparent) !important;
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--rule) 34%, transparent) !important;
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 28%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, var(--ink) 6%, transparent) inset;
+}
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+.dark textarea,
+.dark select,
+.dark [data-slot="input"],
+.dark [data-slot="textarea"],
+.dark [data-slot="select-trigger"] {
+  background: color-mix(in oklab, var(--card) 45%, transparent) !important;
+  border: 1px solid color-mix(in oklab, white 12%, transparent) !important;
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 30%, transparent) inset;
+}
+
+/*
+ * Sticky/site header gets a floating glass-panel feel. The masthead
+ * already opts in via .glass; this rule covers any nav/header that
+ * doesn't, so the top of every page reads as a single floating bar.
+ */
+header.sticky,
+nav[data-slot="navigation-menu"] {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--newsprint) 68%, transparent) 0%,
+      color-mix(in oklab, var(--newsprint) 48%, transparent) 100%
+    );
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-bottom: 1px solid color-mix(in oklab, var(--rule) 38%, transparent);
+  box-shadow: 0 8px 24px -18px color-mix(in oklab, var(--ink) 55%, transparent);
+}
+.dark header.sticky,
+.dark nav[data-slot="navigation-menu"] {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--newsprint) 70%, transparent) 0%,
+      color-mix(in oklab, var(--newsprint) 38%, transparent) 100%
+    );
+  border-bottom: 1px solid color-mix(in oklab, white 10%, transparent);
+}
+
+/*
+ * Soft glowing focus ring — replaces shadcn's flat outline so focused
+ * surfaces look like illuminated glass edges.
+ */
+*:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ring) 55%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--ring) 18%, transparent) !important;
+}
+
+/*
+ * Ticker bar — floating glass panel. The base .ticker-bar utility above
+ * provides the gradient; here we lift it off the page with a subtle
+ * glow + softened bottom edge so it reads as a separate piece of glass
+ * resting on the masthead.
+ */
+.ticker-bar {
+  border-radius: 0 0 calc(var(--radius) + 2px) calc(var(--radius) + 2px);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 22%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 18%, transparent) inset,
+    0 12px 36px -18px color-mix(in oklab, var(--ink) 60%, transparent);
+}
