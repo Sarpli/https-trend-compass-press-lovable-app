@@ -61,7 +61,12 @@ function Account() {
       <div className="text-xs ui small-caps text-accent-red mb-1">Subscriber Services</div>
       <h1 className="display text-4xl font-black mb-6">Your account</h1>
 
-      <SettingsPanel />
+      <Link
+        to="/settings"
+        className="block w-full border border-ink/40 px-4 py-3 ui small-caps text-xs hover:bg-ink hover:text-newsprint transition-colors mb-6"
+      >
+        Settings →
+      </Link>
 
       <dl className="grid sm:grid-cols-2 gap-6 rule-top pt-6">
         <Stat label="Email" value={user.email ?? "—"} />
