@@ -3,6 +3,7 @@ import { useTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
 import { ChangePassword } from "@/components/ChangePassword";
+import { PushNotificationsToggle } from "@/components/PushNotificationsToggle";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -99,6 +100,13 @@ function SettingsPage() {
           </label>
         </div>
       </section>
+
+      {isPro && (
+        <div className="rule-top mt-10 pt-6">
+          <div className="ui small-caps text-xs text-muted-foreground mb-2">Pro · Notifications</div>
+          <PushNotificationsToggle />
+        </div>
+      )}
 
       <div className="rule-top mt-10 pt-6 grid gap-5">
         <div>
