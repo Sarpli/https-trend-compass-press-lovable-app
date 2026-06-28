@@ -9,6 +9,7 @@ import { Upload } from "lucide-react";
 import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
 import { useServerFn } from "@tanstack/react-start";
 import { importTrendImageFromUrl } from "@/lib/admin-image.functions";
+import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -86,6 +87,8 @@ function AdminTrends() {
       </p>
 
       <SpotlightPin trends={trends ?? []} />
+
+      <StreakOverride />
 
       <input
         value={filter}
