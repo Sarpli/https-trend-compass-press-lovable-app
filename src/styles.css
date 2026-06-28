@@ -381,11 +381,11 @@
 .liquid-ambient::after {
   content: "";
   position: absolute;
-  width: 60vmax;
-  height: 60vmax;
+  width: 70vmax;
+  height: 70vmax;
   border-radius: 50%;
-  filter: blur(80px) saturate(140%);
-  opacity: 0.55;
+  filter: blur(110px) saturate(170%);
+  opacity: 0.85;
   will-change: transform;
 }
 .liquid-ambient::before {
@@ -408,8 +408,8 @@
   );
   animation: liquid-drift-b 36s ease-in-out infinite alternate;
 }
-.dark .liquid-ambient::before { opacity: 0.32; }
-.dark .liquid-ambient::after  { opacity: 0.22; }
+.dark .liquid-ambient::before { opacity: 0.42; }
+.dark .liquid-ambient::after  { opacity: 0.32; }
 
 @keyframes liquid-drift-a {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
