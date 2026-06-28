@@ -86,12 +86,6 @@ function Account() {
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <StreakCalendar
-        userId={user.id}
-        streak={profile?.streak_count ?? 0}
-        completedToday={isActiveToday}
-      />
-
       <StreakHistory userId={user.id} />
 
       <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
