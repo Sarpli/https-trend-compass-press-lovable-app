@@ -358,17 +358,9 @@
 
 @utility ticker-bar {
   position: relative;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ink) 88%, transparent) 0%,
-      color-mix(in oklab, var(--rule) 72%, transparent) 100%
-    );
-  backdrop-filter: blur(16px) saturate(140%);
+  background-color: var(--ink);
   border-bottom: 1px solid color-mix(in oklab, var(--rule) 28%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, white 20%, transparent) inset,
-    0 6px 24px -10px color-mix(in oklab, var(--ink) 40%, transparent);
+  box-shadow: 0 6px 24px -10px color-mix(in oklab, var(--ink) 40%, transparent);
 }
 
 
