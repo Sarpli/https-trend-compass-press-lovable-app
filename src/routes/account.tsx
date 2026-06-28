@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { deviceTimezone, useUserTimezone, todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
+import { useTheme } from "@/lib/theme";
+import { useSettings } from "@/lib/settings";
 
 
 
@@ -59,6 +61,8 @@ function Account() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <div className="text-xs ui small-caps text-accent-red mb-1">Subscriber Services</div>
       <h1 className="display text-4xl font-black mb-6">Your account</h1>
+
+      <SettingsPanel />
 
       <dl className="grid sm:grid-cols-2 gap-6 rule-top pt-6">
         <Stat label="Email" value={user.email ?? "—"} />
