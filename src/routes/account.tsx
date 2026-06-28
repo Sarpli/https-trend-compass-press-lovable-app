@@ -57,6 +57,8 @@ function Account() {
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
 
+      <StreakSection streak={profile?.streak_count ?? 0} lastActive={profile?.last_active_date} />
+
       <div className="rule-top mt-10 pt-6 flex gap-3">
         {!isPro && (
           <Link to="/pricing" className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2">
