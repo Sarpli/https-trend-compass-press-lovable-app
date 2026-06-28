@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      dismissed_banners: {
+        Row: {
+          created_at: string
+          trend_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          trend_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          trend_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dismissed_banners_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "dismissed_banners_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learned_trends: {
         Row: {
           created_at: string
