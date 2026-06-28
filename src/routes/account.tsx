@@ -74,11 +74,19 @@ function Account() {
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
 
-      <StreakSection streak={profile?.streak_count ?? 0} lastActive={profile?.last_active_date} />
+      <StreakSection
+        streak={profile?.streak_count ?? 0}
+        lastActive={profile?.last_active_date}
+        completedToday={isActiveToday}
+      />
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <StreakCalendar userId={user.id} streak={profile?.streak_count ?? 0} />
+      <StreakCalendar
+        userId={user.id}
+        streak={profile?.streak_count ?? 0}
+        completedToday={isActiveToday}
+      />
 
       <StreakHistory userId={user.id} />
 
