@@ -3,14 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
+import { todayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { useSettings } from "@/lib/settings";
 
 export function StreakBadge({ className = "" }: { className?: string }) {
   const { user } = useAuth();
-  const tz = useUserTimezone();
-  const today = todayLocalISO(tz);
+  const today = todayLocalISO();
   const { data: count = 0 } = useQuery({
     queryKey: ["effective-streak", user?.id, today],
     enabled: !!user,

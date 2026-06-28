@@ -9,7 +9,7 @@ import { Upload } from "lucide-react";
 import { validateImage, verdictLabel, verdictColor } from "@/lib/image-validation";
 import { useServerFn } from "@tanstack/react-start";
 import { importTrendImageFromUrl } from "@/lib/admin-image.functions";
-import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
+import { todayLocalISO, deviceTimezone } from "@/lib/timezone";
 
 export const Route = createFileRoute("/admin/trends")({
   head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
@@ -112,8 +112,7 @@ type TrendRow = { id: string; slug: string; term: string; category: string | nul
 function StreakOverride() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const tz = useUserTimezone();
-  const today = todayLocalISO(tz);
+  const today = todayLocalISO();
 
   const { data: profile } = useQuery({
     queryKey: ["admin-self-profile", user?.id],
@@ -176,7 +175,7 @@ function StreakOverride() {
       <div className="text-[10px] ui small-caps text-accent-red mb-1">Streak override</div>
       <h2 className="display text-2xl font-black mb-1">Edit your streak</h2>
       <p className="text-xs text-muted-foreground mb-3">
-        Owner-only adjustment of your own streak. Local date is in {tz}.
+        Owner-only adjustment of your own streak. Local date is in {deviceTimezone()}.
       </p>
       <div className="grid sm:grid-cols-[1fr_1fr_1.2fr_auto] gap-2 items-end">
         <label className="flex flex-col gap-1">
