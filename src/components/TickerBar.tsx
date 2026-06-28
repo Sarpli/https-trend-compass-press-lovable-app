@@ -67,16 +67,19 @@ function TickerBarInner() {
 
   // Auto-scroll the tape with a GPU transform instead of writing scrollLeft on
   // every frame. That keeps desktop motion smooth while preserving drag/wheel
-  // scrubbing and the saved ticker position.
+  // scrubbing and the saved ticker position. Resume uses an ease-out cubic so
+  // the tape glides back to full speed instead of snapping after hover/drag.
   useEffect(() => {
     const scroller = scrollerRef.current;
     const track = trackRef.current;
     if (!scroller || !track) return;
     let raf = 0;
     let last = performance.now();
-    const PX_PER_SEC = 40; // matches ~180s loop feel
-    const EASE_IN_SEC = 0.3; // ramp from 0 back to full speed after a pause
-    let speed = 1; // current velocity multiplier; resets to 0 on resume
+    const PX_PER_SEC = 40; // consistent scroll speed on mobile and desktop
+    const EASE_IN_SEC = 0.45; // slightly longer, smoother resume
+    let rawRamp = 1; // 0..1 linear progress
+    let ramp = 1;    // eased progress applied to velocity
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - Math.min(1, t), 3);
     const getHalf = () => track.scrollWidth / 2;
     const normalize = (value: number) => {
       const half = getHalf();
@@ -106,17 +109,16 @@ function TickerBarInner() {
       const dt = (now - last) / 1000;
       last = now;
       if (!pausedRef.current) {
-        // Ramp speed back up after a pause/drag so the tape doesn't snap
-        // instantly from 0 to full velocity.
-        speed = Math.min(1, speed + dt / EASE_IN_SEC);
-        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * speed * dt);
+        rawRamp = Math.min(1, rawRamp + dt / EASE_IN_SEC);
+        ramp = easeOutCubic(rawRamp);
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt);
         render();
       }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     const pause = () => { pausedRef.current = true; };
-    const resume = () => { pausedRef.current = false; last = performance.now(); speed = 0; };
+    const resume = () => { pausedRef.current = false; last = performance.now(); rawRamp = 0; ramp = 0; };
     // Desktop: pause on hover so the mouse can read items. Mobile/touch:
     // auto-scroll continues and users can drag-to-scrub the tape.
     const canHover = true;
