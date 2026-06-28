@@ -59,6 +59,32 @@
 }
 
 /*
+ * User-controlled reduced motion. Applied when the user opts in via
+ * Settings ("on" or "auto" + OS preference). Minimizes pulse/confetti
+ * and banner fade animations site-wide without touching component code.
+ */
+.reduce-motion-app .route-fluid-drop,
+.reduce-motion-app .intro-fluid-drop,
+.reduce-motion-app .animate-pulse,
+.reduce-motion-app [class*="animate-[pulse"],
+.reduce-motion-app [class*="animate-[learned"],
+.reduce-motion-app .learned-burst {
+  animation: none !important;
+}
+.reduce-motion-app * {
+  transition-duration: 0.001ms !important;
+  animation-duration: 0.001ms !important;
+}
+
+/* When streak animations are disabled, suppress confetti + streak bump pulses. */
+.no-streak-anim .streak-confetti,
+.no-streak-anim .streak-bump,
+.no-streak-anim .streak-pulse {
+  animation: none !important;
+  transform: none !important;
+}
+
+/*
  * Trenslate — WSJ-inspired newspaper design system.
  * Ink black on newsprint cream, accent red for the live ticker.
  * Display: Playfair Display (serif). Body: Source Serif 4. UI: Inter.

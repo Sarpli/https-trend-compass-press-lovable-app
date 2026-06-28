@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { combinedDailyPct } from "@/lib/daily-drift";
+import { useSettings } from "@/lib/settings";
 
 type Row = {
   trend_id: string;
@@ -28,6 +29,9 @@ export function TickerBar() {
 
 function TickerBarInner() {
   const qc = useQueryClient();
+  const { tickerSpeed } = useSettings();
+  const tickerSpeedRef = useRef(tickerSpeed);
+  useEffect(() => { tickerSpeedRef.current = tickerSpeed; }, [tickerSpeed]);
   const { data: rows = [] } = useQuery({
     queryKey: ["ticker"],
     queryFn: fetchScores,
@@ -112,7 +116,8 @@ function TickerBarInner() {
       if (!pausedRef.current) {
         rawRamp = Math.min(1, rawRamp + dt / EASE_IN_SEC);
         ramp = easeOutCubic(rawRamp);
-        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt);
+        const mul = Math.max(0, tickerSpeedRef.current || 0);
+        offsetRef.current = normalize(offsetRef.current + PX_PER_SEC * ramp * dt * mul);
         render();
       }
       raf = requestAnimationFrame(step);

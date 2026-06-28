@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
+import { useSettings } from "@/lib/settings";
 
 
 const STREAK_HELP = `Streaks grow once per calendar day in your local timezone. Mark a term as learned to add +1. Miss a full day and the streak resets to zero. Resets happen at midnight your time.`;
@@ -34,7 +35,9 @@ export function StreakBadge({ className = "" }: { className?: string }) {
       return data?.last_active_local_date === today;
     },
   });
-  const bumping = useBump(count);
+  const { motionReduced, streakAnimations } = useSettings();
+  const rawBump = useBump(count);
+  const bumping = rawBump && streakAnimations && !motionReduced;
   const completedToday = !!markedToday;
   const label = user
     ? `Daily streak: ${count} day${count === 1 ? "" : "s"}`
