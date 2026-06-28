@@ -101,10 +101,18 @@ function SettingsPage() {
       </section>
 
       <div className="rule-top mt-10 pt-6 grid gap-5">
+        <div>
+          <div className="ui small-caps text-xs text-muted-foreground">Account</div>
+          <div className="display text-lg font-bold">{user?.email ?? "—"}</div>
+          <div className="ui text-xs text-muted-foreground">
+            Plan: {planLabel} {isPro && isAnnual ? "· 2× vote weight" : isPro ? "· Pro voter" : ""}
+          </div>
+        </div>
+
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <div className="ui small-caps text-xs text-muted-foreground">Account</div>
-            <div className="display text-lg font-bold">Session</div>
+            <div className="ui small-caps text-xs text-muted-foreground">Session</div>
+            <div className="display text-lg font-bold">Authentication</div>
           </div>
           <SignOutButton />
         </div>
