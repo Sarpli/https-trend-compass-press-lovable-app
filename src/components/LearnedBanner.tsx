@@ -6,15 +6,14 @@ import { toast } from "sonner";
 import { haptic, celebrate } from "@/lib/haptics";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
+import { todayLocalISO } from "@/lib/timezone";
 import { useSettings } from "@/lib/settings";
 import { StreakCelebration } from "./StreakCelebration";
 
 export function LearnedBanner({ trendId }: { trendId: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const tz = useUserTimezone();
-  const today = todayLocalISO(tz);
+  const today = todayLocalISO();
   const mountedRef = useRef(true);
   const { motionReduced, streakAnimations } = useSettings();
   const animOK = streakAnimations && !motionReduced;
