@@ -51,7 +51,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
       return Number(data ?? 0);
     },
     onSuccess: (newCount) => {
-      haptic("success");
+      haptic("up");
       toast.success(`🔥 Streak: ${newCount} day${newCount === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["learned", trendId] });
       qc.invalidateQueries({ queryKey: ["effective-streak"] });
