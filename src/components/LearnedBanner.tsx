@@ -7,6 +7,7 @@ import { haptic } from "@/lib/haptics";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
+import { useSettings } from "@/lib/settings";
 
 export function LearnedBanner({ trendId }: { trendId: string }) {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
   const tz = useUserTimezone();
   const today = todayLocalISO(tz);
   const mountedRef = useRef(true);
+  const { motionReduced, streakAnimations } = useSettings();
+  const animOK = streakAnimations && !motionReduced;
 
   const [dismissed, setDismissed] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -156,11 +159,13 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
 
   return (
     <div
-      className={`mt-6 relative overflow-visible border border-accent-red/50 bg-accent-red/5 hover:bg-accent-red/10 transition-all duration-300 flex items-stretch ${
+      className={`mt-6 relative overflow-visible border border-accent-red/50 bg-accent-red/5 hover:bg-accent-red/10 ${
+        animOK ? "transition-all duration-300" : ""
+      } flex items-stretch ${
         leaving ? "opacity-0 scale-95 -translate-y-1" : "opacity-100 scale-100"
-      } ${mark.isPending || burst > 0 ? "animate-[pulse_1.4s_ease-in-out_1]" : ""}`}
+      } ${animOK && (mark.isPending || burst > 0) ? "streak-pulse animate-[pulse_1.4s_ease-in-out_1]" : ""}`}
     >
-      {burst > 0 && <ConfettiBurst key={burst} />}
+      {animOK && burst > 0 && <ConfettiBurst key={burst} />}
       <button
         type="button"
         onClick={() => {
