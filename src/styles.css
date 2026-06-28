@@ -615,6 +615,39 @@ nav[data-slot="navigation-menu"] {
 }
 
 /*
+ * After Hours bloom — subtle colored glow on highlighted/accent surfaces
+ * so brass buttons, live badges, and up/down chips feel illuminated
+ * against the deep navy page. Dark mode only; light mode stays crisp.
+ */
+.dark .bg-accent,
+.dark [data-slot="badge"].bg-accent,
+.dark .bg-accent-red,
+.dark .bg-ticker-up,
+.dark .bg-ticker-down,
+.dark button[data-variant="accent"] {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, currentColor 18%, transparent),
+    0 6px 24px -10px color-mix(in oklab, var(--accent) 45%, transparent),
+    0 2px 10px -4px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.dark .bg-accent-red,
+.dark .bg-ticker-down {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent-red) 22%, transparent),
+    0 6px 22px -10px color-mix(in oklab, var(--accent-red) 50%, transparent);
+}
+.dark .bg-ticker-up {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ticker-up) 22%, transparent),
+    0 6px 22px -10px color-mix(in oklab, var(--ticker-up) 45%, transparent);
+}
+.dark .text-accent-red,
+.dark .text-ticker-up,
+.dark .text-ticker-down {
+  text-shadow: 0 0 14px color-mix(in oklab, currentColor 35%, transparent);
+}
+
+/*
  * Ticker bar — floating glass panel. The base .ticker-bar utility above
  * provides the gradient; here we lift it off the page with a subtle
  * glow + softened bottom edge so it reads as a separate piece of glass
