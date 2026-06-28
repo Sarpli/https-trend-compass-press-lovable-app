@@ -113,13 +113,25 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
         <div className="flex-1">
           <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
           <div className="display text-2xl font-black">
-            {streak} day{streak === 1 ? "" : "s"} on fire
+            {active ? `${streak} day${streak === 1 ? "" : "s"} on fire` : "No streak yet"}
           </div>
           <p className="ui text-sm text-muted-foreground mt-1 max-w-md">
             {active
               ? "Keep voting or searching daily to keep the flame alive. Your streak resets after a missed day."
-              : "Search or vote on any trend to ignite your first-day streak."}
+              : "Your streak starts the first day you vote or search. Come back tomorrow and the flame keeps growing!"}
           </p>
+          {!active && (
+            <div className="mt-3 flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Ready to begin?</span>
+              <Link to="/vote" className="ui small-caps text-xs bg-accent-red text-accent-foreground px-3 py-1.5 hover:opacity-90 transition-opacity">
+                Cast a vote
+              </Link>
+              <span className="text-muted-foreground">or</span>
+              <Link to="/" className="ui small-caps text-xs border border-ink/40 px-3 py-1.5 hover:bg-ink hover:text-newsprint transition-colors">
+                Explore trends
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
