@@ -80,6 +80,21 @@ jobs:
           STRESS_LONGTASK_MAX_MS: '250'
         run: python3 tests/ticker_stress.py
 
+      - name: Run Pro gating check
+        id: gating
+        env:
+          GATING_ARTIFACT_DIR: ${{ github.workspace }}/gating-artifacts
+        run: python3 tests/pro_gating.py
+
+      - name: Upload Pro gating artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-gating-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/gating-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload ticker stress artifacts
         if: always()
         uses: actions/upload-artifact@v4
