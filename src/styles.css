@@ -659,3 +659,124 @@ nav[data-slot="navigation-menu"] {
   border-radius: 0 0 calc(var(--radius) + 2px) calc(var(--radius) + 2px);
   box-shadow: 0 12px 36px -18px color-mix(in oklab, var(--ink) 60%, transparent);
 }
+
+/*
+ * Liquid Glass — extra polish layer.
+ * Adds a third ambient color, brighter top-edge refraction highlights on
+ * every glass surface, glassy default buttons, and a frosted ticker bar.
+ */
+.liquid-ambient > .liquid-blob-3 {
+  position: absolute;
+  top: 30%;
+  left: 40%;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  filter: blur(120px) saturate(180%);
+  opacity: 0.55;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--accent-red) 25%, transparent),
+    transparent 60%
+  );
+  animation: liquid-drift-a 42s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.dark .liquid-ambient > .liquid-blob-3 { opacity: 0.28; }
+
+/*
+ * Refraction highlight — a hairline of light along the top edge of every
+ * glass surface. Applied via ::after so it doesn't conflict with the
+ * existing inset specular highlight on cards.
+ */
+[data-slot="card"],
+[data-slot="dialog-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"],
+[data-slot="sheet-content"],
+[data-slot="drawer-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="hover-card-content"],
+[data-slot="tooltip-content"],
+.glass,
+.glass-dark {
+  border-radius: calc(var(--radius) + 4px);
+  position: relative;
+  isolation: isolate;
+}
+[data-slot="card"]::after,
+.glass::after,
+.glass-dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, white 30%, transparent) 0%,
+    transparent 18%,
+    transparent 82%,
+    color-mix(in oklab, white 6%, transparent) 100%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+.dark [data-slot="card"]::after,
+.dark .glass::after,
+.dark .glass-dark::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, white 18%, transparent) 0%,
+    transparent 22%,
+    transparent 80%,
+    color-mix(in oklab, white 4%, transparent) 100%
+  );
+  opacity: 0.85;
+}
+
+/*
+ * Glassy buttons — translucent fill, soft glowing edge, gentle inner
+ * highlight. Default + outline + ghost variants pick this up; primary
+ * stays ink-on-paper but with rounder corners and a soft halo.
+ */
+button[data-slot="button"]:not([data-variant="link"]) {
+  border-radius: calc(var(--radius) - 2px);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 32%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, var(--ink) 8%, transparent) inset,
+    0 6px 18px -10px color-mix(in oklab, var(--ink) 35%, transparent);
+  transition: box-shadow 200ms ease, transform 200ms ease, background-color 200ms ease;
+}
+.dark button[data-slot="button"]:not([data-variant="link"]) {
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 12%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 35%, transparent) inset,
+    0 8px 22px -12px color-mix(in oklab, black 55%, transparent);
+}
+
+/*
+ * Promote the live ticker bar to a true floating glass panel. The base
+ * .ticker-bar utility above keeps the ink token for legibility of the
+ * scrolling text, but here we soften it into a frosted bar with a glow.
+ */
+.ticker-bar {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--ink) 88%, transparent) 0%,
+      color-mix(in oklab, var(--ink) 72%, transparent) 100%
+    );
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-top: 1px solid color-mix(in oklab, white 12%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, white 6%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 18%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 35%, transparent) inset,
+    0 14px 40px -20px color-mix(in oklab, var(--ink) 60%, transparent),
+    0 0 0 1px color-mix(in oklab, white 4%, transparent);
+}
