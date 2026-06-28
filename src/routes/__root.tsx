@@ -183,7 +183,9 @@ function RootComponent() {
         <ThemeProvider>
         <SettingsProvider>
         <div className={`min-h-screen flex flex-col bg-background text-foreground${introPlayed ? "" : " intro-fluid-drop"}`}>
-          <div className="liquid-ambient" aria-hidden="true" />
+          <div className="liquid-ambient" aria-hidden="true">
+            <div className="liquid-blob-3" />
+          </div>
           <div className="relative z-10 flex flex-1 flex-col">
             <SiteHeader />
             <main className="flex-1">
