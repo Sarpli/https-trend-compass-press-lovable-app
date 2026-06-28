@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { Moon, Sun, Lock } from "lucide-react";
 import { TickerBar } from "./TickerBar";
+import { StreakBadge } from "./StreakBadge";
 
 const NAV = [
   { to: "/", label: "Front Page" },
@@ -59,6 +60,7 @@ export function SiteHeader() {
               </div>
               <div aria-hidden className="h-px" />
               <div className="flex items-center gap-2 text-[11px] ui justify-self-end">
+                <StreakBadge />
                 {user ? (
                   <>
                     {isPro && <span className="small-caps text-[10px] text-accent-red">Pro</span>}
@@ -99,6 +101,7 @@ export function SiteHeader() {
               </div>
             </Link>
             <div className="flex justify-end gap-3 items-center text-xs ui shrink-0">
+              <StreakBadge />
               {isPro ? (
                 <button
                   onClick={toggle}
