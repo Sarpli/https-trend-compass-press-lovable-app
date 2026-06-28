@@ -39,6 +39,45 @@ LABEL = {
     "oat": "Trend of All Time",
 }
 
+# JS readers used to snapshot leaderboard + ticker state by term name. We key
+# off the term text (not rank) so reordering counts as a successful update.
+JS_READ_BOARD_ROW = """
+(args) => {
+  const { heading, term } = args;
+  const h = [...document.querySelectorAll('h2')].find(x => x.textContent.trim() === heading);
+  if (!h) return null;
+  const section = h.closest('section');
+  if (!section) return null;
+  const lis = [...section.querySelectorAll('li')];
+  for (let i = 0; i < lis.length; i++) {
+    const link = lis[i].querySelector('a');
+    if (link && link.textContent.trim() === term) {
+      const spans = [...lis[i].querySelectorAll('span.tabular-nums')];
+      const netSpan = spans[spans.length - 1];
+      const raw = (netSpan?.textContent || '0').replace('+','').trim();
+      const n = parseInt(raw, 10);
+      return { rank: i + 1, net: Number.isFinite(n) ? n : 0 };
+    }
+  }
+  return null;
+}
+"""
+
+JS_READ_TICKER_PCT = """
+(term) => {
+  const links = [...document.querySelectorAll('.ticker-bar a')];
+  for (const a of links) {
+    const nameSpan = a.querySelector('span.small-caps');
+    if (nameSpan && nameSpan.textContent.trim() === term) {
+      const spans = [...a.querySelectorAll('span')];
+      const pctSpan = spans[spans.length - 1];
+      return (pctSpan?.textContent || '').trim();
+    }
+  }
+  return null;
+}
+"""
+
 
 async def restore_session(page) -> bool:
     session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
@@ -121,6 +160,13 @@ async def main() -> int:
                 continue
             first_up = up_buttons.first
             row = first_up.locator("xpath=ancestor::li[1]")
+            # Capture the row-1 term so we can re-find this trend on the
+            # leaderboard and ticker after a potential reorder.
+            term = (await row.locator("a").first.inner_text()).strip()
+            before_board = await page.evaluate(
+                JS_READ_BOARD_ROW, {"heading": LABEL[cat], "term": term}
+            )
+            before_ticker = await page.evaluate(JS_READ_TICKER_PCT, term)
 
             writes_before = len(vote_responses)
             await first_up.click()
@@ -136,15 +182,30 @@ async def main() -> int:
             await page.wait_for_timeout(900)  # let realtime + write settle
             writes_after_up = vote_responses[writes_before:]
 
+            # After the 2xx, the leaderboard row for this term must reflect
+            # net+1 (rank may move up — we key off term text, not rank).
+            after_board = await page.evaluate(
+                JS_READ_BOARD_ROW, {"heading": LABEL[cat], "term": term}
+            )
+            # And the ticker pill for this term must change (price/pct shift
+            # because net_votes changed; combinedDailyPct re-derives from it).
+            after_ticker = await page.evaluate(JS_READ_TICKER_PCT, term)
+
             # Toggle the same vote off so the test is idempotent.
             await first_up.click()
             await page.wait_for_timeout(900)
             writes_after_clear = vote_responses[writes_before:]
+            cleared_board = await page.evaluate(
+                JS_READ_BOARD_ROW, {"heading": LABEL[cat], "term": term}
+            )
 
             cat_result = {
+                "term": term,
                 "rows_rendered": up_count,
                 "up_writes": writes_after_up,
                 "all_writes": writes_after_clear,
+                "board": {"before": before_board, "after_up": after_board, "after_clear": cleared_board},
+                "ticker": {"before": before_ticker, "after_up": after_ticker},
             }
             results["per_category"][cat] = cat_result
 
@@ -154,6 +215,34 @@ async def main() -> int:
                 results["errors"].append(f"{cat}: no 2xx /rest/v1/votes response after upvote (got {writes_after_up})")
             if not ok_clear:
                 results["errors"].append(f"{cat}: no 2xx /rest/v1/votes response after toggle-off (got {writes_after_clear[len(writes_after_up):]})")
+
+            # --- Live-update assertions (the new coverage) ---
+            if before_board is None or after_board is None:
+                results["errors"].append(
+                    f"{cat}: could not locate leaderboard row for term '{term}' (before={before_board}, after={after_board})"
+                )
+            else:
+                expected_net = before_board["net"] + 1
+                if after_board["net"] != expected_net:
+                    results["errors"].append(
+                        f"{cat}: leaderboard net did not update immediately for '{term}': "
+                        f"before={before_board['net']} expected={expected_net} after={after_board['net']}"
+                    )
+                # After toggle-off the row should be back where it started.
+                if cleared_board is not None and cleared_board["net"] != before_board["net"]:
+                    results["errors"].append(
+                        f"{cat}: leaderboard did not revert after toggle-off for '{term}': "
+                        f"before={before_board['net']} after_clear={cleared_board['net']}"
+                    )
+
+            if before_ticker is None or after_ticker is None:
+                results["errors"].append(
+                    f"{cat}: ticker pill not found for term '{term}' (before={before_ticker}, after={after_ticker})"
+                )
+            elif before_ticker == after_ticker:
+                results["errors"].append(
+                    f"{cat}: ticker pct did not change for '{term}' after upvote (still '{after_ticker}')"
+                )
 
         summary_path.write_text(json.dumps(results, indent=2))
         console_fh.close()
