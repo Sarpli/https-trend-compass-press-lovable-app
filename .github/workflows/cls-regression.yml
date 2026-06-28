@@ -234,6 +234,30 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Ticker+sidebar focus check
+        id: ticker_focus
+        env:
+          TICKER_FOCUS_ARTIFACT_DIR: ${{ github.workspace }}/ticker-focus-artifacts
+        # Exit code 2 = skipped (Pro session or /vote didn't render).
+        run: |
+          set +e
+          python3 tests/ticker_sidebar_focus.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Ticker+sidebar focus test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Ticker focus artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ticker-focus-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/ticker-focus-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
