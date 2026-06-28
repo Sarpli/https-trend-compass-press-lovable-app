@@ -248,12 +248,12 @@ function TickerBarInner() {
     return () => cancelAnimationFrame(raf);
   }, [rows]);
 
-  if (rows.length === 0) return <div className="ticker-bar ticker-bar-sheen text-newsprint h-9 sm:h-10" />;
+  if (rows.length === 0) return <div className="ticker-bar text-newsprint h-9 sm:h-10" />;
 
   const items = Array.from({ length: loopCopies }, () => rows).flat();
 
   return (
-    <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm h-9 sm:h-10">
+    <div className="ticker-bar text-newsprint overflow-hidden ui text-xs sm:text-sm h-9 sm:h-10">
       <div className="flex items-center h-full">
         <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15 transition-transform duration-300 ease-out">
           Live
