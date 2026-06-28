@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
 import { TrendCover } from "@/components/TrendCover";
+import { useLocalDateKey } from "@/lib/use-local-date";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,58 +24,10 @@ export const Route = createFileRoute("/")({
 function Index() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  // Local-date key in the viewer's own time zone (YYYY-MM-DD).
-  // The spotlight rotates once per local calendar day, so each time zone
-  // gets its own "today's edition" without a server-side cron. We keep this
-  // in state and tick it at the viewer's local midnight so a long-lived tab
-  // rolls over to tomorrow's spotlight without a manual reload.
-  const computeLocalDateKey = () =>
-    new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-  const computeTimeZone = () =>
-    Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
-  const [localDateKey, setLocalDateKey] = useState(computeLocalDateKey);
-  const [timeZone, setTimeZone] = useState(computeTimeZone);
-  useEffect(() => {
-    // Re-evaluate the local date + time zone aggressively so the spotlight
-    // tracks the device clock in real time: scheduled midnight rollover,
-    // a 15s heartbeat (catches manual clock or time-zone changes), tab
-    // focus / visibility, and the standards-track Permissions/Intl signals
-    // browsers fire when the OS-level zone changes.
-    const sync = () => {
-      const nextKey = computeLocalDateKey();
-      const nextTz = computeTimeZone();
-      setLocalDateKey((prev) => (prev === nextKey ? prev : nextKey));
-      setTimeZone((prev) => (prev === nextTz ? prev : nextTz));
-    };
-    const tick = () => {
-      const now = new Date();
-      const next = new Date(now);
-      next.setHours(24, 0, 5, 0); // 5s after local midnight
-      const ms = Math.max(1000, next.getTime() - now.getTime());
-      return window.setTimeout(() => {
-        sync();
-        timer = tick();
-      }, ms);
-    };
-    let timer = tick();
-    const heartbeat = window.setInterval(sync, 15_000);
-    const onFocus = () => sync();
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-    // Some browsers (Chrome) fire a `languagechange` when locale/zone shifts.
-    window.addEventListener("languagechange", onFocus);
-    return () => {
-      window.clearTimeout(timer);
-      window.clearInterval(heartbeat);
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-      window.removeEventListener("languagechange", onFocus);
-    };
-  }, []);
+  // Spotlight + front-page stories rotate once per local calendar day in
+  // the viewer's own time zone. Shared hook also drives the streak badge
+  // and learned banner so everything flips at the same local midnight.
+  const { date: localDateKey, timeZone } = useLocalDateKey();
 
   const { data: featured } = useQuery({
     queryKey: ["featured", localDateKey, timeZone],

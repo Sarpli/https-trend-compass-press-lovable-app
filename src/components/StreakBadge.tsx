@@ -3,13 +3,22 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { todayLocalISO } from "@/lib/timezone";
+import { useLocalDateKey } from "@/lib/use-local-date";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useBump } from "@/lib/use-bump";
 import { useSettings } from "@/lib/settings";
 
 export function StreakBadge({ className = "" }: { className?: string }) {
   const { user } = useAuth();
-  const today = todayLocalISO();
+  const { date: today } = useLocalDateKey();
+  const qc = useQueryClient();
+  // When local midnight rolls over, force a fresh fetch so the badge greys
+  // out for the new day instead of showing yesterday's completion state.
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: ["effective-streak"] });
+    qc.invalidateQueries({ queryKey: ["marked-today"] });
+  }, [today, qc]);
   const { data: count = 0 } = useQuery({
     queryKey: ["effective-streak", user?.id, today],
     enabled: !!user,
