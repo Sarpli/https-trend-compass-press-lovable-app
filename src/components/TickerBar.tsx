@@ -212,7 +212,7 @@ function TickerBarInner() {
   return (
     <div className="ticker-bar ticker-bar-sheen text-newsprint overflow-hidden ui text-xs sm:text-sm h-9 sm:h-10">
       <div className="flex items-center h-full">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 small-caps bg-accent-red text-accent-foreground flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 border-r border-newsprint/15 transition-transform duration-300 ease-out">
           Live
         </div>
         <div
@@ -230,12 +230,12 @@ function TickerBarInner() {
                   key={`${r.trend_id}-${i}`}
                   to="/trends/$slug"
                   params={{ slug: r.slug }}
-                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 mx-0.5 sm:mx-1 rounded-sm transition-colors hover:bg-newsprint/5 ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 mx-0.5 sm:mx-1 rounded-sm transition-all duration-300 ease-out hover:bg-newsprint/5 ${
                     isUp ? "text-ticker-up" : isDown ? "text-ticker-down" : "hover:text-accent-red"
                   }`}
                 >
                   <span className="small-caps font-bold tracking-wider uppercase leading-none">{r.term}</span>
-                  <span className="tabular-nums text-xs sm:text-sm leading-none">
+                  <span className="tabular-nums text-xs sm:text-sm leading-none transition-colors duration-300 ease-out">
                     {isUp ? "+" : ""}{pct.toFixed(2)}%
                   </span>
                 </Link>
