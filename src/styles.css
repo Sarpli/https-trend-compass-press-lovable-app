@@ -218,8 +218,8 @@
   --ink: oklch(0.91 0.012 85);          /* soft warm cream */
   --newsprint: oklch(0.20 0.010 250);   /* page surface — warm slate */
   --rule: oklch(1 0 0 / 8%);            /* hair-thin white rule */
-  --ticker-up: oklch(0.78 0.13 155);    /* sage green — easy on eyes */
-  --ticker-down: oklch(0.70 0.14 25);   /* warm terracotta */
+  --ticker-up: oklch(0.82 0.16 155);    /* brighter sage — high contrast on dark */
+  --ticker-down: oklch(0.75 0.18 28);  /* warm terracotta — visible on dark */
   --accent-red: oklch(0.68 0.14 28);    /* muted terracotta indicator */
   --brass: oklch(0.78 0.09 78);         /* antique brass accent */
   --background: oklch(0.17 0.010 250);  /* deep warm slate page */
