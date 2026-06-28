@@ -316,6 +316,32 @@ jobs:
           fi
           exit $rc
 
+      - name: Run Streak persistence check
+        id: streak_persistence
+        env:
+          STREAK_ARTIFACT_DIR: ${{ github.workspace }}/streak-artifacts
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        # Exit code 2 = skipped (no session, no service-key fixture, or Pro session).
+        run: |
+          set +e
+          python3 tests/streak_persistence.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Streak persistence test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Streak persistence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streak-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/streak-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run Free OAT locked check
         id: free_oat_locked
         env:
