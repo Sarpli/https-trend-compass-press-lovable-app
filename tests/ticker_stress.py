@@ -99,9 +99,21 @@ async def main() -> int:
     console_fh = console_log.open("w")
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        # Disable Chromium's background throttling so rAF runs at the
+        # display rate even in headless CI — otherwise frames are
+        # capped to ~6fps and the test can't measure smoothness.
+        browser = await pw.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-background-timer-throttling",
+                "--disable-renderer-backgrounding",
+                "--disable-backgrounding-occluded-windows",
+                "--disable-features=CalculateNativeWinOcclusion",
+            ],
+        )
         context = await browser.new_context(viewport={"width": 1280, "height": 800})
         page = await context.new_page()
+        await page.bring_to_front()
         page.on("console", lambda msg: console_fh.write(f"[{msg.type}] {msg.text}\n"))
         page.on("pageerror", lambda exc: console_fh.write(f"[pageerror] {exc}\n"))
 
