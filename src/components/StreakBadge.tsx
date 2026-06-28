@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Flame } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,14 +30,15 @@ export function StreakBadge({ className = "" }: { className?: string }) {
       data-streak-count={count}
       aria-label={label}
       title={label}
-      className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[11px] leading-none ${className}`}
+      className={`inline-flex items-center gap-1 tabular-nums ui small-caps text-[12px] leading-none ${className}`}
     >
-      <Flame
-        className={`w-3.5 h-3.5 ${active ? "text-accent-red" : "text-muted-foreground"}`}
-        fill={active ? "currentColor" : "none"}
-        strokeWidth={2}
-      />
-      <span data-testid="streak-count">{count}</span>
+      <span
+        aria-hidden="true"
+        className={`text-[14px] leading-none ${active ? "" : "grayscale opacity-60"}`}
+      >
+        🔥
+      </span>
+      <span data-testid="streak-count" className="font-semibold">{count}</span>
     </span>
   );
 
