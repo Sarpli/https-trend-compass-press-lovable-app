@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { haptic } from "@/lib/haptics";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
 
@@ -13,16 +13,37 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
   const qc = useQueryClient();
   const tz = useUserTimezone();
   const today = todayLocalISO(tz);
-  const dismissKey = user ? `learned-banner-dismissed:${user.id}:${trendId}` : "";
+  const mountedRef = useRef(true);
+
   const [dismissed, setDismissed] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [burst, setBurst] = useState(0);
-  useEffect(() => {
-    if (!dismissKey) return;
-    setDismissed(localStorage.getItem(dismissKey) === "1");
-  }, [dismissKey]);
 
-  const { data: learned, isLoading } = useQuery({
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const { data: dismissedRow, isLoading: dismissedLoading } = useQuery({
+    queryKey: ["banner-dismissed", trendId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("dismissed_banners")
+        .select("trend_id")
+        .eq("user_id", user!.id)
+        .eq("trend_id", trendId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (dismissedRow) setDismissed(true);
+  }, [dismissedRow]);
+
+  const { data: learned, isLoading: learnedLoading } = useQuery({
     queryKey: ["learned", trendId, user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -58,6 +79,19 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
     },
   });
 
+  const dismissBanner = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("dismissed_banners")
+        .insert({ user_id: user!.id, trend_id: trendId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["banner-dismissed"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const mark = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("mark_trend_learned", {
@@ -77,9 +111,12 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
       qc.invalidateQueries({ queryKey: ["profile-streak"] });
       qc.invalidateQueries({ queryKey: ["marked-today"] });
       window.setTimeout(() => {
-        if (dismissKey) localStorage.setItem(dismissKey, "1");
+        if (!mountedRef.current) return;
         setLeaving(true);
-        window.setTimeout(() => setDismissed(true), 320);
+        dismissBanner.mutate();
+        window.setTimeout(() => {
+          if (mountedRef.current) setDismissed(true);
+        }, 320);
       }, 700);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -96,7 +133,7 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
     );
   }
 
-  if (isLoading || learned || dismissed) return null;
+  if (learnedLoading || dismissedLoading || learned || dismissed) return null;
 
   const hasStreak = (streak ?? 0) > 0;
   const alreadyToday = !!markedToday;
@@ -109,9 +146,12 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (dismissKey) localStorage.setItem(dismissKey, "1");
+    if (dismissBanner.isPending || mark.isPending || leaving) return;
     setLeaving(true);
-    window.setTimeout(() => setDismissed(true), 320);
+    dismissBanner.mutate();
+    window.setTimeout(() => {
+      if (mountedRef.current) setDismissed(true);
+    }, 320);
   };
 
   return (
