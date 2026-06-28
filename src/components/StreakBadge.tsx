@@ -20,7 +20,19 @@ export function StreakBadge({ className = "" }: { className?: string }) {
       return Number(data ?? 0);
     },
   });
-  const active = count > 0;
+  const { data: markedToday } = useQuery({
+    queryKey: ["marked-today", user?.id, today],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("last_active_local_date")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data?.last_active_local_date === today;
+    },
+  });
+  const completedToday = !!markedToday;
   const label = user
     ? `Daily streak: ${count} day${count === 1 ? "" : "s"}`
     : "Sign in to start your daily streak";
