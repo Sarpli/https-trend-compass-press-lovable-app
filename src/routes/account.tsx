@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { deviceTimezone, useUserTimezone, todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
+import { useBump } from "@/lib/use-bump";
+
 
 
 export const Route = createFileRoute("/account")({
@@ -111,6 +113,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function StreakSection({ streak, lastActive }: { streak: number; lastActive?: string | null }) {
   const active = streak > 0;
+  const bumping = useBump(streak);
   const today = new Date().toISOString().slice(0, 10);
   const last = lastActive ? lastActive.slice(0, 10) : null;
   const status = last === today
@@ -123,11 +126,11 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
     <div className="rule-top mt-10 pt-6">
       <div className="flex items-center gap-5 sm:gap-6">
         <div
-          className={`relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 text-5xl shadow-lg ${
+          className={`relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 text-5xl shadow-lg transition-transform duration-300 ${
             active
               ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5 shadow-accent-red/20"
               : "border-ink/20 bg-ink/5 grayscale"
-          }`}
+          } ${bumping ? "scale-110" : ""}`}
           aria-hidden="true"
         >
           🔥
@@ -139,9 +142,10 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
         </div>
         <div className="flex-1">
           <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
-          <div className="display text-3xl sm:text-4xl font-black leading-tight">
+          <div className={`display text-3xl sm:text-4xl font-black leading-tight transition-all duration-300 ${bumping ? "scale-105 text-accent-red" : ""}`}>
             {active ? `${streak} day${streak === 1 ? "" : "s"} on fire` : "No streak yet"}
           </div>
+
           <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
             {active
               ? "Keep voting or searching daily to keep the flame alive. Your streak resets after a missed day."
@@ -238,6 +242,7 @@ function ChangePassword() {
 function StreakCalendar({ userId, streak }: { userId: string; streak: number }) {
   const WEEKS = 18;
   const DAYS = WEEKS * 7;
+  const bumping = useBump(streak);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   // Align grid end to the current week (Saturday on the right)
@@ -246,6 +251,7 @@ function StreakCalendar({ userId, streak }: { userId: string; streak: number }) 
   gridEnd.setDate(gridEnd.getDate() + endOffset);
   const gridStart = new Date(gridEnd);
   gridStart.setDate(gridStart.getDate() - (DAYS - 1));
+
 
   const startIso = toLocalISO(gridStart);
 
@@ -352,7 +358,9 @@ function StreakCalendar({ userId, streak }: { userId: string; streak: number }) 
                         : d.count === 1
                         ? "border-accent-red/40 bg-accent-red/30"
                         : "border-ink/15 bg-ink/5"
-                    } ${d.isToday ? "ring-1 ring-ink/60" : ""}`}
+                    } ${d.isToday ? "ring-1 ring-ink/60" : ""} ${
+                      d.isToday && bumping ? "animate-pulse ring-2 ring-accent-red" : ""
+                    }`}
                   />
                 ))}
               </div>
