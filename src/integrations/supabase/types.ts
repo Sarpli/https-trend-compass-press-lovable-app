@@ -170,6 +170,33 @@ export type Database = {
           },
         ]
       }
+      streak_history: {
+        Row: {
+          action_date: string
+          created_at: string
+          id: string
+          new_streak_count: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          action_date: string
+          created_at?: string
+          id?: string
+          new_streak_count: number
+          source: string
+          user_id: string
+        }
+        Update: {
+          action_date?: string
+          created_at?: string
+          id?: string
+          new_streak_count?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           current_period_end: string | null
