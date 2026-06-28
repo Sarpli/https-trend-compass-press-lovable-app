@@ -290,6 +290,30 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Lock CTA a11y check
+        id: lock_cta_a11y
+        env:
+          LOCK_CTA_A11Y_ARTIFACT_DIR: ${{ github.workspace }}/lock-cta-a11y-artifacts
+        # Exit code 2 = skipped (no free session, or boards didn't render).
+        run: |
+          set +e
+          python3 tests/lock_cta_a11y.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Lock CTA a11y test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Lock CTA a11y artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lock-cta-a11y-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/lock-cta-a11y-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Free search-limit artifacts
         if: always()
         uses: actions/upload-artifact@v4
