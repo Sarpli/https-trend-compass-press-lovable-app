@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/settings";
+import { useAuth } from "@/lib/auth";
+import { ChangePassword } from "@/components/ChangePassword";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
