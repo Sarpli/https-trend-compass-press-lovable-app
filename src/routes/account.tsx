@@ -101,27 +101,34 @@ function StreakSection({ streak, lastActive }: { streak: number; lastActive?: st
 
   return (
     <div className="rule-top mt-10 pt-6">
-      <div className="flex items-start sm:items-center gap-4">
+      <div className="flex items-center gap-5 sm:gap-6">
         <div
-          className={`flex items-center justify-center w-16 h-16 rounded-full border-2 text-3xl ${
-            active ? "border-accent-red bg-accent-red/10" : "border-ink/20 bg-ink/5 grayscale"
+          className={`relative flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 text-5xl shadow-lg ${
+            active
+              ? "border-accent-red bg-gradient-to-br from-accent-red/20 to-accent-red/5 shadow-accent-red/20"
+              : "border-ink/20 bg-ink/5 grayscale"
           }`}
           aria-hidden="true"
         >
           🔥
+          {active && (
+            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red text-newsprint text-[10px] font-bold shadow">
+              {streak}
+            </span>
+          )}
         </div>
         <div className="flex-1">
           <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
-          <div className="display text-2xl font-black">
+          <div className="display text-3xl sm:text-4xl font-black leading-tight">
             {active ? `${streak} day${streak === 1 ? "" : "s"} on fire` : "No streak yet"}
           </div>
-          <p className="ui text-sm text-muted-foreground mt-1 max-w-md">
+          <p className="ui text-sm sm:text-base text-muted-foreground mt-1 max-w-md">
             {active
               ? "Keep voting or searching daily to keep the flame alive. Your streak resets after a missed day."
               : "Your streak starts the first day you vote or search. Come back tomorrow and the flame keeps growing!"}
           </p>
           {!active && (
-            <div className="mt-3 flex items-center gap-2 text-sm">
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <span className="text-muted-foreground">Ready to begin?</span>
               <Link to="/vote" className="ui small-caps text-xs bg-accent-red text-accent-foreground px-3 py-1.5 hover:opacity-90 transition-opacity">
                 Cast a vote
