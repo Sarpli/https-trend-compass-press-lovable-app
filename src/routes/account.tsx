@@ -89,6 +89,43 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function StreakSection({ streak, lastActive }: { streak: number; lastActive?: string | null }) {
+  const active = streak > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const last = lastActive ? lastActive.slice(0, 10) : null;
+  const status = last === today
+    ? "Streak active today"
+    : last
+    ? `Last active ${lastActive!.slice(0, 10)}`
+    : "Start your streak today";
+
+  return (
+    <div className="rule-top mt-10 pt-6">
+      <div className="flex items-start sm:items-center gap-4">
+        <div
+          className={`flex items-center justify-center w-16 h-16 rounded-full border-2 text-3xl ${
+            active ? "border-accent-red bg-accent-red/10" : "border-ink/20 bg-ink/5 grayscale"
+          }`}
+          aria-hidden="true"
+        >
+          🔥
+        </div>
+        <div className="flex-1">
+          <div className="ui small-caps text-xs text-muted-foreground mb-1">{status}</div>
+          <div className="display text-2xl font-black">
+            {streak} day{streak === 1 ? "" : "s"} on fire
+          </div>
+          <p className="ui text-sm text-muted-foreground mt-1 max-w-md">
+            {active
+              ? "Keep voting or searching daily to keep the flame alive. Your streak resets after a missed day."
+              : "Search or vote on any trend to ignite your first-day streak."}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChangePassword() {
   const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
