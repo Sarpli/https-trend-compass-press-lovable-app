@@ -80,6 +80,21 @@ jobs:
           STRESS_LONGTASK_MAX_MS: '250'
         run: python3 tests/ticker_stress.py
 
+      - name: Run Timezone + DST daily-flip check
+        id: dst_flip
+        env:
+          DST_ARTIFACT_DIR: ${{ github.workspace }}/dst-flip-artifacts
+        run: python3 tests/timezone_dst_flip.py
+
+      - name: Upload Timezone/DST artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dst-flip-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/dst-flip-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run Pro gating check
         id: gating
         env:
