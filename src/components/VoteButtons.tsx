@@ -163,25 +163,35 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     <div className={cn("inline-flex items-center gap-1.5 ui", compact ? "text-xs" : "text-sm")}>
       <button
         onClick={() => handle("up")}
+        disabled={mut.isPending}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform disabled:opacity-40 disabled:cursor-not-allowed",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
       >
-        <ChevronUp className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        {mut.isPending && mut.variables === "up" ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <ChevronUp className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        )}
       </button>
       <button
         onClick={() => handle("down")}
+        disabled={mut.isPending}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform disabled:opacity-40 disabled:cursor-not-allowed",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
       >
-        <ChevronDown className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        {mut.isPending && mut.variables === "down" ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <ChevronDown className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        )}
       </button>
     </div>
   );
