@@ -266,6 +266,30 @@ jobs:
           fi
           exit $rc
 
+      - name: Run Free OAT locked check
+        id: free_oat_locked
+        env:
+          FREE_OAT_LOCKED_ARTIFACT_DIR: ${{ github.workspace }}/free-oat-locked-artifacts
+        # Exit code 2 = skipped (no free session, or OAT didn't render).
+        run: |
+          set +e
+          python3 tests/free_oat_locked.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Free OAT locked test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Free OAT locked artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-oat-locked-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/free-oat-locked-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Free search-limit artifacts
         if: always()
         uses: actions/upload-artifact@v4
