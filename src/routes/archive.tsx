@@ -24,6 +24,7 @@ function Archive() {
   const [submitted, setSubmitted] = useState(initialQ ?? "");
   const [useAI, setUseAI] = useState(true);
   const aiSearch = useServerFn(aiSearchTrends);
+  const qc = useQueryClient();
 
   if (!isPro) return <ArchivePaywall signedIn={!!user} />;
 
