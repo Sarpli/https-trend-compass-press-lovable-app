@@ -210,6 +210,32 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Run Leaderboard net-updates check
+        id: leaderboard_net
+        env:
+          LEADERBOARD_NET_ARTIFACT_DIR: ${{ github.workspace }}/leaderboard-net-artifacts
+          PRO_FIXTURE_SERVICE_KEY: ${{ secrets.PRO_FIXTURE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        # Exit code 2 = skipped (no session or no fixture key to upgrade).
+        run: |
+          set +e
+          python3 tests/leaderboard_net_updates.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Leaderboard net-updates test skipped."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Leaderboard net-updates artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: leaderboard-net-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/leaderboard-net-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run Gated REST-rejected check
         id: gated_rest
         env:
