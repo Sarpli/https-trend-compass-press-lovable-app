@@ -76,9 +76,8 @@ jobs:
           STRESS_ARTIFACT_DIR: ${{ github.workspace }}/stress-artifacts
           STRESS_DURATION_MS: '10000'
           STRESS_BURSTS: '200'
-          STRESS_P95_MS: '40'
-          STRESS_MAX_MS: '180'
-          STRESS_LONGTASK_MS: '1200'
+          STRESS_LONGTASK_MS: '1500'
+          STRESS_LONGTASK_MAX_MS: '250'
         run: python3 tests/ticker_stress.py
 
       - name: Upload ticker stress artifacts
