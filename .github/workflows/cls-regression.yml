@@ -86,6 +86,30 @@ jobs:
           GATING_ARTIFACT_DIR: ${{ github.workspace }}/gating-artifacts
         run: python3 tests/pro_gating.py
 
+      - name: Run Pro voting check
+        id: pro_voting
+        env:
+          PRO_VOTING_ARTIFACT_DIR: ${{ github.workspace }}/pro-voting-artifacts
+        # Exit code 2 = skipped (no injected Pro session available in CI).
+        run: |
+          set +e
+          python3 tests/pro_voting.py
+          rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "Pro voting test skipped (no Pro session in CI)."
+            exit 0
+          fi
+          exit $rc
+
+      - name: Upload Pro voting artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-voting-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/pro-voting-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Pro gating artifacts
         if: always()
         uses: actions/upload-artifact@v4
