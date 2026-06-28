@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { todayLocalISO, useUserTimezone } from "@/lib/timezone";
+import { useBump } from "@/lib/use-bump";
+
 
 const STREAK_HELP = `Streaks grow once per calendar day in your local timezone. Mark a term as learned to add +1. Miss a full day and the streak resets to zero. Resets happen at midnight your time.`;
 
