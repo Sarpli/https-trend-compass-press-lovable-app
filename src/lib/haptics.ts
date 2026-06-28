@@ -53,3 +53,34 @@ export function haptic(kind: Kind = "tap") {
   else if (kind === "down") thump(90, 55, 0.09);
   else thump(140, 35, 0.06);
 }
+
+/**
+ * Celebratory ascending chime + longer haptic pattern for big moments
+ * (e.g. completing today's streak for the first time).
+ */
+export function celebrate() {
+  if (typeof navigator !== "undefined") {
+    const nav = navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
+    if (typeof nav.vibrate === "function") {
+      try { nav.vibrate([18, 40, 18, 40, 30]); } catch {}
+    }
+  }
+  const ac = getCtx();
+  if (!ac) return;
+  // Major triad arpeggio: C5 → E5 → G5 → C6
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  const now = ac.currentTime;
+  notes.forEach((freq, i) => {
+    const t = now + i * 0.09;
+    const osc = ac.createOscillator();
+    const g = ac.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    osc.connect(g).connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.35);
+  });
+}
