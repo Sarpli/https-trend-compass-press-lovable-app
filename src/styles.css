@@ -358,17 +358,9 @@
 
 @utility ticker-bar {
   position: relative;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--ink) 88%, transparent) 0%,
-      color-mix(in oklab, var(--rule) 72%, transparent) 100%
-    );
-  backdrop-filter: blur(16px) saturate(140%);
+  background-color: var(--ink);
   border-bottom: 1px solid color-mix(in oklab, var(--rule) 28%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, white 20%, transparent) inset,
-    0 6px 24px -10px color-mix(in oklab, var(--ink) 40%, transparent);
+  box-shadow: 0 6px 24px -10px color-mix(in oklab, var(--ink) 40%, transparent);
 }
 
 
@@ -659,14 +651,11 @@ nav[data-slot="navigation-menu"] {
 
 /*
  * Ticker bar — floating glass panel. The base .ticker-bar utility above
- * provides the gradient; here we lift it off the page with a subtle
- * glow + softened bottom edge so it reads as a separate piece of glass
- * resting on the masthead.
+ * provides a flat solid background; here we lift it off the page with a
+ * subtle glow + softened bottom edge so it reads as a separate piece of
+ * glass resting on the masthead.
  */
 .ticker-bar {
   border-radius: 0 0 calc(var(--radius) + 2px) calc(var(--radius) + 2px);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, white 22%, transparent) inset,
-    0 -1px 0 color-mix(in oklab, black 18%, transparent) inset,
-    0 12px 36px -18px color-mix(in oklab, var(--ink) 60%, transparent);
+  box-shadow: 0 12px 36px -18px color-mix(in oklab, var(--ink) 60%, transparent);
 }
