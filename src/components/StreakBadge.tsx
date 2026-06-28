@@ -32,7 +32,9 @@ export function StreakBadge({ className = "" }: { className?: string }) {
     },
   });
   const { motionReduced, streakAnimations } = useSettings();
-  const rawBump = useBump(count);
+  // When the user lands on a page (e.g. right after login) and today's
+  // streak is already complete, fire a one-shot welcome bump.
+  const rawBump = useBump(count, { bumpOnInitial: !!markedToday });
   const bumping = rawBump && streakAnimations && !motionReduced;
   const completedToday = !!markedToday;
   const label = user

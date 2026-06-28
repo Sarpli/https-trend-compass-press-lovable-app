@@ -74,11 +74,19 @@ function Account() {
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
 
-      <StreakSection streak={profile?.streak_count ?? 0} lastActive={profile?.last_active_date} />
+      <StreakSection
+        streak={profile?.streak_count ?? 0}
+        lastActive={profile?.last_active_date}
+        completedToday={isActiveToday}
+      />
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <StreakCalendar userId={user.id} streak={profile?.streak_count ?? 0} />
+      <StreakCalendar
+        userId={user.id}
+        streak={profile?.streak_count ?? 0}
+        completedToday={isActiveToday}
+      />
 
       <StreakHistory userId={user.id} />
 
@@ -115,9 +123,9 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StreakSection({ streak, lastActive }: { streak: number; lastActive?: string | null }) {
+function StreakSection({ streak, lastActive, completedToday = false }: { streak: number; lastActive?: string | null; completedToday?: boolean }) {
   const active = streak > 0;
-  const bumping = useBump(streak);
+  const bumping = useBump(streak, { bumpOnInitial: completedToday });
   const today = new Date().toISOString().slice(0, 10);
   const last = lastActive ? lastActive.slice(0, 10) : null;
   const status = last === today
@@ -243,10 +251,10 @@ function ChangePassword() {
   return _ChangePassword();
 }
 
-function StreakCalendar({ userId, streak }: { userId: string; streak: number }) {
+function StreakCalendar({ userId, streak, completedToday = false }: { userId: string; streak: number; completedToday?: boolean }) {
   const WEEKS = 18;
   const DAYS = WEEKS * 7;
-  const bumping = useBump(streak);
+  const bumping = useBump(streak, { bumpOnInitial: completedToday });
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   // Align grid end to the current week (Saturday on the right)
