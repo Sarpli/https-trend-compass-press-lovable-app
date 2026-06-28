@@ -37,7 +37,17 @@ export const Route = createFileRoute("/trends/$slug")({
   errorComponent: () => (
     <div className="max-w-3xl mx-auto p-10 text-center">
       <h1 className="display text-3xl font-bold mb-2">Couldn't load this entry.</h1>
-      <Link to="/" className="ui small-caps text-xs underline">← Back to the front page</Link>
+      <div className="flex justify-center gap-3 mt-4">
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.reload();
+          }}
+          className="ui small-caps text-xs underline"
+        >
+          Try again
+        </button>
+        <Link to="/" className="ui small-caps text-xs underline">← Back to the front page</Link>
+      </div>
     </div>
   ),
   notFoundComponent: () => (
