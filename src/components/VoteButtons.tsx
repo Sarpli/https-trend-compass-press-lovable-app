@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { ChevronDown, ChevronUp, Lock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { currentPeriodKey, CATEGORY_LABEL } from "@/lib/period";
@@ -153,6 +153,7 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
   }
 
   const handle = (d: "up" | "down") => {
+    if (mut.isPending) return;
     if (!user) { navigate({ to: "/auth" }); return; }
     haptic(d);
     mut.mutate(d);
@@ -162,25 +163,35 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     <div className={cn("inline-flex items-center gap-1.5 ui", compact ? "text-xs" : "text-sm")}>
       <button
         onClick={() => handle("up")}
+        disabled={mut.isPending}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform disabled:opacity-40 disabled:cursor-not-allowed",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "up" && "bg-ticker-up text-newsprint border-ticker-up",
         )}
         aria-label="Vote up"
       >
-        <ChevronUp className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        {mut.isPending && mut.variables === "up" ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <ChevronUp className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        )}
       </button>
       <button
         onClick={() => handle("down")}
+        disabled={mut.isPending}
         className={cn(
-          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform",
+          "border border-ink/30 hover:bg-ink hover:text-newsprint transition-all duration-200 ease-out flex items-center justify-center active:opacity-70 will-change-transform disabled:opacity-40 disabled:cursor-not-allowed",
           wide ? "px-6 py-1.5 min-w-[68px]" : "px-2.5 py-1.5",
           myVote?.direction === "down" && "bg-ticker-down text-newsprint border-ticker-down",
         )}
         aria-label="Vote down"
       >
-        <ChevronDown className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        {mut.isPending && mut.variables === "down" ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <ChevronDown className="w-6 h-6 transition-transform duration-200 ease-out" strokeWidth={2.5} />
+        )}
       </button>
     </div>
   );
