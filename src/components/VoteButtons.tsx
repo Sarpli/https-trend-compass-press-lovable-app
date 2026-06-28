@@ -78,8 +78,10 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       await qc.cancelQueries({ queryKey: ["ticker"] });
       const lbKey = ["leaderboard", category, periodKey] as const;
       const myKey = ["myvote", trendId, category, periodKey, user?.id] as const;
+      const scoreKey = ["trend-score", trendId] as const;
       await qc.cancelQueries({ queryKey: lbKey });
       await qc.cancelQueries({ queryKey: myKey });
+      await qc.cancelQueries({ queryKey: scoreKey });
       const prevTicker = qc.getQueryData<Array<{ trend_id: string; price: number; net_votes: number }>>(["ticker"]);
       qc.setQueryData(["ticker"], (old: typeof prevTicker) => {
         if (!old) return old;
@@ -112,18 +114,29 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
         : { id: "optimistic", direction };
       qc.setQueryData(myKey, nextMy);
 
-      return { prevTicker, prevLb, prevMy, lbKey, myKey };
+      const prevScore = qc.getQueryData<{ price: number; net_votes: number } | undefined>(scoreKey);
+      if (prevScore) {
+        qc.setQueryData(scoreKey, {
+          ...prevScore,
+          net_votes: Number(prevScore.net_votes) + delta,
+          price: Number(prevScore.price) + delta,
+        });
+      }
+
+      return { prevTicker, prevLb, prevMy, prevScore, lbKey, myKey, scoreKey };
     },
     onError: (e: Error, _vars, ctx) => {
       if (ctx?.prevTicker) qc.setQueryData(["ticker"], ctx.prevTicker);
       if (ctx?.lbKey) qc.setQueryData(ctx.lbKey, ctx.prevLb);
       if (ctx?.myKey) qc.setQueryData(ctx.myKey, ctx.prevMy);
+      if (ctx?.scoreKey && ctx.prevScore !== undefined) qc.setQueryData(ctx.scoreKey, ctx.prevScore);
       toast.error(e.message);
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["ticker"] });
       qc.invalidateQueries({ queryKey: ["leaderboard"] });
       qc.invalidateQueries({ queryKey: ["myvote", trendId] });
+      qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
     },
   });
 
