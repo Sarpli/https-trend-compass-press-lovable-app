@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { deviceTimezone, useUserTimezone, todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
+import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
 
@@ -81,9 +81,8 @@ function Account() {
 
   if (!user) return null;
 
-  const tz = useUserTimezone();
-  const today = todayLocalISO(tz);
-  const yesterday = yesterdayLocalISO(tz);
+  const today = todayLocalISO();
+  const yesterday = yesterdayLocalISO();
   const lastLocal = profile?.last_active_local_date;
   const effectiveStreak = lastLocal === today || lastLocal === yesterday ? (profile?.streak_count ?? 0) : 0;
   const isActiveToday = lastLocal === today;
