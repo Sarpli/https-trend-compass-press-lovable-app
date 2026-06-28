@@ -119,9 +119,6 @@ function Account() {
 
       <MaxStreakSection maxStreak={maxStreak} currentStreak={effectiveStreak} isActiveToday={isActiveToday} />
 
-      <TimezoneSelector userId={user.id} currentTz={profile?.timezone ?? null} />
-
-
       <div className="rule-top mt-10 pt-6 flex gap-3">
         {!isPro && (
           <Link to="/pricing" className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2">

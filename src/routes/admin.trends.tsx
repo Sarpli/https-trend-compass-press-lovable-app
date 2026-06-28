@@ -112,8 +112,7 @@ type TrendRow = { id: string; slug: string; term: string; category: string | nul
 function StreakOverride() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const tz = useUserTimezone();
-  const today = todayLocalISO(tz);
+  const today = todayLocalISO();
 
   const { data: profile } = useQuery({
     queryKey: ["admin-self-profile", user?.id],
