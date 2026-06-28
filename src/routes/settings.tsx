@@ -17,6 +17,10 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { tickerSpeed, setTickerSpeed, streakAnimations, setStreakAnimations } = useSettings();
+  const { user, tier, isPro, isAnnual } = useAuth();
+
+  const planLabel = tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free";
+
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
