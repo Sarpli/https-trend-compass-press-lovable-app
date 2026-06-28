@@ -80,7 +80,8 @@ export function nextLocalMidnightUTC(now: Date, zone: string): Date {
   if (localDateInZone(new Date(hi), zone) < tomorrow) {
     hi = lo + 72 * 60 * 60_000;
   }
-  while (hi - lo > 60_000) {
+  // Tighten to millisecond precision (~28 iterations for a 48h window).
+  while (hi - lo > 1) {
     const mid = lo + Math.floor((hi - lo) / 2);
     if (localDateInZone(new Date(mid), zone) >= tomorrow) hi = mid;
     else lo = mid;
