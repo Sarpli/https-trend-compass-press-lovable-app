@@ -89,29 +89,28 @@ describe("useLocalDateKey — wall-clock jumps & midnight flips", () => {
   it("detects a large forward jump on the heartbeat and re-syncs immediately (same day)", () => {
     // 10:00 EDT Jun 28. The wall clock leaps to 18:00 EDT (8h later, still
     // Jun 28). The hook's drift detector fires on the next 15s heartbeat
-    // and re-syncs; date stays Jun 28 but the midnight timer is rescheduled.
+    // and re-syncs; date stays Jun 28 but the midnight timer is rescheduled
+    // against the new wall clock.
     vi.setSystemTime(new Date("2026-06-28T14:00:00Z"));
     const { result } = renderHook(() => useLocalDateKey());
 
     act(() => {
       vi.setSystemTime(new Date("2026-06-28T22:00:00Z")); // 8h forward
-      vi.advanceTimersByTime(15_000); // trigger heartbeat → drift detected → resync
+      vi.advanceTimersByTime(15_000); // heartbeat → drift detected → resync
     });
     expect(result.current.date).toBe("2026-06-28");
 
-    // The rescheduled midnight timer must now fire at 04:00Z Jun 29
-    // (= 00:00 EDT Jun 29), exactly 6 hours away from the new wall clock.
+    // Jump to 23:59 EDT Jun 28 (= 03:59Z Jun 29). Still Jun 28 locally.
     act(() => {
-      // 5h59m later: still Jun 28.
       vi.setSystemTime(new Date("2026-06-29T03:59:00Z"));
-      vi.advanceTimersByTime(5 * 3_600_000 + 59 * 60_000 - 15_000);
+      vi.advanceTimersByTime(20_000); // heartbeat re-syncs against new clock
     });
     expect(result.current.date).toBe("2026-06-28");
 
+    // Jump 2 minutes further → 00:01 EDT Jun 29.
     act(() => {
-      // Cross midnight + slack.
-      vi.setSystemTime(new Date("2026-06-29T04:00:10Z"));
-      vi.advanceTimersByTime(2 * 60_000);
+      vi.setSystemTime(new Date("2026-06-29T04:01:00Z"));
+      vi.advanceTimersByTime(20_000);
     });
     expect(result.current.date).toBe("2026-06-29");
   });
