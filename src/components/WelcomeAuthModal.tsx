@@ -40,14 +40,42 @@ export function WelcomeAuthModal() {
 
   if (!open || user) return null;
 
+  const validateUsername = (value: string) => {
+    if (value.length < 3) return "Username must be at least 3 characters.";
+    if (value.length > 20) return "Username must be 20 characters or fewer.";
+    if (!/^[a-zA-Z0-9_-]+$/.test(value)) return "Use only letters, numbers, underscores, or hyphens.";
+    return "";
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUsernameError("");
     setBusy(true);
     try {
       if (mode === "signup") {
+        const uErr = validateUsername(username.trim());
+        if (uErr) {
+          setUsernameError(uErr);
+          setBusy(false);
+          return;
+        }
+        const cleanUsername = username.trim().toLowerCase();
+        const { data: existing } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("username", cleanUsername)
+          .maybeSingle();
+        if (existing) {
+          setUsernameError("That username is already taken.");
+          setBusy(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { username: cleanUsername, display_name: cleanUsername },
+          },
         });
         if (error) throw error;
         toast.success("Welcome to Trenslate.");
