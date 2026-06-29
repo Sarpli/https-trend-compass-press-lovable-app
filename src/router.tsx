@@ -21,13 +21,43 @@ const getBuildVersion = (): string => {
   return "unknown";
 };
 
+// Stable per-browser id so dedup also works for signed-out users.
+const getClientId = (): string => {
+  try {
+    const KEY = "trenslate-client-id";
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      id =
+        (crypto as Crypto & { randomUUID?: () => string }).randomUUID?.() ??
+        `c_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return "anon";
+  }
+};
+
+// Cheap stable fingerprint for an error (no crypto needed).
+const fingerprint = (parts: Array<string | null | undefined>): string => {
+  const s = parts.filter(Boolean).join("|");
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return `fp_${(h >>> 0).toString(36)}`;
+};
+
 // Handle stale chunk imports after deploys: a fresh build invalidates old
 // hashed JS chunks, so route lazy-imports fail with "Importing a module
 // script failed." Reload once (guarded via sessionStorage) to pick up the
 // new asset manifest instead of leaving the user on a blank page.
 if (typeof window !== "undefined") {
   const RELOAD_KEY = "trenslate-chunk-reload";
-  const REPORT_KEY = "trenslate-chunk-reported";
+  const REPORT_PREFIX = "trenslate-chunk-reported:";
+  // Client-side throttle: don't re-send the same fingerprint within 10 min,
+  // mirroring the server-side dedup window so retries never reach the table.
+  const REPORT_TTL_MS = 10 * 60 * 1000;
+  const MAX_REPORTS_PER_SESSION = 5;
+  let reportsThisSession = 0;
   const isChunkError = (msg: unknown) => {
     const s = typeof msg === "string" ? msg : (msg as { message?: string })?.message ?? "";
     return (
@@ -38,10 +68,7 @@ if (typeof window !== "undefined") {
     );
   };
   const reportChunkError = (err: unknown) => {
-    try {
-      if (sessionStorage.getItem(REPORT_KEY)) return;
-      sessionStorage.setItem(REPORT_KEY, "1");
-    } catch {}
+    if (reportsThisSession >= MAX_REPORTS_PER_SESSION) return;
     const message =
       typeof err === "string"
         ? err
@@ -50,13 +77,28 @@ if (typeof window !== "undefined") {
       (err as { filename?: string })?.filename ??
       (err as { request?: string })?.request ??
       null;
-    void supabase.from("chunk_errors").insert({
-      build_version: getBuildVersion(),
-      message: message?.slice(0, 1000) ?? null,
-      source_url: sourceUrl,
-      page_url: typeof location !== "undefined" ? location.href : null,
-      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-    }).then(() => {}, () => {});
+    const buildVersion = getBuildVersion();
+    const fp = fingerprint([message, sourceUrl, buildVersion]);
+    // Local cooldown keyed by fingerprint — survives reloads.
+    try {
+      const key = REPORT_PREFIX + fp;
+      const last = Number(localStorage.getItem(key) ?? 0);
+      if (Date.now() - last < REPORT_TTL_MS) return;
+      localStorage.setItem(key, String(Date.now()));
+    } catch {}
+    reportsThisSession++;
+    void supabase
+      .from("chunk_errors")
+      .insert({
+        build_version: buildVersion,
+        message: message?.slice(0, 1000) ?? null,
+        source_url: sourceUrl,
+        page_url: typeof location !== "undefined" ? location.href : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        fingerprint: fp,
+        client_id: getClientId(),
+      })
+      .then(() => {}, () => {});
   };
   let toastShown = false;
   const showRetryToast = () => {
@@ -99,7 +141,6 @@ if (typeof window !== "undefined") {
   window.addEventListener("load", () => {
     try {
       sessionStorage.removeItem(RELOAD_KEY);
-      sessionStorage.removeItem(REPORT_KEY);
     } catch {}
   });
 }
