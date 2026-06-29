@@ -13,9 +13,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
-const insertMock = vi.fn(() => ({ then: (a: () => void) => { a(); return { then: () => {} }; } }));
+const insertMock = vi.fn(() => Promise.resolve({ error: null }));
+const fromMock = vi.fn((_table: string) => ({ insert: insertMock }));
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: () => ({ insert: insertMock }) },
+  supabase: { from: (table: string) => fromMock(table) },
 }));
 
 import { installChunkRetry, isChunkError } from "./chunk-retry";
@@ -32,7 +33,10 @@ beforeEach(() => {
   localStorage.clear();
   toastError.mockClear();
   toastLoading.mockClear();
+  toastSuccess.mockClear();
   insertMock.mockClear();
+  fromMock.mockClear();
+  insertMock.mockImplementation(() => Promise.resolve({ error: null }));
 
   replaceSpy = vi.fn();
   reloadSpy = vi.fn();
