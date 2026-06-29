@@ -177,6 +177,7 @@ function Index() {
                   {featured.term}
                 </h2>
               </Link>
+              <LearnedFlag trendId={featured.id} className="mb-2" />
               <p className="text-xs ui small-caps text-muted-foreground mb-3 md:mb-4">
                 {featured.category} · Filed today
               </p>
@@ -217,6 +218,7 @@ function Index() {
                     {s.term}
                   </h3>
                 </Link>
+                <LearnedFlag trendId={s.id} className="mt-1" />
                 <p className="mt-1.5 text-sm leading-snug text-foreground/90 line-clamp-2">
                   {s.plain_language}
                 </p>
@@ -245,6 +247,7 @@ function Index() {
                   <Link to="/trends/$slug" params={{ slug: t.slug ?? "" }} className="flex-1 hover:underline">
                     {t.term}
                   </Link>
+                  <LearnedFlag trendId={t.trend_id ?? undefined} size="xs" />
                   <span className="ui text-xs tabular-nums text-muted-foreground">{Number(t.price).toFixed(0)}</span>
                 </li>
               ))}
