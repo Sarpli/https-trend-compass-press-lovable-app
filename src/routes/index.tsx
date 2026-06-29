@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoteButtons } from "@/components/VoteButtons";
 import { CATEGORY_LABEL } from "@/lib/period";
 import { TrendCover } from "@/components/TrendCover";
+import { LearnedFlag } from "@/components/LearnedFlag";
 import { useLocalDateKey } from "@/lib/use-local-date";
 
 export const Route = createFileRoute("/")({
