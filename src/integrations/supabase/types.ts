@@ -94,6 +94,7 @@ export type Database = {
           streak_count: number
           timezone: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           created_at?: string
@@ -108,6 +109,7 @@ export type Database = {
           streak_count?: number
           timezone?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           created_at?: string
@@ -122,6 +124,7 @@ export type Database = {
           streak_count?: number
           timezone?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
