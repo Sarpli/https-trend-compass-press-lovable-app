@@ -161,6 +161,22 @@ export function WelcomeAuthModal() {
         </div>
 
         <form onSubmit={submit} className="space-y-3">
+          {mode === "signup" && (
+            <div>
+              <input
+                type="text" required minLength={3} maxLength={20} value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setUsernameError("");
+                }}
+                placeholder="Username (3-20 characters)"
+                className="w-full border border-ink/40 bg-background px-3 py-2 text-sm ui focus:outline-none focus:border-accent-red rounded"
+              />
+              {usernameError && (
+                <p className="text-xs text-accent-red mt-1">{usernameError}</p>
+              )}
+            </div>
+          )}
           <input
             type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
