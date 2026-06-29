@@ -85,6 +85,48 @@
 }
 
 /*
+ * Subtle WSJ-style shimmer across the route skeleton so page transitions
+ * feel like a freshly printed column catching the light.
+ */
+@keyframes skeleton-shimmer {
+  0% { background-position: 220% 0; }
+  100% { background-position: -220% 0; }
+}
+
+.skeleton-shimmer {
+  position: relative;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    var(--skeleton-shine) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 2.2s ease-in-out infinite;
+  opacity: 0.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+.reduce-motion-app .skeleton-shimmer::after {
+  animation: none !important;
+}
+
+/*
  * Trenslate — WSJ-inspired newspaper design system.
  * Ink black on newsprint cream, accent red for the live ticker.
  * Display: Playfair Display (serif). Body: Source Serif 4. UI: Inter.
