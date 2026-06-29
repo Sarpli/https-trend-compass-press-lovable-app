@@ -60,6 +60,15 @@ export const installChunkRetry = () => {
   if (typeof window === "undefined") return;
   let reportsThisSession = 0;
   let toastId: string | number | null = null;
+  // Exponential backoff for repeated "Try again" clicks. Reset whenever a
+  // fresh retry toast is shown (new error cycle) or after a successful fetch.
+  // Delay sequence: 0, 1s, 2s, 4s, 8s, 16s, capped at BACKOFF_MAX_MS.
+  const BACKOFF_BASE_MS = 1000;
+  const BACKOFF_MAX_MS = 30_000;
+  let retryAttempt = 0;
+  let pendingBackoff: ReturnType<typeof setTimeout> | null = null;
+  const nextBackoffMs = (attempt: number) =>
+    attempt <= 0 ? 0 : Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** (attempt - 1));
 
   const reportChunkError = (err: unknown) => {
     if (reportsThisSession >= MAX_REPORTS_PER_SESSION) return;
@@ -101,21 +110,39 @@ export const installChunkRetry = () => {
       sessionStorage.removeItem(RELOAD_KEY);
     } catch {}
 
+    const delayMs = nextBackoffMs(retryAttempt);
     if (currentToastId !== null) {
       toast.loading("Refreshing app…", {
         id: currentToastId,
-        description: "Fetching the latest version.",
+        description:
+          delayMs > 0
+            ? `Waiting ${Math.round(delayMs / 1000)}s before retrying…`
+            : "Fetching the latest version.",
         duration: Infinity,
+      });
+    }
+
+    if (delayMs > 0) {
+      await new Promise<void>((resolve) => {
+        pendingBackoff = setTimeout(() => {
+          pendingBackoff = null;
+          resolve();
+        }, delayMs);
       });
     }
 
     try {
       await fetch(target, { cache: "no-store", credentials: "same-origin" });
     } catch {
+      retryAttempt = Math.min(retryAttempt + 1, 16);
       if (currentToastId !== null) {
+        const nextMs = nextBackoffMs(retryAttempt);
         toast.error("Still offline", {
           id: currentToastId,
-          description: "Check your connection and try again.",
+          description:
+            nextMs > 0
+              ? `Check your connection. Next retry waits ${Math.round(nextMs / 1000)}s.`
+              : "Check your connection and try again.",
           duration: Infinity,
           action: { label: "Retry", onClick: () => void runRetry(currentToastId) },
         });
@@ -123,11 +150,19 @@ export const installChunkRetry = () => {
       return;
     }
 
+    // Manifest fetch succeeded — reset backoff so a future cycle starts fresh.
+    retryAttempt = 0;
     window.location.replace(target);
   };
 
   const showRetryToast = (escalated = false) => {
     if (toastId !== null) return;
+    // Fresh error cycle: reset backoff state and clear any pending timer.
+    retryAttempt = 0;
+    if (pendingBackoff !== null) {
+      clearTimeout(pendingBackoff);
+      pendingBackoff = null;
+    }
     toastId = toast.error(
       escalated ? "Retry didn't work" : "This page couldn't load",
       {
