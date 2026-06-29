@@ -109,6 +109,23 @@ function AuthPage() {
         {mode === "signin" ? "Welcome back to the newsroom." : "Join the voting floor in seconds."}
       </p>
       <form onSubmit={submit} className="space-y-4">
+        {mode === "signup" && (
+          <div>
+            <label className="ui small-caps text-xs block mb-1">Username</label>
+            <input
+              type="text" required minLength={3} maxLength={20} value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setUsernameError("");
+              }}
+              className="w-full border border-ink/40 bg-background px-3 py-2 ui focus:outline-none focus:border-accent-red"
+              placeholder="pick_a_handle"
+            />
+            {usernameError && (
+              <p className="text-xs text-accent-red mt-1">{usernameError}</p>
+            )}
+          </div>
+        )}
         <div>
           <label className="ui small-caps text-xs block mb-1">Email</label>
           <input
