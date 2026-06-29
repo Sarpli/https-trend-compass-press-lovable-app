@@ -1,0 +1,179 @@
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+// Best-effort deploy fingerprint: the hashed filename of a loaded asset chunk
+// uniquely identifies the build the user has in their tab.
+const getBuildVersion = (): string => {
+  if (typeof document === "undefined") return "ssr";
+  const meta = document.querySelector('meta[name="build-version"]') as HTMLMetaElement | null;
+  if (meta?.content) return meta.content;
+  const script = document.querySelector(
+    'script[src*="/assets/"][src*="-"]'
+  ) as HTMLScriptElement | null;
+  if (script?.src) {
+    const m = script.src.match(/([^/]+\.[cm]?js)(?:\?.*)?$/);
+    if (m) return m[1];
+  }
+  return "unknown";
+};
+
+const getClientId = (): string => {
+  try {
+    const KEY = "trenslate-client-id";
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      id =
+        (crypto as Crypto & { randomUUID?: () => string }).randomUUID?.() ??
+        `c_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return "anon";
+  }
+};
+
+const fingerprint = (parts: Array<string | null | undefined>): string => {
+  const s = parts.filter(Boolean).join("|");
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return `fp_${(h >>> 0).toString(36)}`;
+};
+
+export const isChunkError = (msg: unknown): boolean => {
+  const s = typeof msg === "string" ? msg : (msg as { message?: string })?.message ?? "";
+  return (
+    /Importing a module script failed/i.test(s) ||
+    /Failed to fetch dynamically imported module/i.test(s) ||
+    /error loading dynamically imported module/i.test(s) ||
+    /ChunkLoadError/i.test(s)
+  );
+};
+
+const RELOAD_KEY = "trenslate-chunk-reload";
+const REPORT_PREFIX = "trenslate-chunk-reported:";
+const RETRY_PENDING_KEY = "trenslate-chunk-retry-pending";
+const REPORT_TTL_MS = 10 * 60 * 1000;
+const MAX_REPORTS_PER_SESSION = 5;
+
+export const installChunkRetry = () => {
+  if (typeof window === "undefined") return;
+  let reportsThisSession = 0;
+  let toastId: string | number | null = null;
+
+  const reportChunkError = (err: unknown) => {
+    if (reportsThisSession >= MAX_REPORTS_PER_SESSION) return;
+    const message =
+      typeof err === "string"
+        ? err
+        : (err as { message?: string })?.message ?? String(err);
+    const sourceUrl =
+      (err as { filename?: string })?.filename ??
+      (err as { request?: string })?.request ??
+      null;
+    const buildVersion = getBuildVersion();
+    const fp = fingerprint([message, sourceUrl, buildVersion]);
+    try {
+      const key = REPORT_PREFIX + fp;
+      const last = Number(localStorage.getItem(key) ?? 0);
+      if (Date.now() - last < REPORT_TTL_MS) return;
+      localStorage.setItem(key, String(Date.now()));
+    } catch {}
+    reportsThisSession++;
+    void supabase
+      .from("chunk_errors")
+      .insert({
+        build_version: buildVersion,
+        message: message?.slice(0, 1000) ?? null,
+        source_url: sourceUrl,
+        page_url: typeof location !== "undefined" ? location.href : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        fingerprint: fp,
+        client_id: getClientId(),
+      })
+      .then(() => {}, () => {});
+  };
+
+  const runRetry = async (currentToastId: string | number | null) => {
+    const target = window.location.href;
+    try {
+      sessionStorage.setItem(RETRY_PENDING_KEY, "1");
+      sessionStorage.removeItem(RELOAD_KEY);
+    } catch {}
+
+    if (currentToastId !== null) {
+      toast.loading("Refreshing app…", {
+        id: currentToastId,
+        description: "Fetching the latest version.",
+        duration: Infinity,
+      });
+    }
+
+    try {
+      await fetch(target, { cache: "no-store", credentials: "same-origin" });
+    } catch {
+      if (currentToastId !== null) {
+        toast.error("Still offline", {
+          id: currentToastId,
+          description: "Check your connection and try again.",
+          duration: Infinity,
+          action: { label: "Retry", onClick: () => void runRetry(currentToastId) },
+        });
+      }
+      return;
+    }
+
+    window.location.replace(target);
+  };
+
+  const showRetryToast = (escalated = false) => {
+    if (toastId !== null) return;
+    toastId = toast.error(
+      escalated ? "Retry didn't work" : "This page couldn't load",
+      {
+        duration: Infinity,
+        description: escalated
+          ? "Still loading an old version of the app. Try again?"
+          : "A newer version of the app is available. Reload to continue.",
+        action: {
+          label: escalated ? "Try again" : "Reload",
+          onClick: () => void runRetry(toastId),
+        },
+      },
+    );
+  };
+
+  const maybeReload = (err: unknown) => {
+    if (!isChunkError(err)) return;
+    reportChunkError(err);
+    let alreadyReloaded = false;
+    try {
+      alreadyReloaded = !!sessionStorage.getItem(RELOAD_KEY);
+      if (!alreadyReloaded) sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+    } catch {}
+    if (alreadyReloaded) {
+      let escalated = false;
+      try {
+        escalated = !!sessionStorage.getItem(RETRY_PENDING_KEY);
+        sessionStorage.removeItem(RETRY_PENDING_KEY);
+      } catch {}
+      showRetryToast(escalated);
+      return;
+    }
+    window.location.reload();
+  };
+
+  window.addEventListener("error", (e) => maybeReload(e.error ?? e.message));
+  window.addEventListener("unhandledrejection", (e) => maybeReload(e.reason));
+  window.addEventListener("load", () => {
+    try {
+      sessionStorage.removeItem(RELOAD_KEY);
+      setTimeout(() => {
+        try { sessionStorage.removeItem(RETRY_PENDING_KEY); } catch {}
+      }, 4000);
+    } catch {}
+  });
+
+  // Exposed for integration tests; harmless in prod (no callers).
+  return { runRetry, showRetryToast, maybeReload };
+};
