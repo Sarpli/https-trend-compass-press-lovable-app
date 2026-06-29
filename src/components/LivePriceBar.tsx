@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { combinedDailyPct } from "@/lib/daily-drift";
 
 type Point = { t: string; price: number };
 
@@ -28,6 +29,23 @@ export function LivePriceBar({
     refetchInterval: 10000,
   });
 
+  // Pull this trend's current net votes from the shared ticker cache so the
+  // "Live" badge direction & percentage on this page match the top ticker
+  // exactly. Same source → same up/down arrow & color.
+  const { data: scores } = useQuery<{ trend_id: string; net_votes: number }[]>({
+    queryKey: ["ticker"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trend_scores");
+      if (error) throw error;
+      return (data ?? []) as { trend_id: string; net_votes: number }[];
+    },
+    refetchInterval: 5000,
+  });
+  const netVotes = Number(
+    scores?.find((s) => s.trend_id === trendId)?.net_votes ?? 0,
+  );
+  const tickerPct = combinedDailyPct(trendId, netVotes);
+
   // Pulse the live dot every couple seconds.
   const [pulse, setPulse] = useState(true);
   useEffect(() => {
@@ -41,17 +59,14 @@ export function LivePriceBar({
   // up/down indicator matches the chart the user sees, not the abstract
   // base price (which the history curve doesn't start at).
   const open = series.length > 0 ? series[0].price : Number(basePrice);
-  // "Day" delta: compare last point to ~24 points ago (roughly 2 years of
-  // monthly anchors) so short-term movement is meaningful instead of the
-  // tiny month-over-month tick.
-  const prevIdx = Math.max(0, series.length - 1 - 12);
-  const prev = series.length > 1 ? series[prevIdx].price : open;
-  const day = last - prev;
-  const dayPct = prev ? (day / prev) * 100 : 0;
+  // Day move uses the SAME combinedDailyPct as the top ticker, so the live
+  // badge here can never disagree with the scrolling tape above.
+  const dayPct = tickerPct;
+  const day = last * (dayPct / 100);
   const total = last - open;
   const totalPct = open ? (total / open) * 100 : 0;
-  const up = total >= 0;
-  const dayUp = day >= 0;
+  const dayUp = dayPct >= 0;
+  const up = dayUp;
 
   // Mini sparkline (last 24 points or all of them).
   const tail = series.slice(-24);

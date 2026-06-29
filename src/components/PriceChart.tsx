@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { dailyDriftPct } from "@/lib/daily-drift";
+import { combinedDailyPct } from "@/lib/daily-drift";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 
 type Point = { t: string; price: number };
@@ -24,6 +24,22 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     },
     refetchInterval: 10000,
   });
+
+  // Read net votes from the shared ticker cache so this chart's "today"
+  // direction & color match the top ticker for this trend.
+  const { data: scores } = useQuery<{ trend_id: string; net_votes: number }[]>({
+    queryKey: ["ticker"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trend_scores");
+      if (error) throw error;
+      return (data ?? []) as { trend_id: string; net_votes: number }[];
+    },
+    refetchInterval: 5000,
+  });
+  const netVotes = Number(
+    scores?.find((s) => s.trend_id === trendId)?.net_votes ?? 0,
+  );
+  const todayPct = combinedDailyPct(trendId, netVotes);
 
   // Live updates: refetch this trend's price history whenever any vote lands.
   useEffect(() => {
@@ -56,11 +72,11 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   }
   const last = series[series.length - 1];
   const nowIso = new Date().toISOString();
-  // Apply the same deterministic daily drift used by the top ticker so the
-  // chart's "now" point reflects today's fake percentage move when there are
-  // no recent votes. Real votes are already baked into `last.price` by the RPC.
-  const drift = dailyDriftPct(trendId) / 100;
-  const nowPrice = Math.max(1, last.price * (1 + drift));
+  // Apply the SAME combined daily move the top ticker uses (drift + votes)
+  // so the chart's "now" point reflects today's direction. This guarantees
+  // a trend trending up today ends with an upward tick here too.
+  const move = todayPct / 100;
+  const nowPrice = Math.max(1, last.price * (1 + move));
   if (new Date(last.t).getTime() < Date.now() - 1000) {
     series.push({ t: nowIso, price: nowPrice });
   } else {
@@ -101,7 +117,10 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
 
   const lastPrice = points[points.length - 1].price;
   const firstPrice = Number(basePrice);
-  const up = lastPrice >= firstPrice;
+  // Color the chart by TODAY's direction (matches the top ticker), not by
+  // base-vs-now — many popular trends sit below their historical peak even
+  // when they're trending up right now.
+  const up = todayPct >= 0;
   const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
   const areaPath = `${path} L${toX(xMax).toFixed(2)},${(h - padY).toFixed(2)} L${toX(xMin).toFixed(2)},${(h - padY).toFixed(2)} Z`;
 
