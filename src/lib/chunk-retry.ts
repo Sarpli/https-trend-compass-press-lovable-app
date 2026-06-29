@@ -67,6 +67,10 @@ export const installChunkRetry = () => {
   const BACKOFF_MAX_MS = 30_000;
   let retryAttempt = 0;
   let pendingBackoff: ReturnType<typeof setTimeout> | null = null;
+  // Context the "Report this issue" button submits with the report.
+  let lastErrorMessage: string | null = null;
+  let lastErrorSourceUrl: string | null = null;
+  let lastToastState: "initial" | "escalated" | "loading" | "offline" | null = null;
   const nextBackoffMs = (attempt: number) =>
     attempt <= 0 ? 0 : Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** (attempt - 1));
 
@@ -80,6 +84,8 @@ export const installChunkRetry = () => {
       (err as { filename?: string })?.filename ??
       (err as { request?: string })?.request ??
       null;
+    lastErrorMessage = message ?? null;
+    lastErrorSourceUrl = sourceUrl;
     const buildVersion = getBuildVersion();
     const fp = fingerprint([message, sourceUrl, buildVersion]);
     try {
