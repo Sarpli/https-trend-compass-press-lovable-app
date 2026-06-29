@@ -89,6 +89,21 @@ jobs:
           DST_ARTIFACT_DIR: ${{ github.workspace }}/dst-flip-artifacts
         run: python3 tests/timezone_dst_flip.py
 
+      - name: Run Sleep/Resume daily-flip check
+        id: sleep_resume
+        env:
+          SLEEP_RESUME_ARTIFACT_DIR: ${{ github.workspace }}/sleep-resume-artifacts
+        run: python3 tests/sleep_resume_flip.py
+
+      - name: Upload Sleep/Resume artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sleep-resume-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/sleep-resume-artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Timezone/DST artifacts
         if: always()
         uses: actions/upload-artifact@v4
