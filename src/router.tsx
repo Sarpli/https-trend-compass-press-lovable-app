@@ -100,24 +100,69 @@ if (typeof window !== "undefined") {
       })
       .then(() => {}, () => {});
   };
-  let toastShown = false;
-  const showRetryToast = () => {
-    if (toastShown) return;
-    toastShown = true;
-    toast.error("This page couldn't load", {
-      description:
-        "A newer version of the app is available. Reload to continue.",
-      duration: Infinity,
-      action: {
-        label: "Reload",
-        onClick: () => {
-          try {
-            sessionStorage.removeItem(RELOAD_KEY);
-          } catch {}
-          window.location.reload();
+  const RETRY_PENDING_KEY = "trenslate-chunk-retry-pending";
+  let toastId: string | number | null = null;
+
+  // Fetch the current page no-store so the browser/SW caches a fresh manifest
+  // (new index.html → new <script src="/assets/...hash.js">), then hard-reload
+  // so the new module graph actually executes. We keep the toast up until
+  // either the retried navigation succeeds or it fails again — `success` is
+  // implicit: the next page load tears down this script context, and the
+  // pending flag is cleared on `load`. If the same chunk error fires again
+  // post-reload, we re-show the toast with an escalated message.
+  const runRetry = async (currentToastId: string | number | null) => {
+    const target = window.location.href;
+    try {
+      sessionStorage.setItem(RETRY_PENDING_KEY, "1");
+      sessionStorage.removeItem(RELOAD_KEY);
+    } catch {}
+
+    if (currentToastId !== null) {
+      toast.loading("Refreshing app…", {
+        id: currentToastId,
+        description: "Fetching the latest version.",
+        duration: Infinity,
+      });
+    }
+
+    // Bust HTTP + service-worker caches for the document so the reload sees
+    // the new asset manifest, not the stale cached HTML.
+    try {
+      await fetch(target, { cache: "no-store", credentials: "same-origin" });
+    } catch {
+      // Network failure — surface it and leave the toast up so the user can retry.
+      if (currentToastId !== null) {
+        toast.error("Still offline", {
+          id: currentToastId,
+          description: "Check your connection and try again.",
+          duration: Infinity,
+          action: { label: "Retry", onClick: () => void runRetry(currentToastId) },
+        });
+      }
+      return;
+    }
+
+    // Re-navigate to the same route with the fresh manifest. A hard reload is
+    // required because the existing JS context still references the dead
+    // chunk URLs from the old build.
+    window.location.replace(target);
+  };
+
+  const showRetryToast = (escalated = false) => {
+    if (toastId !== null) return;
+    toastId = toast.error(
+      escalated ? "Retry didn't work" : "This page couldn't load",
+      {
+        duration: Infinity,
+        description: escalated
+          ? "Still loading an old version of the app. Try again?"
+          : "A newer version of the app is available. Reload to continue.",
+        action: {
+          label: escalated ? "Try again" : "Reload",
+          onClick: () => void runRetry(toastId),
         },
       },
-    });
+    );
   };
   const maybeReload = (err: unknown) => {
     if (!isChunkError(err)) return;
@@ -130,7 +175,12 @@ if (typeof window !== "undefined") {
     if (alreadyReloaded) {
       // Auto-reload already happened this session and we still hit a chunk
       // error — surface a toast so the user isn't staring at a blank page.
-      showRetryToast();
+      let escalated = false;
+      try {
+        escalated = !!sessionStorage.getItem(RETRY_PENDING_KEY);
+        sessionStorage.removeItem(RETRY_PENDING_KEY);
+      } catch {}
+      showRetryToast(escalated);
       return;
     }
     window.location.reload();
@@ -141,6 +191,12 @@ if (typeof window !== "undefined") {
   window.addEventListener("load", () => {
     try {
       sessionStorage.removeItem(RELOAD_KEY);
+      // The page successfully booted after the retry — clear the pending flag
+      // so a future stale-chunk event starts from the non-escalated state.
+      // We delay slightly to give route lazy-imports a moment to error out.
+      setTimeout(() => {
+        try { sessionStorage.removeItem(RETRY_PENDING_KEY); } catch {}
+      }, 4000);
     } catch {}
   });
 }
