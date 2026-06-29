@@ -17,7 +17,9 @@ export type Database = {
       chunk_errors: {
         Row: {
           build_version: string | null
+          client_id: string | null
           created_at: string
+          fingerprint: string | null
           id: string
           message: string | null
           page_url: string | null
@@ -27,7 +29,9 @@ export type Database = {
         }
         Insert: {
           build_version?: string | null
+          client_id?: string | null
           created_at?: string
+          fingerprint?: string | null
           id?: string
           message?: string | null
           page_url?: string | null
@@ -37,7 +41,9 @@ export type Database = {
         }
         Update: {
           build_version?: string | null
+          client_id?: string | null
           created_at?: string
+          fingerprint?: string | null
           id?: string
           message?: string | null
           page_url?: string | null
