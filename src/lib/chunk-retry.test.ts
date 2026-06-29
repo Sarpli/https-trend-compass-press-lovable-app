@@ -13,7 +13,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
-const insertMock = vi.fn(() => Promise.resolve({ error: null }));
+const insertMock = vi.fn(
+  (..._args: unknown[]): Promise<{ error: { message: string } | null }> =>
+    Promise.resolve({ error: null }),
+);
 const fromMock = vi.fn((_table: string) => ({ insert: insertMock }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { from: (table: string) => fromMock(table) },
@@ -260,7 +263,7 @@ describe("chunk-retry report-issue button", () => {
     await api.submitReport("toast-1");
 
     expect(fromMock).toHaveBeenCalledWith("chunk_error_reports");
-    const payload = insertMock.mock.calls[0][0] as Record<string, unknown>;
+    const payload = (insertMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(payload.route).toBe("/route");
     expect(payload.page_url).toBe("https://app.test/route");
     expect(payload.message).toBe("Importing a module script failed");
@@ -284,7 +287,7 @@ describe("chunk-retry report-issue button", () => {
 
     insertMock.mockClear();
     await api.submitReport("toast-1");
-    const payload = insertMock.mock.calls[0][0] as Record<string, unknown>;
+    const payload = (insertMock.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(payload.retry_attempt).toBe(1);
     expect(payload.last_toast_state).toBe("offline");
   });
