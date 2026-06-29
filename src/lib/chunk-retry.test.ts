@@ -48,6 +48,7 @@ beforeEach(() => {
     configurable: true,
     value: {
       href: "https://app.test/route",
+      pathname: "/route",
       replace: replaceSpy,
       reload: reloadSpy,
     },
