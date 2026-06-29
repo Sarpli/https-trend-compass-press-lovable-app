@@ -268,5 +268,5 @@ export const installChunkRetry = () => {
   });
 
   // Exposed for integration tests; harmless in prod (no callers).
-  return { runRetry, showRetryToast, maybeReload };
+  return { runRetry, showRetryToast, maybeReload, submitReport };
 };
