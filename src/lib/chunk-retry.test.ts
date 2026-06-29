@@ -236,3 +236,68 @@ describe("chunk-retry exponential backoff", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(callsBefore + 1);
   });
 });
+
+describe("chunk-retry report-issue button", () => {
+  const chunkErr = Object.assign(new Error("Importing a module script failed"), {
+    filename: "https://app.test/assets/main-abc.js",
+  });
+
+  it("retry toast includes a Report issue cancel button", () => {
+    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    api.maybeReload(chunkErr);
+    const [, opts] = toastError.mock.calls[0] as [string, { cancel: { label: string; onClick: () => void } }];
+    expect(opts.cancel.label).toBe("Report issue");
+    expect(typeof opts.cancel.onClick).toBe("function");
+  });
+
+  it("submitReport inserts into chunk_error_reports with route, message, retry state", async () => {
+    // Seed last-error context by going through one error cycle.
+    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    api.maybeReload(chunkErr);
+    fromMock.mockClear();
+    insertMock.mockClear();
+
+    await api.submitReport("toast-1");
+
+    expect(fromMock).toHaveBeenCalledWith("chunk_error_reports");
+    const payload = insertMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.route).toBe("/route");
+    expect(payload.page_url).toBe("https://app.test/route");
+    expect(payload.message).toBe("Importing a module script failed");
+    expect(payload.source_url).toBe("https://app.test/assets/main-abc.js");
+    expect(payload.last_toast_state).toBe("initial");
+    expect(payload.retry_attempt).toBe(0);
+    expect(payload.client_id).toBeTruthy();
+    // Success swaps the toast to a thank-you message.
+    expect(toastSuccess).toHaveBeenCalledWith(
+      "Report sent — thank you",
+      expect.objectContaining({ id: "toast-1" }),
+    );
+  });
+
+  it("submitReport carries the current retry attempt count and last toast state", async () => {
+    // Drive the toast into the offline/escalated state with attempts > 0.
+    fetchSpy.mockRejectedValue(new TypeError("Failed to fetch"));
+    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    api.maybeReload(chunkErr);
+    await api.runRetry("toast-1"); // attempt 1 fails → retryAttempt = 1, lastToastState = "offline"
+
+    insertMock.mockClear();
+    await api.submitReport("toast-1");
+    const payload = insertMock.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.retry_attempt).toBe(1);
+    expect(payload.last_toast_state).toBe("offline");
+  });
+
+  it("submitReport failure shows an error toast with both Try report and Retry page actions", async () => {
+    insertMock.mockImplementationOnce(() => Promise.resolve({ error: { message: "db down" } }));
+    await api.submitReport("toast-1");
+    const [msg, opts] = toastError.mock.calls.at(-1) as [
+      string,
+      { action: { label: string }; cancel: { label: string } },
+    ];
+    expect(msg).toBe("Couldn't send report");
+    expect(opts.action.label).toBe("Try report");
+    expect(opts.cancel.label).toBe("Retry page");
+  });
+});
