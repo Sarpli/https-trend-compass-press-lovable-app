@@ -151,8 +151,28 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
     );
   }
 
-  if (learnedLoading || dismissedLoading || learned || dismissed) {
-    // Still render the celebration overlay if it was triggered before dismissal.
+  if (learnedLoading || dismissedLoading) {
+    return celebration ? (
+      <StreakCelebration key={celebration.key} streak={celebration.streak} />
+    ) : null;
+  }
+
+  if (learned) {
+    return (
+      <>
+        {celebration && <StreakCelebration key={celebration.key} streak={celebration.streak} />}
+        <div
+          className="mt-6 inline-flex items-center gap-1.5 border border-ticker-up/50 bg-ticker-up/10 px-2.5 py-1 ui small-caps text-[10px] text-ticker-up"
+          aria-label="You learned this term"
+        >
+          <span aria-hidden="true">✓</span>
+          <span className="font-semibold tracking-wider">I learned this</span>
+        </div>
+      </>
+    );
+  }
+
+  if (dismissed) {
     return celebration ? (
       <StreakCelebration key={celebration.key} streak={celebration.streak} />
     ) : null;
