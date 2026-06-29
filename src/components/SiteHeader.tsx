@@ -28,6 +28,10 @@ export function SiteHeader() {
 
   return (
     <header>
+      <div
+        className="fixed top-0 left-0 z-[60] w-1.5 h-10 md:h-14 bg-accent-red"
+        aria-hidden="true"
+      />
       <TickerBar />
       <div className="masthead-rule glass glass-sheen">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-2 md:py-3">

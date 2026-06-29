@@ -171,16 +171,16 @@ function Index() {
                   eager
                   fetchpriority="high"
                   sizes="(min-width: 1024px) 800px, 100vw"
-                  className="w-full aspect-[16/9] object-cover grayscale-[20%] mb-4 border border-ink/20"
+                  className="w-full aspect-[2/1] md:aspect-[16/9] object-cover grayscale-[20%] mb-3 md:mb-4 border border-ink/20"
                 />
-                <h2 className="display text-5xl md:text-6xl font-black leading-[0.95] mb-4 hover:text-accent-red transition-colors">
+                <h2 className="display text-4xl md:text-6xl font-black leading-[0.95] mb-3 md:mb-4 hover:text-accent-red transition-colors">
                   {featured.term}
                 </h2>
               </Link>
-              <p className="text-xs ui small-caps text-muted-foreground mb-4">
+              <p className="text-xs ui small-caps text-muted-foreground mb-3 md:mb-4">
                 {featured.category} · Filed today
               </p>
-              <p className="text-lg leading-relaxed mb-3 first-letter:display first-letter:text-6xl first-letter:font-black first-letter:float-left first-letter:mr-2 first-letter:leading-[0.85]">
+              <p className="text-base md:text-lg leading-relaxed mb-3 first-letter:display first-letter:text-4xl md:first-letter:text-6xl first-letter:font-black first-letter:float-left first-letter:mr-2 first-letter:leading-[0.85]">
                 {featured.plain_language}
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
