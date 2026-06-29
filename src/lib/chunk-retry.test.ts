@@ -145,3 +145,90 @@ describe("chunk-retry integration", () => {
     expect(insertMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("chunk-retry exponential backoff", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("first retry runs immediately; later retries wait 1s, 2s, 4s, 8s, capped at 30s", async () => {
+    // Attempt 1: no delay, fetch fails.
+    fetchSpy.mockRejectedValue(new TypeError("Failed to fetch"));
+
+    await api.runRetry("toast-1");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    // Attempt 2: should wait 1s before fetching.
+    const p2 = api.runRetry("toast-1");
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // not yet
+    await vi.advanceTimersByTimeAsync(999);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    await p2;
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    // Attempt 3: 2s.
+    const p3 = api.runRetry("toast-1");
+    await vi.advanceTimersByTimeAsync(2000);
+    await p3;
+    expect(fetchSpy).toHaveBeenCalledTimes(3);
+
+    // Attempt 4: 4s.
+    const p4 = api.runRetry("toast-1");
+    await vi.advanceTimersByTimeAsync(4000);
+    await p4;
+    expect(fetchSpy).toHaveBeenCalledTimes(4);
+
+    // Attempt 5: 8s.
+    const p5 = api.runRetry("toast-1");
+    await vi.advanceTimersByTimeAsync(8000);
+    await p5;
+    expect(fetchSpy).toHaveBeenCalledTimes(5);
+
+    // The "Still offline" toast advertises the next wait.
+    const lastOffline = toastError.mock.calls.at(-1) as [string, { description: string }];
+    expect(lastOffline[0]).toBe("Still offline");
+    expect(lastOffline[1].description).toMatch(/Next retry waits 16s/);
+  });
+
+  it("backoff caps at 30s no matter how many failures pile up", async () => {
+    fetchSpy.mockRejectedValue(new TypeError("Failed to fetch"));
+    // Burn through enough attempts to exceed the cap (2^5 = 32s > 30s).
+    for (let i = 0; i < 8; i++) {
+      const p = api.runRetry("toast-1");
+      await vi.advanceTimersByTimeAsync(30_000);
+      await p;
+    }
+    // Drive one more attempt and verify the wait is exactly 30s, not longer.
+    const p = api.runRetry("toast-1");
+    await vi.advanceTimersByTimeAsync(29_999);
+    const callsBefore = fetchSpy.mock.calls.length;
+    expect(fetchSpy).toHaveBeenCalledTimes(callsBefore);
+    await vi.advanceTimersByTimeAsync(1);
+    await p;
+    expect(fetchSpy).toHaveBeenCalledTimes(callsBefore + 1);
+  });
+
+  it("a successful retry resets backoff so the next cycle starts at 0", async () => {
+    fetchSpy.mockRejectedValueOnce(new TypeError("Failed to fetch")); // attempt 1 fails
+    await api.runRetry("toast-1");
+
+    // Attempt 2 succeeds — should still wait 1s, then replace, then reset.
+    fetchSpy.mockResolvedValueOnce(new Response("ok"));
+    const p2 = api.runRetry("toast-1");
+    await vi.advanceTimersByTimeAsync(1000);
+    await p2;
+    expect(replaceSpy).toHaveBeenCalledTimes(1);
+
+    // A subsequent retry (new failure) should be immediate again.
+    fetchSpy.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const callsBefore = fetchSpy.mock.calls.length;
+    const p3 = api.runRetry("toast-1");
+    // No timer advance — should fetch synchronously on the microtask queue.
+    await p3;
+    expect(fetchSpy).toHaveBeenCalledTimes(callsBefore + 1);
+  });
+});
