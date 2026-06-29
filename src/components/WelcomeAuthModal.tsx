@@ -13,6 +13,8 @@ export function WelcomeAuthModal() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
