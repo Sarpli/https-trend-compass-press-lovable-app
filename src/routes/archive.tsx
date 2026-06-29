@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Search, Sparkles } from "lucide-react";
 import { TrendCover } from "@/components/TrendCover";
+import { LearnedFlag } from "@/components/LearnedFlag";
 import { aiSearchTrends } from "@/lib/ai-search.functions";
 
 export const Route = createFileRoute("/archive")({
