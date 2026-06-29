@@ -2,6 +2,23 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
+import { supabase } from "@/integrations/supabase/client";
+
+// Best-effort deploy fingerprint: the hashed filename of a loaded asset chunk
+// uniquely identifies the build the user has in their tab.
+const getBuildVersion = (): string => {
+  if (typeof document === "undefined") return "ssr";
+  const meta = document.querySelector('meta[name="build-version"]') as HTMLMetaElement | null;
+  if (meta?.content) return meta.content;
+  const script = document.querySelector(
+    'script[src*="/assets/"][src*="-"]'
+  ) as HTMLScriptElement | null;
+  if (script?.src) {
+    const m = script.src.match(/([^/]+\.[cm]?js)(?:\?.*)?$/);
+    if (m) return m[1];
+  }
+  return "unknown";
+};
 
 // Handle stale chunk imports after deploys: a fresh build invalidates old
 // hashed JS chunks, so route lazy-imports fail with "Importing a module
@@ -9,6 +26,7 @@ import { RouteSkeleton } from "./components/RouteSkeleton";
 // new asset manifest instead of leaving the user on a blank page.
 if (typeof window !== "undefined") {
   const RELOAD_KEY = "trenslate-chunk-reload";
+  const REPORT_KEY = "trenslate-chunk-reported";
   const isChunkError = (msg: unknown) => {
     const s = typeof msg === "string" ? msg : (msg as { message?: string })?.message ?? "";
     return (
@@ -18,8 +36,30 @@ if (typeof window !== "undefined") {
       /ChunkLoadError/i.test(s)
     );
   };
+  const reportChunkError = (err: unknown) => {
+    try {
+      if (sessionStorage.getItem(REPORT_KEY)) return;
+      sessionStorage.setItem(REPORT_KEY, "1");
+    } catch {}
+    const message =
+      typeof err === "string"
+        ? err
+        : (err as { message?: string })?.message ?? String(err);
+    const sourceUrl =
+      (err as { filename?: string })?.filename ??
+      (err as { request?: string })?.request ??
+      null;
+    void supabase.from("chunk_errors").insert({
+      build_version: getBuildVersion(),
+      message: message?.slice(0, 1000) ?? null,
+      source_url: sourceUrl,
+      page_url: typeof location !== "undefined" ? location.href : null,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+    }).then(() => {}, () => {});
+  };
   const maybeReload = (err: unknown) => {
     if (!isChunkError(err)) return;
+    reportChunkError(err);
     try {
       if (sessionStorage.getItem(RELOAD_KEY)) return;
       sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
@@ -30,7 +70,10 @@ if (typeof window !== "undefined") {
   window.addEventListener("unhandledrejection", (e) => maybeReload(e.reason));
   // Clear the guard on successful full load so future stale-chunk events still recover.
   window.addEventListener("load", () => {
-    try { sessionStorage.removeItem(RELOAD_KEY); } catch {}
+    try {
+      sessionStorage.removeItem(RELOAD_KEY);
+      sessionStorage.removeItem(REPORT_KEY);
+    } catch {}
   });
 }
 
