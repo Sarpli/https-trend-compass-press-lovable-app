@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      chunk_errors: {
+        Row: {
+          build_version: string | null
+          created_at: string
+          id: string
+          message: string | null
+          page_url: string | null
+          source_url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          build_version?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          build_version?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       dismissed_banners: {
         Row: {
           created_at: string
