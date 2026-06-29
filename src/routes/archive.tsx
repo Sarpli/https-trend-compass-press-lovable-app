@@ -65,27 +65,35 @@ function Archive() {
 
       if (!useAI) return keywordHits;
 
-      try {
-        // Race the AI call against an 8s timeout so a slow gateway
-        // never leaves the page in a "thinking…" limbo.
-        const aiPromise = aiSearch({ data: { query: submitted } });
-        const timeout = new Promise<{ slugs: string[] }>((_, rej) =>
-          setTimeout(() => rej(new Error("AI search timed out")), 8000),
-        );
-        const { slugs } = await Promise.race([aiPromise, timeout]);
-        const set = new Set([...keywordHits.map((t) => t.slug), ...slugs]);
-        // Preserve AI ordering for AI-only hits, then keyword hits.
-        const ordered = [
-          ...slugs.map((s) => rows.find((r) => r.slug === s)).filter(Boolean),
-          ...keywordHits.filter((t) => !slugs.includes(t.slug)),
-        ];
-        return ordered.filter((t, i, a) => t && a.findIndex((x) => x!.slug === t!.slug) === i) as typeof rows;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "AI search failed";
-        // Don't bubble — fall back silently to keyword hits.
-        console.warn("[archive] AI search fallback:", msg);
-        return keywordHits;
+      // Retry the AI call up to 3 times with exponential backoff
+      // (500ms, 1000ms, 2000ms). Each attempt is bounded by an 8s timeout.
+      const MAX_ATTEMPTS = 3;
+      let lastErr: unknown;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const aiPromise = aiSearch({ data: { query: submitted } });
+          const timeout = new Promise<{ slugs: string[] }>((_, rej) =>
+            setTimeout(() => rej(new Error("AI search timed out")), 8000),
+          );
+          const { slugs } = await Promise.race([aiPromise, timeout]);
+          const ordered = [
+            ...slugs.map((s) => rows.find((r) => r.slug === s)).filter(Boolean),
+            ...keywordHits.filter((t) => !slugs.includes(t.slug)),
+          ];
+          return ordered.filter((t, i, a) => t && a.findIndex((x) => x!.slug === t!.slug) === i) as typeof rows;
+        } catch (err) {
+          lastErr = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(`[archive] AI search attempt ${attempt}/${MAX_ATTEMPTS} failed:`, msg);
+          if (attempt < MAX_ATTEMPTS) {
+            const backoff = 500 * 2 ** (attempt - 1); // 500, 1000, 2000
+            await new Promise((r) => setTimeout(r, backoff));
+          }
+        }
       }
+      const finalMsg = lastErr instanceof Error ? lastErr.message : "AI search failed";
+      toast.error(`AI search unavailable — showing keyword results. (${finalMsg})`);
+      return keywordHits;
     },
   });
 
