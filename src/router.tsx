@@ -3,6 +3,7 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Best-effort deploy fingerprint: the hashed filename of a loaded asset chunk
 // uniquely identifies the build the user has in their tab.
@@ -57,13 +58,39 @@ if (typeof window !== "undefined") {
       user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
     }).then(() => {}, () => {});
   };
+  let toastShown = false;
+  const showRetryToast = () => {
+    if (toastShown) return;
+    toastShown = true;
+    toast.error("This page couldn't load", {
+      description:
+        "A newer version of the app is available. Reload to continue.",
+      duration: Infinity,
+      action: {
+        label: "Reload",
+        onClick: () => {
+          try {
+            sessionStorage.removeItem(RELOAD_KEY);
+          } catch {}
+          window.location.reload();
+        },
+      },
+    });
+  };
   const maybeReload = (err: unknown) => {
     if (!isChunkError(err)) return;
     reportChunkError(err);
+    let alreadyReloaded = false;
     try {
-      if (sessionStorage.getItem(RELOAD_KEY)) return;
-      sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+      alreadyReloaded = !!sessionStorage.getItem(RELOAD_KEY);
+      if (!alreadyReloaded) sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
     } catch {}
+    if (alreadyReloaded) {
+      // Auto-reload already happened this session and we still hit a chunk
+      // error — surface a toast so the user isn't staring at a blank page.
+      showRetryToast();
+      return;
+    }
     window.location.reload();
   };
   window.addEventListener("error", (e) => maybeReload(e.error ?? e.message));
