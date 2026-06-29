@@ -118,6 +118,7 @@ export const installChunkRetry = () => {
 
     const delayMs = nextBackoffMs(retryAttempt);
     if (currentToastId !== null) {
+      lastToastState = "loading";
       toast.loading("Refreshing app…", {
         id: currentToastId,
         description:
@@ -125,6 +126,10 @@ export const installChunkRetry = () => {
             ? `Waiting ${Math.round(delayMs / 1000)}s before retrying…`
             : "Fetching the latest version.",
         duration: Infinity,
+        cancel: {
+          label: "Report issue",
+          onClick: () => void submitReport(currentToastId),
+        },
       });
     }
 
@@ -143,6 +148,7 @@ export const installChunkRetry = () => {
       retryAttempt = Math.min(retryAttempt + 1, 16);
       if (currentToastId !== null) {
         const nextMs = nextBackoffMs(retryAttempt);
+        lastToastState = "offline";
         toast.error("Still offline", {
           id: currentToastId,
           description:
@@ -151,6 +157,10 @@ export const installChunkRetry = () => {
               : "Check your connection and try again.",
           duration: Infinity,
           action: { label: "Retry", onClick: () => void runRetry(currentToastId) },
+          cancel: {
+            label: "Report issue",
+            onClick: () => void submitReport(currentToastId),
+          },
         });
       }
       return;
@@ -169,6 +179,7 @@ export const installChunkRetry = () => {
       clearTimeout(pendingBackoff);
       pendingBackoff = null;
     }
+    lastToastState = escalated ? "escalated" : "initial";
     toastId = toast.error(
       escalated ? "Retry didn't work" : "This page couldn't load",
       {
@@ -180,8 +191,49 @@ export const installChunkRetry = () => {
           label: escalated ? "Try again" : "Reload",
           onClick: () => void runRetry(toastId),
         },
+        cancel: {
+          label: "Report issue",
+          onClick: () => void submitReport(toastId),
+        },
       },
     );
+  };
+
+  const submitReport = async (currentToastId: string | number | null) => {
+    const payload = {
+      client_id: getClientId(),
+      route: typeof location !== "undefined" ? location.pathname : null,
+      page_url: typeof location !== "undefined" ? location.href : null,
+      message: lastErrorMessage?.slice(0, 1000) ?? null,
+      source_url: lastErrorSourceUrl,
+      build_version: getBuildVersion(),
+      retry_attempt: retryAttempt,
+      last_toast_state: lastToastState,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      online: typeof navigator !== "undefined" ? navigator.onLine : null,
+    };
+    try {
+      const { error } = await supabase.from("chunk_error_reports").insert(payload);
+      if (error) throw error;
+      if (currentToastId !== null) {
+        toast.success("Report sent — thank you", {
+          id: currentToastId,
+          description: "Our team will investigate. You can keep retrying meanwhile.",
+          duration: 6000,
+          action: { label: "Retry", onClick: () => void runRetry(currentToastId) },
+        });
+      }
+    } catch {
+      if (currentToastId !== null) {
+        toast.error("Couldn't send report", {
+          id: currentToastId,
+          description: "Check your connection and try again.",
+          duration: Infinity,
+          action: { label: "Try report", onClick: () => void submitReport(currentToastId) },
+          cancel: { label: "Retry page", onClick: () => void runRetry(currentToastId) },
+        });
+      }
+    }
   };
 
   const maybeReload = (err: unknown) => {
