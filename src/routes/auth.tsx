@@ -19,6 +19,8 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
