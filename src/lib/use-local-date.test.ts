@@ -21,7 +21,17 @@ const TZ = "America/New_York";
 // can be monkey-patched in the test environment.
 vi.mock("./timezone", async () => {
   const actual = await vi.importActual<typeof import("./timezone")>("./timezone");
-  return { ...actual, deviceTimezone: () => TZ };
+  // Override every helper that defaults to the host zone so the test
+  // is deterministic regardless of CI's `TZ`. The hook only consumes
+  // these three, but we shadow all of them for safety.
+  return {
+    ...actual,
+    deviceTimezone: () => TZ,
+    todayLocalISO: () => actual.localDateInZone(new Date(), TZ),
+    yesterdayLocalISO: () => actual.addDaysISO(actual.localDateInZone(new Date(), TZ), -1),
+    useUserTimezone: () => TZ,
+    nextLocalMidnightUTC: (now: Date) => actual.nextLocalMidnightUTC(now, TZ),
+  };
 });
 
 import { useLocalDateKey } from "./use-local-date";
