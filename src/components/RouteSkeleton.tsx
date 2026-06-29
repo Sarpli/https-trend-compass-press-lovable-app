@@ -4,7 +4,7 @@
 export function RouteSkeleton() {
   return (
     <div
-      className="route-skeleton mx-auto w-full max-w-5xl px-4 py-8"
+      className="route-skeleton mx-auto w-full max-w-5xl px-4 py-8 relative skeleton-shimmer"
       aria-busy="true"
       aria-live="polite"
       role="status"

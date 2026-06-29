@@ -85,6 +85,48 @@
 }
 
 /*
+ * Subtle WSJ-style shimmer across the route skeleton so page transitions
+ * feel like a freshly printed column catching the light.
+ */
+@keyframes skeleton-shimmer {
+  0% { background-position: 220% 0; }
+  100% { background-position: -220% 0; }
+}
+
+.skeleton-shimmer {
+  position: relative;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    var(--skeleton-shine) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 2.2s ease-in-out infinite;
+  opacity: 0.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+.reduce-motion-app .skeleton-shimmer::after {
+  animation: none !important;
+}
+
+/*
  * Trenslate — WSJ-inspired newspaper design system.
  * Ink black on newsprint cream, accent red for the live ticker.
  * Display: Playfair Display (serif). Body: Source Serif 4. UI: Inter.
@@ -158,6 +200,7 @@
   --glass-edge: color-mix(in oklab, white 72%, transparent);
   --glass-edge-bottom: color-mix(in oklab, var(--ink) 8%, transparent);
   --glass-glow: color-mix(in oklab, var(--brass) 45%, transparent);
+  --skeleton-shine: color-mix(in oklab, var(--newsprint) 55%, transparent);
   /*
    * "Morning Edition" — warm ivory newsprint with deep espresso ink.
    * Inspired by uncoated book stock and letterpress: softer than pure white,
@@ -209,6 +252,7 @@
   --glass-edge: color-mix(in oklab, white 14%, transparent);
   --glass-edge-bottom: color-mix(in oklab, black 55%, transparent);
   --glass-glow: color-mix(in oklab, var(--brass) 30%, transparent);
+  --skeleton-shine: color-mix(in oklab, var(--foreground) 25%, transparent);
   /*
    * "After Hours" — Midnight Newsprint, refined.
    * Warm slate-charcoal page with subtle blue undertone, gently layered
