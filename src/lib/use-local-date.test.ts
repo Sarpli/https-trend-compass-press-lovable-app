@@ -13,29 +13,24 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useLocalDateKey } from "./use-local-date";
-
 const TZ = "America/New_York";
 
-// Pin the device timezone so the test is deterministic regardless of CI host.
-const realResolved = Intl.DateTimeFormat.prototype.resolvedOptions;
-function pinTimezone(zone: string) {
-  Intl.DateTimeFormat.prototype.resolvedOptions = function () {
-    const r = realResolved.call(this);
-    return { ...r, timeZone: zone };
-  };
-}
-function restoreTimezone() {
-  Intl.DateTimeFormat.prototype.resolvedOptions = realResolved;
-}
+// Pin the "device" timezone deterministically by mocking the timezone
+// helper module the hook imports. This avoids depending on the CI host's
+// system zone and on whether `Intl.DateTimeFormat().resolvedOptions()`
+// can be monkey-patched in the test environment.
+vi.mock("./timezone", async () => {
+  const actual = await vi.importActual<typeof import("./timezone")>("./timezone");
+  return { ...actual, deviceTimezone: () => TZ };
+});
+
+import { useLocalDateKey } from "./use-local-date";
 
 beforeEach(() => {
   vi.useFakeTimers();
-  pinTimezone(TZ);
 });
 afterEach(() => {
   vi.useRealTimers();
-  restoreTimezone();
 });
 
 describe("useLocalDateKey — wall-clock jumps & midnight flips", () => {
