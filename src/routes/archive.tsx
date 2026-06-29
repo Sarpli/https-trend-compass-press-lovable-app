@@ -160,6 +160,7 @@ function Archive() {
             <Link to="/trends/$slug" params={{ slug: t.slug }}>
               <h3 className="display text-2xl font-bold hover:text-accent-red">{t.term}</h3>
             </Link>
+            <LearnedFlag trendId={t.id} className="mt-1" />
             <p className="text-sm mt-1 text-foreground/90 line-clamp-3">{t.plain_language}</p>
           </li>
         ))}
