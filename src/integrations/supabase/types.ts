@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      chunk_error_reports: {
+        Row: {
+          build_version: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          last_toast_state: string | null
+          message: string | null
+          online: boolean | null
+          page_url: string | null
+          retry_attempt: number
+          route: string | null
+          source_url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          build_version?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          last_toast_state?: string | null
+          message?: string | null
+          online?: boolean | null
+          page_url?: string | null
+          retry_attempt?: number
+          route?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          build_version?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          last_toast_state?: string | null
+          message?: string | null
+          online?: boolean | null
+          page_url?: string | null
+          retry_attempt?: number
+          route?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       chunk_errors: {
         Row: {
           build_version: string | null
