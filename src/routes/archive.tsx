@@ -26,8 +26,6 @@ function Archive() {
   const aiSearch = useServerFn(aiSearchTrends);
   const qc = useQueryClient();
 
-  if (!isPro) return <ArchivePaywall signedIn={!!user} />;
-
   useEffect(() => {
     if (initialQ && initialQ !== submitted) {
       setQ(initialQ);
@@ -52,6 +50,7 @@ function Archive() {
 
   const { data: trends = [], isFetching } = useQuery({
     queryKey: ["archive", submitted, useAI],
+    enabled: isPro,
     queryFn: async () => {
       const { data: all } = await supabase.from("trends").select("*").order("term");
       const rows = all ?? [];
@@ -67,7 +66,13 @@ function Archive() {
       if (!useAI) return keywordHits;
 
       try {
-        const { slugs } = await aiSearch({ data: { query: submitted } });
+        // Race the AI call against an 8s timeout so a slow gateway
+        // never leaves the page in a "thinking…" limbo.
+        const aiPromise = aiSearch({ data: { query: submitted } });
+        const timeout = new Promise<{ slugs: string[] }>((_, rej) =>
+          setTimeout(() => rej(new Error("AI search timed out")), 8000),
+        );
+        const { slugs } = await Promise.race([aiPromise, timeout]);
         const set = new Set([...keywordHits.map((t) => t.slug), ...slugs]);
         // Preserve AI ordering for AI-only hits, then keyword hits.
         const ordered = [
@@ -77,11 +82,14 @@ function Archive() {
         return ordered.filter((t, i, a) => t && a.findIndex((x) => x!.slug === t!.slug) === i) as typeof rows;
       } catch (err) {
         const msg = err instanceof Error ? err.message : "AI search failed";
-        toast.error(msg);
+        // Don't bubble — fall back silently to keyword hits.
+        console.warn("[archive] AI search fallback:", msg);
         return keywordHits;
       }
     },
   });
+
+  if (!isPro) return <ArchivePaywall signedIn={!!user} />;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
