@@ -1,54 +1,114 @@
-# Trenslate — Build Plan
+# Simulated voter activity for the ticker
 
-A WSJ-style cultural fluency app with live trend ticker, voting, and Pro subscriptions.
+## Goal
 
-## Scope for v1
+Make the ticker feel alive even when real humans aren't voting. Popular terms
+get a steady medium stream of fake activity, niche terms get a small trickle,
+and the direction follows each term's recent real momentum so a term that's
+"losing popularity" actually drifts down.
 
-**Design**: WSJ-inspired newspaper layout — serif headlines (e.g. Playfair Display / Libre Caslon), thin rules, multi-column grid, restrained palette (ink black, newsprint cream, one accent red for the ticker). Works for kids + adults.
+## Design rules
 
-**Pages**
-- `/` Homepage — live ticker, Daily Edition (featured spotlight), Top Trends sidebar, Voting Leaderboard
-- `/trends/$slug` — full trend entry (plain language, origin, safety tips, real examples, vote buttons)
-- `/vote` — leaderboards by category (Week / Month / Year / OAT)
-- `/glossary` — saved terms (Pro)
-- `/archive` — trend archive (Pro)
-- `/auth` — sign in / sign up
-- `/pricing` — Free vs Pro
-- `/account` — subscription, streak, badges
+- **No pollution of real data.** Synthetic activity lives in its own table.
+  Real `votes`, leaderboards, OAT counts, learned-trends, and streaks are
+  untouched. The synthetic stream is purely cosmetic for the ticker price.
+- **Server-driven**, not client-driven. A `pg_cron` job runs every minute so
+  the ticker moves for every viewer consistently, not just whoever has a tab
+  open.
+- **Bias from real signal.** Direction = sign of recent real net votes
+  (last ~24h, weighted toward last hour). Magnitude = base rate × popularity
+  tier × random jitter.
+- **Bounded.** Per-tick deltas are clamped so one tick can never flip a term
+  from #1 to #last. Synthetic cumulative score per term decays slightly each
+  tick so it can't run away over weeks.
 
-**Voting**
-- 4 categories: Week, Month, Year, OAT
-- Free: Week + Month only
-- Pro: all four; annual subscribers get 2x weighted votes + founding OAT badge
-- Ticker price = base + net votes (live via Supabase Realtime)
+## What changes
 
-**Free tier**: 3 searches/day, monthly trend view, daily streak, weekly+monthly voting
-**Pro tier** ($4.99/mo, $39.99/yr): unlimited search, full voting, archive, glossary, push notifications flag, early access flag
+### 1. New table `public.synthetic_pulses`
 
-## Backend (Lovable Cloud / Supabase)
+Stores a rolling per-trend synthetic score that the ticker reads.
 
-Tables:
-- `profiles` (id, display_name, streak_count, last_active_at, is_founding_voter)
-- `subscriptions` (user_id, tier: free|pro_monthly|pro_annual, status, current_period_end)
-- `trends` (id, slug, term, plain_language, origin, safety_tips, examples jsonb, base_price, created_at)
-- `votes` (id, user_id, trend_id, category: week|month|year|oat, direction: up|down, weight, created_at) — unique per (user, trend, category, period)
-- `saved_glossary` (user_id, trend_id)
-- `searches` (user_id, query, created_at) — for 3/day quota
-- `user_roles` (user_id, role) + `has_role()` SECURITY DEFINER
+```text
+trend_id        uuid pk → trends.id
+synth_score     numeric  -- current cumulative synthetic delta
+last_tick_at    timestamptz
+updated_at      timestamptz
+```
 
-RLS on all; helper function for vote permission (Pro check for year/OAT).
+RLS: read = `anon` + `authenticated`, write = service role only.
 
-## Payments
-Lovable's built-in **Stripe Payments** (no account needed). Two products: monthly $4.99, annual $39.99. Webhook updates `subscriptions`.
+### 2. New SQL function `public.tick_synthetic_pulses()` (SECURITY DEFINER)
 
-## What I'll do this turn after approval
-1. Enable Lovable Cloud
-2. Build the design system + homepage + trend page + voting UI with seeded demo trends (so the app looks alive immediately)
-3. Wire auth + Supabase schema + RLS + realtime ticker
-4. Then in a follow-up turn: enable Stripe Payments and wire Pro gating + checkout
+Runs once per minute. For each trend:
 
-## Questions before I start
+1. Compute **popularity tier** from recent real net votes + peak intensity:
+   - top 20% → "hot" (medium volume): ±3..6 units per tick
+   - middle 50% → "warm": ±1..3
+   - bottom 30% → "cold" (small trickle): ±0..1, often zero
+2. Compute **bias** = sign of weighted recent real net votes
+   (last 1h × 3 + last 24h × 1). Range −1..+1.
+3. Per-tick delta = `tier_magnitude × (0.55 + 0.45 × bias) × jitter(-1..+1)`
+   then clamp to ±8.
+4. Apply small mean-reversion: `synth_score *= 0.985` before adding delta.
+5. Upsert into `synthetic_pulses`.
 
-1. Should I seed ~20 real-ish demo trends (e.g. "rizz", "delulu", "sigma") so the ticker and leaderboards look populated, or leave empty for you to add?
-2. Confirm Stripe (built-in, no account needed) is fine for payments — I'll set it up in a follow-up turn after the core app is working.
-3. Push notifications: web push only, or skip the actual delivery for v1 and just show a "Pro perk" toggle?
+### 3. Update `public.get_trend_scores()`
+
+Add `synth_score` from `synthetic_pulses` into the existing price formula
+so the ticker reflects it:
+
+```text
+price = base_price + 1.5 * real_net_votes + 1.0 * synth_score
+```
+
+`net_votes` returned to clients stays the **real** number (so leaderboards,
+"live" badges, and detail pages still show truth). Only `price` includes the
+synthetic component. This keeps charts, OAT standings, and voting UI honest.
+
+### 4. `pg_cron` schedule (every minute)
+
+```text
+SELECT cron.schedule(
+  'tick-synthetic-pulses',
+  '* * * * *',
+  $$ SELECT public.tick_synthetic_pulses(); $$
+);
+```
+
+Pure SQL — no external HTTP, no edge function, no secrets.
+
+### 5. Optional: emit a `vote_events` row per tick for trends with non-zero
+delta so the existing realtime ticker subscription refetches scores
+without us touching client code. (TickerBar already invalidates on
+`vote_events` inserts.)
+
+## What does NOT change
+
+- `src/components/TickerBar.tsx`, `VoteButtons.tsx`, `LivePriceBar.tsx`,
+  `PriceChart.tsx` — no client edits. They already read `get_trend_scores`.
+- Real `votes` table — no synthetic inserts.
+- Streaks, learned trends, leaderboards, OAT — all read from real votes only.
+
+## Tuning knobs (constants inside `tick_synthetic_pulses`)
+
+- Tick interval: 60s (cron)
+- Hot/warm/cold thresholds: percentile based, recomputed each tick
+- Per-tick clamp: ±8 units
+- Decay factor: 0.985 (≈ half-life of ~45 minutes if no new pulses)
+- Cold-tier zero-tick probability: ~60%
+
+These can be adjusted in a follow-up without schema changes.
+
+## Verification
+
+- Watch `/` for ~2 minutes: hot terms tick frequently, cold terms barely move.
+- Confirm in the database that real `votes` rows are unchanged and
+  `synthetic_pulses` rows update each minute.
+- Confirm a term with negative real momentum drifts down over ~10 minutes.
+- Confirm OAT leaderboard and per-term net-vote counts still match real votes.
+
+## Rollback
+
+`SELECT cron.unschedule('tick-synthetic-pulses');` plus revert
+`get_trend_scores` to drop the `synth_score` term. Table can be left in
+place or dropped.
