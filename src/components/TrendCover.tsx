@@ -1,4 +1,5 @@
 import { trendImage } from "@/lib/trend-image";
+import { cn } from "@/lib/utils";
 import itGirlManifest from "@/assets/it-girl-responsive.json";
 
 type Trend = {
@@ -29,6 +30,7 @@ export function TrendCover({
   sizes = "(min-width: 1024px) 800px, (min-width: 640px) 600px, 100vw",
   eager = false,
   fetchpriority,
+  variant = "diluted",
 }: {
   trend: Trend;
   width: number;
@@ -37,12 +39,18 @@ export function TrendCover({
   sizes?: string;
   eager?: boolean;
   fetchpriority?: "high" | "low" | "auto";
+  variant?: "diluted" | "cover";
 }) {
   const slug = trend.slug ?? "";
   const manifest = RESPONSIVE[slug];
   const alt = trend.term ?? "";
   const loading = eager ? "eager" : "lazy";
   const decoding = eager ? "sync" : "async";
+  const base =
+    variant === "diluted"
+      ? "object-contain object-center bg-muted/40 opacity-90 grayscale-[20%]"
+      : "object-cover grayscale-[20%]";
+  const imageClassName = cn(base, className);
 
   if (!manifest) {
     return (
@@ -53,7 +61,7 @@ export function TrendCover({
         decoding={decoding}
         // @ts-expect-error - fetchpriority is a valid attribute, types lag
         fetchpriority={fetchpriority}
-        className={className}
+        className={imageClassName}
       />
     );
   }
@@ -73,7 +81,7 @@ export function TrendCover({
         decoding={decoding}
         // @ts-expect-error - fetchpriority is a valid attribute, types lag
         fetchpriority={fetchpriority}
-        className={className}
+        className={imageClassName}
         width={width}
         height={height}
       />

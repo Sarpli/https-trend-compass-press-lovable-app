@@ -110,7 +110,7 @@ function Recommended() {
                   width={400}
                   height={240}
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="w-full aspect-[5/3] object-cover grayscale-[20%]"
+                  className="w-full aspect-[5/3]"
                 />
               </Link>
               <div className="p-4">

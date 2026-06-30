@@ -172,7 +172,7 @@ function Index() {
                   eager
                   fetchpriority="high"
                   sizes="(min-width: 1024px) 800px, 100vw"
-                  className="w-full aspect-[2/1] md:aspect-[16/9] object-contain object-center bg-muted/40 opacity-90 grayscale-[20%] mb-3 md:mb-4 border border-ink/20"
+                  className="w-full aspect-[2/1] md:aspect-[16/9] mb-3 md:mb-4 border border-ink/20"
                 />
                 <h2 className="display text-4xl md:text-6xl font-black leading-[0.95] mb-3 md:mb-4 hover:text-accent-red transition-colors">
                   {featured.term}
@@ -213,7 +213,7 @@ function Index() {
                     width={400}
                     height={240}
                     sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
-                    className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-3 border border-ink/20"
+                    className="w-full aspect-[5/3] mb-3 border border-ink/20"
                   />
                   <h3 className="display text-lg sm:text-xl font-bold leading-tight hover:text-accent-red transition-colors">
                     {s.term}

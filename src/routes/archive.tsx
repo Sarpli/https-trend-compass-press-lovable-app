@@ -154,7 +154,7 @@ function Archive() {
                 width={600}
                 height={360}
                 sizes="(min-width: 1024px) 360px, (min-width: 768px) 50vw, 100vw"
-                className="w-full aspect-[5/3] object-cover grayscale-[20%] mb-2 border border-ink/20"
+                className="w-full aspect-[5/3] mb-2 border border-ink/20"
               />
             </Link>
             <div className="ui small-caps text-[10px] text-accent-red">{t.category}</div>

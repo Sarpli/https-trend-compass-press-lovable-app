@@ -125,7 +125,7 @@ function TrendPage() {
         eager
         fetchpriority="high"
         sizes="(min-width: 1024px) 900px, 100vw"
-        className="w-full aspect-[16/9] object-cover grayscale-[15%] mb-5 border border-ink/20"
+        className="w-full aspect-[16/9] mb-5 border border-ink/20"
       />
       <p className="text-xl leading-relaxed mb-6">{trend.plain_language}</p>
 
