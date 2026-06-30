@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
@@ -103,7 +102,6 @@ function Account() {
       <dl className="grid sm:grid-cols-2 gap-6 rule-top pt-6">
         <Stat label="Email" value={user.email ?? "—"} />
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
-        <Stat label="Username" value={profile?.username ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
         {!isPro && <Stat label="Searches today" value={`${searchCount} of 3 used`} />}
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
@@ -111,8 +109,6 @@ function Account() {
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
-
-      <UsernameEditor userId={user.id} current={profile?.username} onSaved={() => qc.invalidateQueries({ queryKey: ["profile", user.id] })} />
 
       <div className="grid grid-cols-2 gap-3 rule-top mt-6 pt-4">
         <StreakSection
@@ -217,121 +213,6 @@ function MaxStreakSection({
           {isCurrentBest ? "Current best" : "All-time best"}
         </p>
       </div>
-    </div>
-  );
-}
-
-function validateUsername(value: string) {
-  if (value.length < 3) return "Username must be at least 3 characters.";
-  if (value.length > 20) return "Username must be 20 characters or fewer.";
-  if (!/^[a-zA-Z0-9_-]+$/.test(value)) return "Use only letters, numbers, underscores, or hyphens.";
-  return "";
-}
-
-function UsernameEditor({
-  userId,
-  current,
-  onSaved,
-}: {
-  userId: string;
-  current: string | null | undefined;
-  onSaved: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(current ?? "");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (open) setValue(current ?? "");
-  }, [open, current]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    const clean = value.trim().toLowerCase();
-    const formatErr = validateUsername(clean);
-    if (formatErr) {
-      setError(formatErr);
-      return;
-    }
-    if (clean === (current ?? "").toLowerCase()) {
-      setOpen(false);
-      return;
-    }
-    setBusy(true);
-    try {
-      const { data: existing } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", clean)
-        .neq("id", userId)
-        .maybeSingle();
-      if (existing) {
-        setError("That username is already taken.");
-        setBusy(false);
-        return;
-      }
-      const { error: updateErr } = await supabase
-        .from("profiles")
-        .update({ username: clean, updated_at: new Date().toISOString() })
-        .eq("id", userId);
-      if (updateErr) throw updateErr;
-      toast.success("Username updated.");
-      setOpen(false);
-      onSaved();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update username.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="rule-top mt-6 pt-4">
-      {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          className="flex items-center justify-between w-full text-left border border-ink/40 px-4 py-3 hover:bg-ink hover:text-newsprint transition-colors"
-        >
-          <span className="ui small-caps text-xs">{current ? "Change username" : "Set username"}</span>
-          <span className="text-xs opacity-70">{current ?? "Not set"}</span>
-        </button>
-      ) : (
-        <form onSubmit={submit} className="border border-ink/40 p-4">
-          <label className="block ui small-caps text-xs text-muted-foreground mb-2">Username</label>
-          <input
-            type="text"
-            autoFocus
-            minLength={3}
-            maxLength={20}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              setError("");
-            }}
-            placeholder="3-20 characters, letters/numbers/_/-"
-            className="w-full border border-ink/40 bg-background px-3 py-2 text-sm ui focus:outline-none focus:border-accent-red rounded mb-3"
-          />
-          {error && <p className="text-xs text-accent-red mb-3">{error}</p>}
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={busy}
-              className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 disabled:opacity-50"
-            >
-              {busy ? "Saving..." : "Save"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="ui small-caps text-xs border border-ink/40 px-4 py-2 hover:bg-ink hover:text-newsprint"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
     </div>
   );
 }

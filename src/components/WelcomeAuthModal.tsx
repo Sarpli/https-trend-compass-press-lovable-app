@@ -13,8 +13,6 @@ export function WelcomeAuthModal() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [usernameError, setUsernameError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -40,41 +38,15 @@ export function WelcomeAuthModal() {
 
   if (!open || user) return null;
 
-  const validateUsername = (value: string) => {
-    if (value.length < 3) return "Username must be at least 3 characters.";
-    if (value.length > 20) return "Username must be 20 characters or fewer.";
-    if (!/^[a-zA-Z0-9_-]+$/.test(value)) return "Use only letters, numbers, underscores, or hyphens.";
-    return "";
-  };
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUsernameError("");
     setBusy(true);
     try {
       if (mode === "signup") {
-        const uErr = validateUsername(username.trim());
-        if (uErr) {
-          setUsernameError(uErr);
-          setBusy(false);
-          return;
-        }
-        const cleanUsername = username.trim().toLowerCase();
-        const { data: existing } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("username", cleanUsername)
-          .maybeSingle();
-        if (existing) {
-          setUsernameError("That username is already taken.");
-          setBusy(false);
-          return;
-        }
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { username: cleanUsername, display_name: cleanUsername },
           },
         });
         if (error) throw error;
@@ -161,22 +133,6 @@ export function WelcomeAuthModal() {
         </div>
 
         <form onSubmit={submit} className="space-y-3">
-          {mode === "signup" && (
-            <div>
-              <input
-                type="text" required minLength={3} maxLength={20} value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setUsernameError("");
-                }}
-                placeholder="Username (3-20 characters)"
-                className="w-full border border-ink/40 bg-background px-3 py-2 text-sm ui focus:outline-none focus:border-accent-red rounded"
-              />
-              {usernameError && (
-                <p className="text-xs text-accent-red mt-1">{usernameError}</p>
-              )}
-            </div>
-          )}
           <input
             type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
