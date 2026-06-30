@@ -28,6 +28,9 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
   const { data: myVote } = useQuery({
     queryKey: ["myvote", trendId, category, periodKey, user?.id],
     enabled: !!user,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data } = await supabase
         .from("votes")
