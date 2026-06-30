@@ -167,6 +167,54 @@ export type Database = {
           },
         ]
       }
+      pro_upgrade_intents: {
+        Row: {
+          category: string
+          created_at: string
+          direction: string | null
+          id: string
+          metadata: Json
+          source: string
+          trend_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          direction?: string | null
+          id?: string
+          metadata?: Json
+          source?: string
+          trend_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          direction?: string | null
+          id?: string
+          metadata?: Json
+          source?: string
+          trend_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_upgrade_intents_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "pro_upgrade_intents_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
