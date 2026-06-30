@@ -160,50 +160,50 @@ async def main() -> int:
         results["sections"]["profiles_privileged"] = {"skipped": "user is admin"}
         print("SKIP: user is admin — trigger legitimately allows privileged updates.")
     else:
-    fields_csv = ",".join(PRIVILEGED_FIELDS.keys())
-    s, b = http(
-        "GET",
-        f"{sb_url}/rest/v1/profiles?id=eq.{uid}&select={fields_csv}",
-        headers=H,
-    )
-    if s >= 400 or not json.loads(b or "[]"):
-        results["errors"].append(f"A: cannot read own profile {s}: {b[:200]}")
-        before = {}
-    else:
-        before = json.loads(b)[0]
-
-    patch_body = json.dumps(PRIVILEGED_FIELDS).encode()
-    ps, pb = http(
-        "PATCH",
-        f"{sb_url}/rest/v1/profiles?id=eq.{uid}",
-        headers=HR,
-        body=patch_body,
-    )
-
-    s2, b2 = http(
-        "GET",
-        f"{sb_url}/rest/v1/profiles?id=eq.{uid}&select={fields_csv}",
-        headers=H,
-    )
-    after = json.loads(b2)[0] if s2 < 400 and json.loads(b2 or "[]") else {}
-
-    diffs = {}
-    for k, v in before.items():
-        if after.get(k) != v:
-            diffs[k] = {"before": v, "attempted": PRIVILEGED_FIELDS[k], "after": after.get(k)}
-    results["sections"]["profiles_privileged"] = {
-        "patch_status": ps,
-        "patch_body_snippet": pb[:200],
-        "before": before,
-        "after": after,
-        "diffs": diffs,
-    }
-    if diffs:
-        results["errors"].append(
-            f"A: privileged profile columns changed via client PATCH: {list(diffs.keys())}"
+        fields_csv = ",".join(PRIVILEGED_FIELDS.keys())
+        s, b = http(
+            "GET",
+            f"{sb_url}/rest/v1/profiles?id=eq.{uid}&select={fields_csv}",
+            headers=H,
         )
-    else:
-        print("OK: privileged profile columns unchanged after PATCH attack.")
+        if s >= 400 or not json.loads(b or "[]"):
+            results["errors"].append(f"A: cannot read own profile {s}: {b[:200]}")
+            before = {}
+        else:
+            before = json.loads(b)[0]
+
+        patch_body = json.dumps(PRIVILEGED_FIELDS).encode()
+        ps, pb = http(
+            "PATCH",
+            f"{sb_url}/rest/v1/profiles?id=eq.{uid}",
+            headers=HR,
+            body=patch_body,
+        )
+
+        s2, b2 = http(
+            "GET",
+            f"{sb_url}/rest/v1/profiles?id=eq.{uid}&select={fields_csv}",
+            headers=H,
+        )
+        after = json.loads(b2)[0] if s2 < 400 and json.loads(b2 or "[]") else {}
+
+        diffs = {}
+        for k, v in before.items():
+            if after.get(k) != v:
+                diffs[k] = {"before": v, "attempted": PRIVILEGED_FIELDS[k], "after": after.get(k)}
+        results["sections"]["profiles_privileged"] = {
+            "patch_status": ps,
+            "patch_body_snippet": pb[:200],
+            "before": before,
+            "after": after,
+            "diffs": diffs,
+        }
+        if diffs:
+            results["errors"].append(
+                f"A: privileged profile columns changed via client PATCH: {list(diffs.keys())}"
+            )
+        else:
+            print("OK: privileged profile columns unchanged after PATCH attack.")
 
     # ---------- B. votes immutable fields ----------
     section("B. votes immutable fields")
