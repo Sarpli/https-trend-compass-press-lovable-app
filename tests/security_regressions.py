@@ -141,10 +141,25 @@ async def main() -> int:
     sub_status = sub_rows[0].get("status") if sub_rows else "active"
     is_pro = tier in ("pro_monthly", "pro_annual") and sub_status == "active"
 
-    results = {"user_id": uid, "tier": tier, "is_pro": is_pro, "sections": {}, "errors": []}
+    # Admin check — admins legitimately bypass the privileged-column trigger,
+    # so section A would always "fail" for them. Detect and skip.
+    rs, rb = http(
+        "GET", f"{sb_url}/rest/v1/user_roles?user_id=eq.{uid}&select=role", headers=H,
+    )
+    roles = [r.get("role") for r in (json.loads(rb or "[]") if rs < 400 else [])]
+    is_admin = "admin" in roles
+
+    results = {
+        "user_id": uid, "tier": tier, "is_pro": is_pro, "is_admin": is_admin,
+        "sections": {}, "errors": [],
+    }
 
     # ---------- A. profiles privileged-column updates ----------
     section("A. profiles privileged columns")
+    if is_admin:
+        results["sections"]["profiles_privileged"] = {"skipped": "user is admin"}
+        print("SKIP: user is admin — trigger legitimately allows privileged updates.")
+    else:
     fields_csv = ",".join(PRIVILEGED_FIELDS.keys())
     s, b = http(
         "GET",
