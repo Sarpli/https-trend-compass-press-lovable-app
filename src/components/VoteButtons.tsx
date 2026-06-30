@@ -132,9 +132,17 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       if (ctx?.lbKey) qc.setQueryData(ctx.lbKey, ctx.prevLb);
       if (ctx?.myKey) qc.setQueryData(ctx.myKey, ctx.prevMy);
       if (ctx?.scoreKey && ctx.prevScore !== undefined) qc.setQueryData(ctx.scoreKey, ctx.prevScore);
-      toast.error("Vote didn't go through — we rolled it back", {
-        description: e.message || "Your vote was returned to its previous state. Try again in a moment.",
-      });
+      const raw = e.message || "";
+      if (raw.includes("PRO_REQUIRED")) {
+        toast.error("Pro required to vote on Year & All-Time", {
+          description: "Upgrade to Pro to cast votes on these leaderboards.",
+          action: { label: "Upgrade", onClick: () => navigate({ to: "/pricing" }) },
+        });
+      } else {
+        toast.error("Vote didn't go through — we rolled it back", {
+          description: raw || "Your vote was returned to its previous state. Try again in a moment.",
+        });
+      }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["ticker"] });
