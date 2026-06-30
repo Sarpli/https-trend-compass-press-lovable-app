@@ -515,42 +515,6 @@ export type Database = {
         }
         Relationships: []
       }
-      synthetic_pulses: {
-        Row: {
-          last_tick_at: string
-          synth_score: number
-          trend_id: string
-          updated_at: string
-        }
-        Insert: {
-          last_tick_at?: string
-          synth_score?: number
-          trend_id: string
-          updated_at?: string
-        }
-        Update: {
-          last_tick_at?: string
-          synth_score?: number
-          trend_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "synthetic_pulses_trend_id_fkey"
-            columns: ["trend_id"]
-            isOneToOne: true
-            referencedRelation: "trend_scores"
-            referencedColumns: ["trend_id"]
-          },
-          {
-            foreignKeyName: "synthetic_pulses_trend_id_fkey"
-            columns: ["trend_id"]
-            isOneToOne: true
-            referencedRelation: "trends"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       trend_popularity: {
         Row: {
           created_at: string
@@ -821,7 +785,6 @@ export type Database = {
       }
       prune_perf_events: { Args: never; Returns: undefined }
       prune_pro_upgrade_intents: { Args: never; Returns: number }
-      tick_synthetic_pulses: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
