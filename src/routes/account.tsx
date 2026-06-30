@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
@@ -103,7 +102,6 @@ function Account() {
       <dl className="grid sm:grid-cols-2 gap-6 rule-top pt-6">
         <Stat label="Email" value={user.email ?? "—"} />
         <Stat label="Display name" value={profile?.display_name ?? "—"} />
-        <Stat label="Username" value={profile?.username ?? "—"} />
         <Stat label="Plan" value={tier === "pro_annual" ? "Pro · Annual" : tier === "pro_monthly" ? "Pro · Monthly" : "Free"} />
         {!isPro && <Stat label="Searches today" value={`${searchCount} of 3 used`} />}
         <Stat label="Daily streak" value={`${profile?.streak_count ?? 0} day(s)`} />
@@ -111,8 +109,6 @@ function Account() {
         {isAnnual && <Stat label="Badge" value="★ Founding OAT voter" />}
         {isPro && <Stat label="Vote weight" value={isAnnual ? "2× weighted" : "Standard"} />}
       </dl>
-
-      <UsernameEditor userId={user.id} current={profile?.username} onSaved={() => qc.invalidateQueries({ queryKey: ["profile", user.id] })} />
 
       <div className="grid grid-cols-2 gap-3 rule-top mt-6 pt-4">
         <StreakSection
