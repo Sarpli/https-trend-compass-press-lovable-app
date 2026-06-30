@@ -158,15 +158,32 @@ export function LearnedBanner({ trendId }: { trendId: string }) {
   }
 
   if (learned) {
+    const alreadyTodayLearned = !!markedToday;
     return (
       <>
         {celebration && <StreakCelebration key={celebration.key} streak={celebration.streak} />}
-        <div
-          className="mt-6 inline-flex items-center gap-1.5 border border-ticker-up/50 bg-ticker-up/10 px-2.5 py-1 ui small-caps text-[10px] text-ticker-up"
-          aria-label="You learned this term"
-        >
-          <span aria-hidden="true">✓</span>
-          <span className="font-semibold tracking-wider">I learned this</span>
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <span
+            className="inline-flex items-center gap-1.5 border border-ticker-up/50 bg-ticker-up/10 px-2.5 py-1 ui small-caps text-[10px] text-ticker-up"
+            aria-label="You learned this term"
+          >
+            <span aria-hidden="true">✓</span>
+            <span className="font-semibold tracking-wider">I learned this</span>
+          </span>
+          {!alreadyTodayLearned && (
+            <button
+              type="button"
+              onClick={() => { if (!mark.isPending) mark.mutate(); }}
+              disabled={mark.isPending}
+              className="inline-flex items-center gap-1.5 border border-accent-red/50 bg-accent-red/10 hover:bg-accent-red/20 px-2.5 py-1 ui small-caps text-[10px] text-accent-red disabled:opacity-60"
+              aria-label="Use this term to keep your streak alive"
+            >
+              <span aria-hidden="true">🔥</span>
+              <span className="font-semibold tracking-wider">
+                {mark.isPending ? "Saving…" : "Use for today's streak"}
+              </span>
+            </button>
+          )}
         </div>
       </>
     );
