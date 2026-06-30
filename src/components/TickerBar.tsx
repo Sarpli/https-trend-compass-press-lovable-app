@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { combinedDailyPct } from "@/lib/daily-drift";
 import { useSettings } from "@/lib/settings";
+import { recordPerf } from "@/lib/perf";
 
 type Row = {
   trend_id: string;
@@ -16,7 +17,16 @@ type Row = {
 };
 
 async function fetchScores(): Promise<Row[]> {
+  const start = typeof performance !== "undefined" ? performance.now() : Date.now();
   const { data, error } = await supabase.rpc("get_trend_scores");
+  const dur = (typeof performance !== "undefined" ? performance.now() : Date.now()) - start;
+  recordPerf({
+    metric: error ? "ticker.rpc.error" : "ticker.rpc",
+    surface: "client",
+    duration_ms: dur,
+    query_count: 1,
+    metadata: { rows: data?.length ?? 0 },
+  });
   if (error) throw error;
   return ((data ?? []) as Row[])
     .map((r) => ({ ...r, price: Number(r.price), net_votes: Number(r.net_votes) }))
