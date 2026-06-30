@@ -94,7 +94,7 @@ async def restore_session(page):
     return {"access_token": sess["access_token"], "user_id": sess["user"]["id"]}
 
 
-def section(name: str, errors: list, ok_msg: str | None = None):
+def section(name: str):
     print(f"\n=== {name} ===")
 
 
