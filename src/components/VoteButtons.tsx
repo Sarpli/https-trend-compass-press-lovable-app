@@ -149,8 +149,8 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["ticker"] });
-      qc.invalidateQueries({ queryKey: ["leaderboard"] });
-      qc.invalidateQueries({ queryKey: ["myvote", trendId] });
+      qc.invalidateQueries({ queryKey: ["leaderboard", category, periodKey] });
+      qc.invalidateQueries({ queryKey: ["myvote", trendId, category, periodKey, user?.id] });
       qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
       // Release any realtime invalidations that arrived during the mutation.
       endVoteMutation();
