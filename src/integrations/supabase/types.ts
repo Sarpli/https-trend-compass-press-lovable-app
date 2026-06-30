@@ -167,6 +167,45 @@ export type Database = {
           },
         ]
       }
+      pro_upgrade_intent_alerts: {
+        Row: {
+          baseline: number
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          observed: number
+          ratio: number | null
+          severity: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          baseline: number
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          observed: number
+          ratio?: number | null
+          severity: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          baseline?: number
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          observed?: number
+          ratio?: number | null
+          severity?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       pro_upgrade_intents: {
         Row: {
           category: string
@@ -608,6 +647,7 @@ export type Database = {
       }
     }
     Functions: {
+      detect_pro_upgrade_intent_anomalies: { Args: never; Returns: number }
       get_category_vote_history: {
         Args: {
           _category: Database["public"]["Enums"]["vote_category"]
@@ -660,6 +700,7 @@ export type Database = {
         Args: { _local_date: string; _trend_id: string }
         Returns: number
       }
+      prune_pro_upgrade_intents: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
