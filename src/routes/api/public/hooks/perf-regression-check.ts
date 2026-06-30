@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/hooks/perf-regression-check")(
         if (error) {
           return new Response(JSON.stringify({ error: error.message }), { status: 500 });
         }
-        await admin.rpc("prune_perf_events").catch(() => undefined);
+        try { await admin.rpc("prune_perf_events"); } catch {}
         // Record server-side cron timing so the dashboard sees server health too.
         await admin.from("perf_events").insert({
           metric: "server.cron.regression_check",
