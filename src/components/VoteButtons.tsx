@@ -28,6 +28,9 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
   const { data: myVote } = useQuery({
     queryKey: ["myvote", trendId, category, periodKey, user?.id],
     enabled: !!user,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data } = await supabase
         .from("votes")
@@ -146,8 +149,8 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["ticker"] });
-      qc.invalidateQueries({ queryKey: ["leaderboard"] });
-      qc.invalidateQueries({ queryKey: ["myvote", trendId] });
+      qc.invalidateQueries({ queryKey: ["leaderboard", category, periodKey] });
+      qc.invalidateQueries({ queryKey: ["myvote", trendId, category, periodKey, user?.id] });
       qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
       // Release any realtime invalidations that arrived during the mutation.
       endVoteMutation();
