@@ -1,0 +1,1 @@
+UPDATE public.profiles SET streak_count = 0, max_streak = 0, last_active_date = NULL, last_active_local_date = NULL WHERE id = '0f680183-051d-4f59-aa30-7c50991eea1c';
