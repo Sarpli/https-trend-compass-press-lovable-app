@@ -48,7 +48,7 @@ async function flush() {
   if (queue.length === 0) return;
   const batch = queue.splice(0, queue.length);
   try {
-    await supabase.from("perf_events").insert(batch);
+    await supabase.from("perf_events").insert(batch as never);
   } catch {
     // swallow — telemetry must never throw
   }
