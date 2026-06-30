@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { useTheme } from "@/lib/theme";
-import { Moon, Sun, Lock } from "lucide-react";
 import { TickerBar } from "./TickerBar";
 import { StreakBadge } from "./StreakBadge";
 
@@ -16,7 +14,6 @@ const NAV = [
 
 export function SiteHeader() {
   const { user, isPro } = useAuth();
-  const { theme, toggle } = useTheme();
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => {
     setToday(
@@ -39,25 +36,6 @@ export function SiteHeader() {
           <div className="md:hidden">
             <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 mb-1.5">
               <div className="flex items-center gap-2 justify-self-start min-w-0">
-                {isPro ? (
-                  <button
-                    onClick={toggle}
-                    aria-label="Toggle dark mode"
-                    title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
-                    className="p-1 rounded hover:bg-foreground/10 transition-colors"
-                  >
-                    {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                  </button>
-                ) : user ? (
-                  <Link
-                    to="/pricing"
-                    aria-label="Dark mode is a Pro feature"
-                    title="Dark mode — Pro only"
-                    className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                  </Link>
-                ) : null}
                 <div className="text-[9px] leading-tight ui small-caps text-muted-foreground truncate">
                   {today ?? "\u00A0"}<br />Vol. I · No. 1
                 </div>
@@ -106,25 +84,6 @@ export function SiteHeader() {
             </Link>
             <div className="flex justify-end gap-3 items-center text-xs ui shrink-0">
               <StreakBadge />
-              {isPro ? (
-                <button
-                  onClick={toggle}
-                  aria-label="Toggle dark mode"
-                  title={theme === "dark" ? "Switch to light edition" : "Switch to dark edition"}
-                  className="p-1 rounded hover:bg-foreground/10 transition-colors"
-                >
-                  {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                </button>
-              ) : user ? (
-                <Link
-                  to="/pricing"
-                  aria-label="Dark mode is a Pro feature"
-                  title="Dark mode — Pro only"
-                  className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                </Link>
-              ) : null}
               {user ? (
                 <>
                   {isPro && <span className="small-caps text-[10px] text-accent-red">Pro</span>}
