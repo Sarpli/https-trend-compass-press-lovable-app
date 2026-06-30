@@ -21,6 +21,7 @@ import { ThemeProvider } from "../lib/theme";
 import { SettingsProvider } from "../lib/settings";
 import { Toaster } from "../components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { recordPerf } from "@/lib/perf";
 
 function NotFoundComponent() {
   return (
@@ -176,6 +177,36 @@ function RootComponent() {
       }
     } catch {}
   }, [queryClient]);
+
+  // Render & long-task tracing. Reports any main-thread long tasks (>50ms)
+  // and the first contentful paint per session as lightweight samples.
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof PerformanceObserver === "undefined") return;
+    let lto: PerformanceObserver | null = null;
+    let pto: PerformanceObserver | null = null;
+    try {
+      lto = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          recordPerf({ metric: "client.longtask", surface: "client", duration_ms: entry.duration });
+        }
+      });
+      lto.observe({ type: "longtask", buffered: true });
+    } catch {}
+    try {
+      pto = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.name === "first-contentful-paint") {
+            recordPerf({ metric: "client.fcp", surface: "client", duration_ms: entry.startTime });
+          }
+        }
+      });
+      pto.observe({ type: "paint", buffered: true });
+    } catch {}
+    return () => {
+      try { lto?.disconnect(); } catch {}
+      try { pto?.disconnect(); } catch {}
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

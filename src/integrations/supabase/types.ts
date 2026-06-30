@@ -167,6 +167,78 @@ export type Database = {
           },
         ]
       }
+      perf_alerts: {
+        Row: {
+          baseline_p95_ms: number
+          created_at: string
+          current_p95_ms: number
+          details: Json | null
+          id: number
+          metric: string
+          sample_count: number
+          surface: string
+          threshold_pct: number
+        }
+        Insert: {
+          baseline_p95_ms: number
+          created_at?: string
+          current_p95_ms: number
+          details?: Json | null
+          id?: number
+          metric: string
+          sample_count: number
+          surface: string
+          threshold_pct: number
+        }
+        Update: {
+          baseline_p95_ms?: number
+          created_at?: string
+          current_p95_ms?: number
+          details?: Json | null
+          id?: number
+          metric?: string
+          sample_count?: number
+          surface?: string
+          threshold_pct?: number
+        }
+        Relationships: []
+      }
+      perf_events: {
+        Row: {
+          created_at: string
+          duration_ms: number
+          id: number
+          metadata: Json | null
+          metric: string
+          query_count: number | null
+          route: string | null
+          surface: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms: number
+          id?: number
+          metadata?: Json | null
+          metric: string
+          query_count?: number | null
+          route?: string | null
+          surface: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number
+          id?: number
+          metadata?: Json | null
+          metric?: string
+          query_count?: number | null
+          route?: string | null
+          surface?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pro_upgrade_intent_alerts: {
         Row: {
           baseline: number
@@ -647,6 +719,17 @@ export type Database = {
       }
     }
     Functions: {
+      check_perf_regressions: {
+        Args: never
+        Returns: {
+          alerted: boolean
+          baseline_p95: number
+          current_p95: number
+          metric: string
+          pct_regression: number
+          surface: string
+        }[]
+      }
       detect_pro_upgrade_intent_anomalies: { Args: never; Returns: number }
       get_category_vote_history: {
         Args: {
@@ -700,6 +783,7 @@ export type Database = {
         Args: { _local_date: string; _trend_id: string }
         Returns: number
       }
+      prune_perf_events: { Args: never; Returns: undefined }
       prune_pro_upgrade_intents: { Args: never; Returns: number }
     }
     Enums: {

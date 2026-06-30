@@ -20,6 +20,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
 import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
+import { Route as ApiPublicHooksPerfRegressionCheckRouteImport } from './routes/api/public/hooks/perf-regression-check'
 
 const VoteRoute = VoteRouteImport.update({
   id: '/vote',
@@ -76,6 +77,12 @@ const AdminTrendsRoute = AdminTrendsRouteImport.update({
   path: '/admin/trends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksPerfRegressionCheckRoute =
+  ApiPublicHooksPerfRegressionCheckRouteImport.update({
+    id: '/api/public/hooks/perf-regression-check',
+    path: '/api/public/hooks/perf-regression-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesByTo {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +125,7 @@ export interface FileRoutesById {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/api/public/hooks/perf-regression-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/api/public/hooks/perf-regression-check'
   id:
     | '__root__'
     | '/'
@@ -157,6 +169,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/api/public/hooks/perf-regression-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +184,7 @@ export interface RootRouteChildren {
   VoteRoute: typeof VoteRoute
   AdminTrendsRoute: typeof AdminTrendsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
+  ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTrendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/perf-regression-check': {
+      id: '/api/public/hooks/perf-regression-check'
+      path: '/api/public/hooks/perf-regression-check'
+      fullPath: '/api/public/hooks/perf-regression-check'
+      preLoaderRoute: typeof ApiPublicHooksPerfRegressionCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +288,8 @@ const rootRouteChildren: RootRouteChildren = {
   VoteRoute: VoteRoute,
   AdminTrendsRoute: AdminTrendsRoute,
   TrendsSlugRoute: TrendsSlugRoute,
+  ApiPublicHooksPerfRegressionCheckRoute:
+    ApiPublicHooksPerfRegressionCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
