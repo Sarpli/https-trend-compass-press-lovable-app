@@ -18,6 +18,10 @@ export const trendHistoryQueryOptions = (trendId: string) =>
   queryOptions({
     queryKey: ["trend-history", trendId],
     queryFn: () => fetchTrendPriceHistory(trendId),
+    // The RPC is deterministic per-day, so a fresh window (~1min) is plenty
+    // and avoids re-firing the fetch on every remount / focus.
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchInterval: 10000,
   });
 

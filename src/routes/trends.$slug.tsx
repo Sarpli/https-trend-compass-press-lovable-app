@@ -14,7 +14,7 @@ import { LearnedBanner } from "@/components/LearnedBanner";
 import { getTrendHistoryStats, trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export const Route = createFileRoute("/trends/$slug")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const { data, error } = await supabase
       .from("trends")
       .select("*")
@@ -22,6 +22,10 @@ export const Route = createFileRoute("/trends/$slug")({
       .maybeSingle();
     if (error) throw error;
     if (!data) throw notFound();
+    // Kick off the price-history fetch in parallel (don't await) so it lands
+    // by the time <PriceChart /> / <LivePriceBar /> mount instead of only
+    // starting after first render.
+    void context.queryClient.prefetchQuery(trendHistoryQueryOptions(data.id));
     return { trend: data };
   },
   head: ({ loaderData }) => ({
