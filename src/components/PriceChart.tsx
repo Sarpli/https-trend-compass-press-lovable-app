@@ -2,8 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
-
-type Point = { t: string; price: number };
+import { type TrendHistoryPoint, trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -14,15 +13,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     yPx: number;
     containerW: number;
   } | null>(null);
-  const { data } = useQuery({
-    queryKey: ["trend-history", trendId],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_trend_price_history", { _trend_id: trendId });
-      if (error) throw error;
-      return ((data ?? []) as Point[]).map((p) => ({ t: p.t, price: Number(p.price) }));
-    },
-    refetchInterval: 10000,
-  });
+  const { data } = useQuery(trendHistoryQueryOptions(trendId));
 
   // Live updates: refetch this trend's price history whenever any vote lands.
   useEffect(() => {
@@ -47,7 +38,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   // Use the RPC series exactly as returned — the walk already fluctuates
   // every month, and adding a synthetic "now" tick would draw a straight
   // segment from the last month to today.
-  const series: Point[] = (data ?? []).map((p) => ({ t: p.t, price: Number(p.price) }));
+  const series: TrendHistoryPoint[] = (data ?? []).map((p) => ({ t: p.t, price: Number(p.price) }));
   if (series.length === 0) {
     const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
     series.push({ t: startOfYear, price: Number(basePrice) });
