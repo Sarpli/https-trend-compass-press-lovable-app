@@ -66,6 +66,13 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     onMutate: async (direction: "up" | "down") => {
       beginVoteMutation();
       const weight = isAnnual ? 2 : 1;
+      // Signal own vote direction to live UI (LivePriceBar) so its tick
+      // moves the correct way instead of randomly.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("trend-vote", { detail: { trendId, direction, weight } }),
+        );
+      }
       // Compute the net-vote delta this click produces.
       let delta = 0;
       if (myVote) {
