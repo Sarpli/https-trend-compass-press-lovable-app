@@ -22,14 +22,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    // Register listener BEFORE reading the stored session so we don't miss
+    // the INITIAL_SESSION event or a token refresh that fires during startup.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!mounted) return;
       setSession(s);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
       setLoading(false);
     });
-    return () => subscription.unsubscribe();
+
+    // Read the persisted session from storage. On cold start / PWA resume this
+    // rehydrates the user immediately so they stay logged in across refreshes
+    // and app restarts.
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      setLoading(false);
+    }).catch(() => {
+      if (mounted) setLoading(false);
+    });
+
+    // When the tab/app becomes visible again (e.g. reopening a PWA), ask
+    // Supabase to refresh the access token if needed so the session doesn't
+    // silently expire while the app was backgrounded.
+    const onVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        supabase.auth.getSession().then(({ data }) => {
+          if (mounted) setSession(data.session);
+        }).catch(() => {});
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisible);
+    }
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisible);
+      }
+    };
   }, []);
 
   const userId = session?.user?.id;
