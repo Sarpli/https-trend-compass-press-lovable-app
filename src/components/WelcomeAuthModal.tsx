@@ -4,6 +4,7 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export function WelcomeAuthModal() {
   const { user, loading } = useAuth();
@@ -159,6 +160,14 @@ export function WelcomeAuthModal() {
             {mode === "signup" ? "Already a subscriber? Sign in" : "New here? Create an account"}
           </button>
         </div>
+
+        <p className="text-[10px] text-center text-muted-foreground mt-4 leading-relaxed">
+          By continuing you agree to our{" "}
+          <Link to="/terms" className="underline">Terms &amp; Community Guidelines</Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="underline">Privacy Policy</Link>.
+          Trenslate has zero tolerance for objectionable content or abusive users.
+        </p>
       </div>
     </div>
   );
