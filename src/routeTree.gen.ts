@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VoteRouteImport } from './routes/vote'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecommendedRouteImport } from './routes/recommended'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -35,6 +36,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const RecommendedRoute = RecommendedRouteImport.update({
   id: '/recommended',
   path: '/recommended',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
   '/vote': typeof VoteRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
   '/vote': typeof VoteRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/glossary': typeof GlossaryRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
   '/vote': typeof VoteRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/glossary'
     | '/pricing'
+    | '/privacy'
     | '/recommended'
     | '/settings'
     | '/vote'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/glossary'
     | '/pricing'
+    | '/privacy'
     | '/recommended'
     | '/settings'
     | '/vote'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/glossary'
     | '/pricing'
+    | '/privacy'
     | '/recommended'
     | '/settings'
     | '/vote'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GlossaryRoute: typeof GlossaryRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   RecommendedRoute: typeof RecommendedRoute
   SettingsRoute: typeof SettingsRoute
   VoteRoute: typeof VoteRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/recommended'
       fullPath: '/recommended'
       preLoaderRoute: typeof RecommendedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GlossaryRoute: GlossaryRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   RecommendedRoute: RecommendedRoute,
   SettingsRoute: SettingsRoute,
   VoteRoute: VoteRoute,
