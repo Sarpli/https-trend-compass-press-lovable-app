@@ -31,6 +31,7 @@ export function LivePriceBar({
   // vote_events doesn't carry direction, so the sign is random — that's what
   // produces the two-way wiggle when many people vote at once.
   const pendingRef = useRef<number[]>([]);
+  const lastOwnVoteRef = useRef<number>(0);
   useEffect(() => {
     let raf = 0;
     const flush = () => {
@@ -43,12 +44,27 @@ export function LivePriceBar({
         return next.length > MAX_TICKS ? next.slice(next.length - MAX_TICKS) : next;
       });
     };
+    const onOwnVote = (e: Event) => {
+      const detail = (e as CustomEvent).detail as
+        | { trendId: string; direction: "up" | "down"; weight: number }
+        | undefined;
+      if (!detail || detail.trendId !== trendId) return;
+      lastOwnVoteRef.current = Date.now();
+      const sign = detail.direction === "up" ? 1 : -1;
+      const magnitude = 0.9 + Math.random() * 0.6;
+      pendingRef.current.push(sign * magnitude * Math.max(1, detail.weight));
+      if (!raf) raf = requestAnimationFrame(flush);
+    };
+    window.addEventListener("trend-vote", onOwnVote);
     const ch = supabase
       .channel(`live-bar-${trendId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
         () => {
+          // Skip realtime echo of our own just-cast vote so its random sign
+          // can't cancel or reverse the directional tick above.
+          if (Date.now() - lastOwnVoteRef.current < 1500) return;
           const sign = Math.random() < 0.5 ? -1 : 1;
           const magnitude = 0.4 + Math.random() * 1.2;
           pendingRef.current.push(sign * magnitude);
@@ -58,6 +74,7 @@ export function LivePriceBar({
       .subscribe();
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("trend-vote", onOwnVote);
       supabase.removeChannel(ch);
     };
   }, [trendId]);
