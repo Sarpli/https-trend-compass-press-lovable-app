@@ -97,7 +97,8 @@ function TrendPage() {
   });
 
   const examples = (trend.examples as string[]) ?? [];
-  const price = getTrendHistoryStats(historySeries, Number(trend.base_price)).last;
+  const historyStats = getTrendHistoryStats(historySeries, Number(trend.base_price));
+  const price = historyStats.last;
 
   return (
     <article className="max-w-4xl mx-auto px-6 py-8">
@@ -129,8 +130,10 @@ function TrendPage() {
           <div className="display text-2xl font-bold tabular-nums">{price.toFixed(0)}</div>
         </div>
         <div>
-          <div className="small-caps text-xs text-muted-foreground">Source</div>
-          <div className="display text-2xl font-bold tabular-nums">History</div>
+          <div className="small-caps text-xs text-muted-foreground">24h move</div>
+          <div className={`display text-2xl font-bold tabular-nums ${historyStats.dayPct >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
+            {historyStats.dayPct >= 0 ? "+" : ""}{historyStats.day.toFixed(0)} · {historyStats.dayPct >= 0 ? "+" : ""}{historyStats.dayPct.toFixed(2)}%
+          </div>
         </div>
         <div className="ml-auto">
           <button
