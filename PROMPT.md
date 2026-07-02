@@ -1,6 +1,6 @@
-# Rebuild prompt for Trenslate
+# Trenslate — full rebuild prompt
 
-Copy everything between the `===` fences into Claude. It captures every feature, table, RPC, gating rule, and design token currently in the app, targeting the same stack (TanStack Start v1 + Tailwind v4 + Supabase + Lovable AI).
+Paste everything between the `===` fences into Claude to rebuild Trenslate 1:1.
 
 ===
 
@@ -176,7 +176,3 @@ Seed ~60 trends across categories (slang, aesthetic, meme, subculture, phrase). 
 ---
 
 Build all of the above in one pass. When a decision isn't specified, follow the WSJ + iOS Liquid Glass aesthetic and prefer server-side enforcement over client-side. Ship migrations, seed data, tests, and README together.
-
-===
-
-That's the prompt. Approve to write it to `PROMPT.md` in the repo, or tell me what to adjust.
