@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { type TrendHistoryPoint, trendHistoryQueryOptions } from "@/lib/trend-history";
@@ -20,7 +20,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
 
   useEffect(() => setLivePoints([]), [trendId]);
 
-  const appendLivePoint = (netDelta: number) => {
+  const appendLivePoint = useCallback((netDelta: number) => {
     if (!Number.isFinite(netDelta) || netDelta === 0) return;
     setLivePoints((prev) => {
       const base = data && data.length > 0
@@ -37,7 +37,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
         { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + netDelta },
       ].slice(-40);
     });
-  };
+  }, [basePrice, data]);
 
   // Live updates: append a diagonal tick on each incoming vote so the chart
   // draws sideways-plus-vertical (not a straight vertical spike). Periodically
@@ -76,7 +76,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
       window.removeEventListener(TREND_VOTE_IMPACT_EVENT, onOwnVote);
       supabase.removeChannel(ch);
     };
-  }, [trendId, qc, data, basePrice]);
+  }, [trendId, qc, appendLivePoint]);
 
   // Use the RPC series exactly as returned — the walk already fluctuates
   // every month, and adding a synthetic "now" tick would draw a straight

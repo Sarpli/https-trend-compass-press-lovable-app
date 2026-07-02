@@ -31,7 +31,7 @@ export function LivePriceBar({
 }) {
   const qc = useQueryClient();
   const { date: localDate } = useLocalDateKey();
-  const { data } = useQuery(trendHistoryQueryOptions(trendId));
+  const { data, isFetched } = useQuery(trendHistoryQueryOptions(trendId));
   const dayStartIso = useMemo(() => new Date(`${localDate}T00:00:00`).toISOString(), [localDate]);
 
   const liveQueryKey = useMemo(
@@ -66,8 +66,9 @@ export function LivePriceBar({
   const [dailyOpen, setDailyOpen] = useState<number | null>(null);
   useEffect(() => setDailyOpen(null), [trendId, localDate]);
   useEffect(() => {
+    if (!isFetched) return;
     setDailyOpen((prev) => prev ?? baselineFromHistory);
-  }, [baselineFromHistory]);
+  }, [baselineFromHistory, isFetched]);
   const baseline = dailyOpen ?? baselineFromHistory;
 
   // Ephemeral signed impacts make the section respond instantly while the
