@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export function LivePriceBar({
@@ -12,6 +15,44 @@ export function LivePriceBar({
   basePrice: number;
 }) {
   const { data } = useQuery(trendHistoryQueryOptions(trendId));
+  const qc = useQueryClient();
+
+  // Live fluctuations from every viewer's vote: append a small tick to the
+  // shared price-history cache each time a vote_event lands for this trend.
+  // vote_events doesn't carry direction, so we pick a random ± sign so the
+  // series wiggles both ways when many people are voting at once.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`live-bar-${trendId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
+        () => {
+          runOrDeferRealtime(`live-bar:${trendId}`, () => {
+            const key = ["trend-history", trendId] as const;
+            const prev = qc.getQueryData<Array<{ t: string; price: number }>>(key);
+            if (!prev || prev.length === 0) return;
+            const last = prev[prev.length - 1];
+            const lastT = new Date(last.t).getTime();
+            const prevT =
+              prev.length > 1
+                ? new Date(prev[prev.length - 2].t).getTime()
+                : lastT - 24 * 60 * 60 * 1000;
+            const stride = Math.max(60_000, lastT - prevT);
+            const sign = Math.random() < 0.5 ? -1 : 1;
+            const magnitude = 0.5 + Math.random() * 1.5;
+            qc.setQueryData(key, [
+              ...prev,
+              { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + sign * magnitude },
+            ]);
+          });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [trendId, qc]);
 
   // Pulse the live dot every couple seconds.
   const [pulse, setPulse] = useState(true);
