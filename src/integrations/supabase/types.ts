@@ -515,6 +515,78 @@ export type Database = {
         }
         Relationships: []
       }
+      synthetic_pulse_history: {
+        Row: {
+          created_at: string
+          id: number
+          synth_score: number
+          trend_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          synth_score: number
+          trend_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          synth_score?: number
+          trend_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "synthetic_pulse_history_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "synthetic_pulse_history_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      synthetic_pulses: {
+        Row: {
+          last_tick_at: string
+          synth_score: number
+          trend_id: string
+          updated_at: string
+        }
+        Insert: {
+          last_tick_at?: string
+          synth_score?: number
+          trend_id: string
+          updated_at?: string
+        }
+        Update: {
+          last_tick_at?: string
+          synth_score?: number
+          trend_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "synthetic_pulses_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: true
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "synthetic_pulses_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: true
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trend_popularity: {
         Row: {
           created_at: string
@@ -785,6 +857,8 @@ export type Database = {
       }
       prune_perf_events: { Args: never; Returns: undefined }
       prune_pro_upgrade_intents: { Args: never; Returns: number }
+      prune_synthetic_pulse_history: { Args: never; Returns: number }
+      tick_synthetic_pulses: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
