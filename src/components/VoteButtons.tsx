@@ -84,11 +84,9 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       const lbKey = ["leaderboard", category, periodKey] as const;
       const myKey = ["myvote", trendId, category, periodKey, user?.id] as const;
       const scoreKey = ["trend-score", trendId] as const;
-      const historyKey = ["trend-history", trendId] as const;
       await qc.cancelQueries({ queryKey: lbKey });
       await qc.cancelQueries({ queryKey: myKey });
       await qc.cancelQueries({ queryKey: scoreKey });
-      await qc.cancelQueries({ queryKey: historyKey });
       const prevTicker = qc.getQueryData<Array<{ trend_id: string; price: number; net_votes: number }>>(["ticker"]);
       qc.setQueryData(["ticker"], (old: typeof prevTicker) => {
         if (!old) return old;
@@ -130,35 +128,13 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
         });
       }
 
-      // Push a live tick onto the price-history series so LivePriceBar
-      // (and the chart) move up/down immediately when the user votes.
-      const prevHistory = qc.getQueryData<Array<{ t: string; price: number }>>(historyKey);
-      if (prevHistory && prevHistory.length) {
-        const last = prevHistory[prevHistory.length - 1];
-        const nextPrice = Number(last.price) + delta;
-        // Space the new tick one "segment" past the previous point so the
-        // chart draws a diagonal move instead of a vertical spike. Fall back
-        // to a day if we can't infer a stride.
-        const lastT = new Date(last.t).getTime();
-        const prevT =
-          prevHistory.length > 1
-            ? new Date(prevHistory[prevHistory.length - 2].t).getTime()
-            : lastT - 24 * 60 * 60 * 1000;
-        const stride = Math.max(60_000, lastT - prevT);
-        qc.setQueryData(historyKey, [
-          ...prevHistory,
-          { t: new Date(lastT + stride).toISOString(), price: nextPrice },
-        ]);
-      }
-
-      return { prevTicker, prevLb, prevMy, prevScore, prevHistory, lbKey, myKey, scoreKey, historyKey };
+      return { prevTicker, prevLb, prevMy, prevScore, lbKey, myKey, scoreKey };
     },
     onError: (e: Error, _vars, ctx) => {
       if (ctx?.prevTicker) qc.setQueryData(["ticker"], ctx.prevTicker);
       if (ctx?.lbKey) qc.setQueryData(ctx.lbKey, ctx.prevLb);
       if (ctx?.myKey) qc.setQueryData(ctx.myKey, ctx.prevMy);
       if (ctx?.scoreKey && ctx.prevScore !== undefined) qc.setQueryData(ctx.scoreKey, ctx.prevScore);
-      if (ctx?.historyKey && ctx.prevHistory !== undefined) qc.setQueryData(ctx.historyKey, ctx.prevHistory);
       const raw = e.message || "";
       if (raw.includes("PRO_REQUIRED")) {
         toast.error("Pro required to vote on Year & All-Time", {

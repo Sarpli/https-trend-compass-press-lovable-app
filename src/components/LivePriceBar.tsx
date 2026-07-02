@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { trendHistoryQueryOptions } from "@/lib/trend-history";
+
+const MAX_TICKS = 40;
 
 export function LivePriceBar({
   trendId,
@@ -15,44 +15,52 @@ export function LivePriceBar({
   basePrice: number;
 }) {
   const { data } = useQuery(trendHistoryQueryOptions(trendId));
-  const qc = useQueryClient();
 
-  // Live fluctuations from every viewer's vote: append a small tick to the
-  // shared price-history cache each time a vote_event lands for this trend.
-  // vote_events doesn't carry direction, so we pick a random ± sign so the
-  // series wiggles both ways when many people are voting at once.
+  // Baseline price = last historical point from the RPC, or basePrice.
+  const baseline = useMemo(() => {
+    const series = data ?? [];
+    return series.length ? Number(series[series.length - 1].price) : Number(basePrice);
+  }, [data, basePrice]);
+
+  // Local live ticks, bounded. Each entry is a small +/- delta appended when
+  // a vote_event arrives for this trend. Reset when trend changes.
+  const [ticks, setTicks] = useState<number[]>([]);
+  useEffect(() => setTicks([]), [trendId]);
+
+  // Realtime: every vote (own or others') pushes a small random-signed tick.
+  // vote_events doesn't carry direction, so the sign is random — that's what
+  // produces the two-way wiggle when many people vote at once.
+  const pendingRef = useRef<number[]>([]);
   useEffect(() => {
+    let raf = 0;
+    const flush = () => {
+      raf = 0;
+      if (!pendingRef.current.length) return;
+      const drained = pendingRef.current;
+      pendingRef.current = [];
+      setTicks((prev) => {
+        const next = [...prev, ...drained];
+        return next.length > MAX_TICKS ? next.slice(next.length - MAX_TICKS) : next;
+      });
+    };
     const ch = supabase
       .channel(`live-bar-${trendId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
         () => {
-          runOrDeferRealtime(`live-bar:${trendId}`, () => {
-            const key = ["trend-history", trendId] as const;
-            const prev = qc.getQueryData<Array<{ t: string; price: number }>>(key);
-            if (!prev || prev.length === 0) return;
-            const last = prev[prev.length - 1];
-            const lastT = new Date(last.t).getTime();
-            const prevT =
-              prev.length > 1
-                ? new Date(prev[prev.length - 2].t).getTime()
-                : lastT - 24 * 60 * 60 * 1000;
-            const stride = Math.max(60_000, lastT - prevT);
-            const sign = Math.random() < 0.5 ? -1 : 1;
-            const magnitude = 0.5 + Math.random() * 1.5;
-            qc.setQueryData(key, [
-              ...prev,
-              { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + sign * magnitude },
-            ]);
-          });
+          const sign = Math.random() < 0.5 ? -1 : 1;
+          const magnitude = 0.4 + Math.random() * 1.2;
+          pendingRef.current.push(sign * magnitude);
+          if (!raf) raf = requestAnimationFrame(flush);
         },
       )
       .subscribe();
     return () => {
+      if (raf) cancelAnimationFrame(raf);
       supabase.removeChannel(ch);
     };
-  }, [trendId, qc]);
+  }, [trendId]);
 
   // Pulse the live dot every couple seconds.
   const [pulse, setPulse] = useState(true);
@@ -61,36 +69,36 @@ export function LivePriceBar({
     return () => clearInterval(id);
   }, []);
 
-  const fullSeries = data ?? [];
-  // Only show today's data (last 24 hours).
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  const todaySeries = fullSeries.filter((p) => new Date(p.t).getTime() >= cutoff);
-  const series = todaySeries.length > 1 ? todaySeries : fullSeries.slice(-2);
-  const fallback = Number(basePrice);
-  const last = series[series.length - 1]?.price ?? fallback;
-  const open = series[0]?.price ?? fallback;
-  const day = last - open;
-  const dayPct = open ? (day / open) * 100 : 0;
-  const high = series.length ? Math.max(...series.map((p) => p.price)) : last;
-  const low = series.length ? Math.min(...series.map((p) => p.price)) : last;
-  const dayUp = dayPct >= 0;
+  // Build the live series: baseline, then baseline + cumulative tick sums.
+  const liveSeries = useMemo(() => {
+    const out: number[] = [baseline];
+    let running = baseline;
+    for (const t of ticks) {
+      running += t;
+      out.push(running);
+    }
+    return out;
+  }, [baseline, ticks]);
 
-  const tail = series;
+  const last = liveSeries[liveSeries.length - 1];
+  const open = liveSeries[0];
+  const change = last - open;
+  const changePct = open ? (change / open) * 100 : 0;
+  const up = change >= 0;
+  const high = Math.max(...liveSeries);
+  const low = Math.min(...liveSeries);
+
   const w = 120;
   const h = 28;
-  const xs = tail.map((_, i) => i);
-  const ys = tail.map((p) => p.price);
-  const yMin = ys.length ? Math.min(...ys) : open;
-  const yMax = ys.length ? Math.max(...ys) : open;
-  const yRange = yMax - yMin || 1;
-  const path = tail
-    .map((p, i) => {
-      const x = (i / Math.max(1, xs.length - 1)) * w;
-      const y = h - ((p.price - yMin) / yRange) * h;
+  const yRange = high - low || 1;
+  const path = liveSeries
+    .map((price, i) => {
+      const x = (i / Math.max(1, liveSeries.length - 1)) * w;
+      const y = h - ((price - low) / yRange) * h;
       return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(" ");
-  const stroke = dayUp ? "var(--ticker-up)" : "var(--ticker-down)";
+  const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
 
   return (
     <div className="glass glass-sheen border border-ink/25 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
@@ -116,15 +124,15 @@ export function LivePriceBar({
         <span className="display text-2xl font-black">{last.toFixed(2)}</span>
         <span
           className={`ui text-xs font-semibold ${
-            dayUp ? "text-ticker-up" : "text-ticker-down"
+            up ? "text-ticker-up" : "text-ticker-down"
           }`}
         >
-          {dayUp ? "▲" : "▼"} {Math.abs(day).toFixed(2)} ({dayUp ? "+" : ""}
-          {dayPct.toFixed(2)}%)
+          {up ? "▲" : "▼"} {Math.abs(change).toFixed(2)} ({up ? "+" : ""}
+          {changePct.toFixed(2)}%)
         </span>
       </div>
 
-      {tail.length > 1 && (
+      {liveSeries.length > 1 && (
         <svg
           viewBox={`0 0 ${w} ${h}`}
           width={w}
@@ -144,7 +152,7 @@ export function LivePriceBar({
       )}
 
       <div className="ml-auto ui small-caps text-[10px] text-muted-foreground tabular-nums">
-        Day range{" "}
+        Live range{" "}
         <span className="font-semibold text-foreground">
           {low.toFixed(2)} – {high.toFixed(2)}
         </span>
