@@ -56,11 +56,19 @@ export function LivePriceBar({
     refetchOnWindowFocus: true,
   });
 
-  // Baseline price = last historical point from the RPC, or basePrice.
-  const baseline = useMemo(() => {
+  // Daily open = the first historical price this component sees for the local
+  // day. Keep it locked so later chart/realtime refetches don't move the goal
+  // posts; traction starts at exactly 0.00% each day.
+  const baselineFromHistory = useMemo(() => {
     const series = data ?? [];
     return series.length ? Number(series[series.length - 1].price) : Number(basePrice);
   }, [data, basePrice]);
+  const [dailyOpen, setDailyOpen] = useState<number | null>(null);
+  useEffect(() => setDailyOpen(null), [trendId, localDate]);
+  useEffect(() => {
+    setDailyOpen((prev) => prev ?? baselineFromHistory);
+  }, [baselineFromHistory]);
+  const baseline = dailyOpen ?? baselineFromHistory;
 
   // Ephemeral signed impacts make the section respond instantly while the
   // backend event stream catches up. They expire quickly so the persisted daily
