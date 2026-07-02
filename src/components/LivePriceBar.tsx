@@ -17,6 +17,7 @@ type VoteEventRow = {
 type PendingImpact = {
   id: string;
   netDelta: number;
+  createdAt: number;
 };
 
 export function LivePriceBar({
@@ -41,8 +42,7 @@ export function LivePriceBar({
   const { data: dailyEvents } = useQuery({
     queryKey: liveQueryKey,
     queryFn: async () => {
-      const { data: rows, error } = await supabase
-        .from("vote_events")
+      const { data: rows, error } = await (supabase.from("vote_events") as any)
         .select("id,created_at,net_delta,event_type")
         .eq("trend_id", trendId)
         .gte("created_at", dayStartIso)
@@ -70,8 +70,9 @@ export function LivePriceBar({
   const lastOwnVoteRef = useRef<number>(0);
   const pushPendingImpact = useCallback((netDelta: number) => {
     if (!Number.isFinite(netDelta) || netDelta === 0) return;
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setPendingImpacts((prev) => [...prev, { id, netDelta }]);
+    const createdAt = Date.now();
+    const id = `${createdAt}-${Math.random().toString(36).slice(2)}`;
+    setPendingImpacts((prev) => [...prev, { id, netDelta, createdAt }]);
     const timer = window.setTimeout(() => {
       setPendingImpacts((prev) => prev.filter((impact) => impact.id !== id));
       timersRef.current.delete(id);
@@ -127,10 +128,25 @@ export function LivePriceBar({
   }, []);
 
   const dailyImpacts = useMemo(() => {
-    const persisted = (dailyEvents ?? [])
-      .map((row) => parseNetDelta(row.net_delta))
-      .filter((netDelta) => netDelta !== 0);
-    return [...persisted, ...pendingImpacts.map((impact) => impact.netDelta)];
+    const persistedRows = dailyEvents ?? [];
+    const persisted = persistedRows
+      .map((row) => ({ id: row.id, at: new Date(row.created_at).getTime(), netDelta: parseNetDelta(row.net_delta) }))
+      .filter((row) => row.netDelta !== 0);
+    const consumed = new Set<number>();
+    const stillPending = pendingImpacts.filter((impact) => {
+      const match = persisted.find(
+        (row) =>
+          !consumed.has(row.id) &&
+          row.netDelta === impact.netDelta &&
+          row.at >= impact.createdAt - 1000,
+      );
+      if (match) {
+        consumed.add(match.id);
+        return false;
+      }
+      return true;
+    });
+    return [...persisted.map((row) => row.netDelta), ...stillPending.map((impact) => impact.netDelta)];
   }, [dailyEvents, pendingImpacts]);
 
   // At local midnight this starts at zero traction. Only signed vote impacts
