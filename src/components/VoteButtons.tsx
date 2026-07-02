@@ -136,9 +136,18 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       if (prevHistory && prevHistory.length) {
         const last = prevHistory[prevHistory.length - 1];
         const nextPrice = Number(last.price) + delta;
+        // Space the new tick one "segment" past the previous point so the
+        // chart draws a diagonal move instead of a vertical spike. Fall back
+        // to a day if we can't infer a stride.
+        const lastT = new Date(last.t).getTime();
+        const prevT =
+          prevHistory.length > 1
+            ? new Date(prevHistory[prevHistory.length - 2].t).getTime()
+            : lastT - 24 * 60 * 60 * 1000;
+        const stride = Math.max(60_000, lastT - prevT);
         qc.setQueryData(historyKey, [
           ...prevHistory,
-          { t: new Date().toISOString(), price: nextPrice },
+          { t: new Date(lastT + stride).toISOString(), price: nextPrice },
         ]);
       }
 
