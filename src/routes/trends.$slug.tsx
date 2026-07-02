@@ -11,6 +11,7 @@ import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
 import { LivePriceBar } from "@/components/LivePriceBar";
 import { LearnedBanner } from "@/components/LearnedBanner";
+import { ReportTrend } from "@/components/ReportTrend";
 import { getTrendHistoryStats, trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export const Route = createFileRoute("/trends/$slug")({
@@ -204,6 +205,9 @@ function TrendPage() {
         </aside>
       </div>
       <LearnedBanner trendId={trend.id} />
+      <div className="rule-top mt-8 pt-4 flex justify-end">
+        <ReportTrend trendId={trend.id} />
+      </div>
     </article>
   );
 }

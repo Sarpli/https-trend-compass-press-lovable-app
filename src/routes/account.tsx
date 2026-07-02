@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
+import { DeleteAccount } from "@/components/DeleteAccount";
 
 
 
@@ -136,6 +137,8 @@ function Account() {
       </div>
 
       <ChangePassword />
+
+      <DeleteAccount />
     </div>
   );
 }
