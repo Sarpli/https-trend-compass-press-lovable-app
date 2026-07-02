@@ -697,19 +697,34 @@ export type Database = {
       }
       vote_events: {
         Row: {
+          category: Database["public"]["Enums"]["vote_category"] | null
           created_at: string
+          direction: Database["public"]["Enums"]["vote_direction"] | null
+          event_type: string
           id: number
+          net_delta: number
           trend_id: string
+          weight: number
         }
         Insert: {
+          category?: Database["public"]["Enums"]["vote_category"] | null
           created_at?: string
+          direction?: Database["public"]["Enums"]["vote_direction"] | null
+          event_type?: string
           id?: number
+          net_delta?: number
           trend_id: string
+          weight?: number
         }
         Update: {
+          category?: Database["public"]["Enums"]["vote_category"] | null
           created_at?: string
+          direction?: Database["public"]["Enums"]["vote_direction"] | null
+          event_type?: string
           id?: number
+          net_delta?: number
           trend_id?: string
+          weight?: number
         }
         Relationships: [
           {

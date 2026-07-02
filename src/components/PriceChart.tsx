@@ -1,12 +1,15 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { type TrendHistoryPoint, trendHistoryQueryOptions } from "@/lib/trend-history";
+import { parseNetDelta, TREND_VOTE_IMPACT_EVENT, type TrendVoteImpactDetail } from "@/lib/live-vote";
 
 export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const qc = useQueryClient();
+  const [livePoints, setLivePoints] = useState<TrendHistoryPoint[]>([]);
+  const lastOwnVoteRef = useRef<number>(0);
   const [hover, setHover] = useState<{
     idx: number;
     xPx: number;
@@ -15,31 +18,50 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   } | null>(null);
   const { data } = useQuery(trendHistoryQueryOptions(trendId));
 
+  useEffect(() => setLivePoints([]), [trendId]);
+
+  const appendLivePoint = useCallback((netDelta: number) => {
+    if (!Number.isFinite(netDelta) || netDelta === 0) return;
+    setLivePoints((prev) => {
+      const base = data && data.length > 0
+        ? data.map((p) => ({ t: p.t, price: Number(p.price) }))
+        : [{ t: new Date(new Date().getFullYear(), 0, 1).toISOString(), price: Number(basePrice) }];
+      const source = prev.length > 0 ? [...base, ...prev] : base;
+      const last = source[source.length - 1];
+      const before = source.length > 1 ? source[source.length - 2] : null;
+      const lastT = new Date(last.t).getTime();
+      const prevT = before ? new Date(before.t).getTime() : lastT - 60_000;
+      const stride = Math.max(60_000, Math.min(14 * 24 * 60 * 60_000, lastT - prevT));
+      return [
+        ...prev,
+        { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + netDelta },
+      ].slice(-40);
+    });
+  }, [basePrice, data]);
+
   // Live updates: append a diagonal tick on each incoming vote so the chart
   // draws sideways-plus-vertical (not a straight vertical spike). Periodically
   // reconcile against the server so the local walk doesn't drift forever.
   useEffect(() => {
     let sinceReconcile = 0;
+    const onOwnVote = (e: Event) => {
+      const detail = (e as CustomEvent<TrendVoteImpactDetail>).detail;
+      if (!detail || detail.trendId !== trendId) return;
+      lastOwnVoteRef.current = Date.now();
+      appendLivePoint(detail.netDelta);
+    };
+    window.addEventListener(TREND_VOTE_IMPACT_EVENT, onOwnVote);
     const ch = supabase
       .channel(`price-chart-${trendId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
-        () => {
+        (payload) => {
+          const netDelta = parseNetDelta((payload.new as { net_delta?: unknown }).net_delta);
+          if (netDelta === 0) return;
+          if (Date.now() - lastOwnVoteRef.current < 1500) return;
           runOrDeferRealtime(`price-chart:${trendId}`, () => {
-            qc.setQueryData<TrendHistoryPoint[]>(["trend-history", trendId], (prev) => {
-              if (!prev || prev.length === 0) return prev;
-              const last = prev[prev.length - 1];
-              const lastT = new Date(last.t).getTime();
-              const prevT = prev.length > 1 ? new Date(prev[prev.length - 2].t).getTime() : lastT - 60_000;
-              const stride = Math.max(60_000, lastT - prevT);
-              const sign = Math.random() < 0.5 ? -1 : 1;
-              const magnitude = 0.4 + Math.random() * 1.2;
-              return [
-                ...prev,
-                { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + sign * magnitude },
-              ];
-            });
+            appendLivePoint(netDelta);
             sinceReconcile += 1;
             if (sinceReconcile >= 12) {
               sinceReconcile = 0;
@@ -50,8 +72,11 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
         },
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [trendId, qc]);
+    return () => {
+      window.removeEventListener(TREND_VOTE_IMPACT_EVENT, onOwnVote);
+      supabase.removeChannel(ch);
+    };
+  }, [trendId, qc, appendLivePoint]);
 
   // Use the RPC series exactly as returned — the walk already fluctuates
   // every month, and adding a synthetic "now" tick would draw a straight
@@ -61,7 +86,7 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
     const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
     series.push({ t: startOfYear, price: Number(basePrice) });
   }
-  const points = series;
+  const points = [...series, ...livePoints];
 
   const w = 800;
   const h = 220;
