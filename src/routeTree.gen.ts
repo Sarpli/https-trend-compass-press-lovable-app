@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VoteRouteImport } from './routes/vote'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RecommendedRouteImport } from './routes/recommended'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -26,6 +27,11 @@ import { Route as ApiPublicHooksPerfRegressionCheckRouteImport } from './routes/
 const VoteRoute = VoteRouteImport.update({
   id: '/vote',
   path: '/vote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/recommended': typeof RecommendedRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/recommended'
     | '/settings'
+    | '/terms'
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/recommended'
     | '/settings'
+    | '/terms'
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/recommended'
     | '/settings'
+    | '/terms'
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RecommendedRoute: typeof RecommendedRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
   VoteRoute: typeof VoteRoute
   AdminTrendsRoute: typeof AdminTrendsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/vote'
       fullPath: '/vote'
       preLoaderRoute: typeof VoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RecommendedRoute: RecommendedRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
   VoteRoute: VoteRoute,
   AdminTrendsRoute: AdminTrendsRoute,
   TrendsSlugRoute: TrendsSlugRoute,
