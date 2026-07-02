@@ -626,6 +626,54 @@ export type Database = {
           },
         ]
       }
+      trend_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string | null
+          resolved_at: string | null
+          status: string
+          trend_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          status?: string
+          trend_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          status?: string
+          trend_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trend_reports_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trend_scores"
+            referencedColumns: ["trend_id"]
+          },
+          {
+            foreignKeyName: "trend_reports_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "trends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trends: {
         Row: {
           base_price: number
