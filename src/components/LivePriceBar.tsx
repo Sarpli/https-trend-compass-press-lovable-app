@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
-type Point = { t: string; price: number };
+import { getTrendHistoryStats, trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export function LivePriceBar({
   trendId,
@@ -13,20 +11,7 @@ export function LivePriceBar({
   term: string;
   basePrice: number;
 }) {
-  const { data } = useQuery({
-    queryKey: ["trend-history", trendId],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_trend_price_history", {
-        _trend_id: trendId,
-      });
-      if (error) throw error;
-      return ((data ?? []) as Point[]).map((p) => ({
-        t: p.t,
-        price: Number(p.price),
-      }));
-    },
-    refetchInterval: 10000,
-  });
+  const { data } = useQuery(trendHistoryQueryOptions(trendId));
 
   // Pulse the live dot every couple seconds.
   const [pulse, setPulse] = useState(true);
@@ -36,22 +21,7 @@ export function LivePriceBar({
   }, []);
 
   const series = data ?? [];
-  const last = series[series.length - 1]?.price ?? Number(basePrice);
-  const open = series.length > 0 ? series[0].price : Number(basePrice);
-  // Live delta is derived from the SAME price history the chart renders,
-  // so the badge can never disagree with the chart below it. We compare
-  // the last point to the point ~24h earlier (or the previous point if
-  // the series is coarser than that).
-  const nowMs = series.length ? new Date(series[series.length - 1].t).getTime() : Date.now();
-  const prior = series.length
-    ? [...series].reverse().find((p) => new Date(p.t).getTime() <= nowMs - 24 * 60 * 60 * 1000)
-        ?? series[Math.max(0, series.length - 2)]
-    : null;
-  const priorPrice = prior ? prior.price : last;
-  const dayPct = priorPrice > 0 ? ((last - priorPrice) / priorPrice) * 100 : 0;
-  const day = last * (dayPct / 100);
-  const total = last - open;
-  const totalPct = open ? (total / open) * 100 : 0;
+  const { last, open, day, dayPct, total, totalPct } = getTrendHistoryStats(series, Number(basePrice));
   const dayUp = dayPct >= 0;
   const up = dayUp;
 

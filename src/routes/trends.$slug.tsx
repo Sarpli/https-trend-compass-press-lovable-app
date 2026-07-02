@@ -11,6 +11,7 @@ import { TrendCover } from "@/components/TrendCover";
 import { PriceChart } from "@/components/PriceChart";
 import { LivePriceBar } from "@/components/LivePriceBar";
 import { LearnedBanner } from "@/components/LearnedBanner";
+import { getTrendHistoryStats, trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export const Route = createFileRoute("/trends/$slug")({
   loader: async ({ params }) => {
@@ -65,13 +66,7 @@ function TrendPage() {
   const qc = useQueryClient();
   const router = useRouter();
 
-  const { data: score } = useQuery({
-    queryKey: ["trend-score", trend.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("trend_scores").select("*").eq("trend_id", trend.id).maybeSingle();
-      return data;
-    },
-  });
+  const { data: historySeries } = useQuery(trendHistoryQueryOptions(trend.id));
 
   const { data: saved } = useQuery({
     queryKey: ["saved", trend.id, user?.id],
@@ -102,8 +97,8 @@ function TrendPage() {
   });
 
   const examples = (trend.examples as string[]) ?? [];
-  const price = Number(score?.price ?? trend.base_price);
-  const net = Number(score?.net_votes ?? 0);
+  const historyStats = getTrendHistoryStats(historySeries, Number(trend.base_price));
+  const price = historyStats.last;
 
   return (
     <article className="max-w-4xl mx-auto px-6 py-8">
@@ -135,9 +130,9 @@ function TrendPage() {
           <div className="display text-2xl font-bold tabular-nums">{price.toFixed(0)}</div>
         </div>
         <div>
-          <div className="small-caps text-xs text-muted-foreground">Net votes</div>
-          <div className={`display text-2xl font-bold tabular-nums ${net >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
-            {net > 0 ? "+" : ""}{net}
+          <div className="small-caps text-xs text-muted-foreground">24h move</div>
+          <div className={`display text-2xl font-bold tabular-nums ${historyStats.dayPct >= 0 ? "text-ticker-up" : "text-ticker-down"}`}>
+            {historyStats.dayPct >= 0 ? "+" : ""}{historyStats.day.toFixed(0)} · {historyStats.dayPct >= 0 ? "+" : ""}{historyStats.dayPct.toFixed(2)}%
           </div>
         </div>
         <div className="ml-auto">
