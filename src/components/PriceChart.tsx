@@ -15,19 +15,37 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
   } | null>(null);
   const { data } = useQuery(trendHistoryQueryOptions(trendId));
 
-  // Live updates: refetch this trend's price history whenever any vote lands.
+  // Live updates: append a diagonal tick on each incoming vote so the chart
+  // draws sideways-plus-vertical (not a straight vertical spike). Periodically
+  // reconcile against the server so the local walk doesn't drift forever.
   useEffect(() => {
+    let sinceReconcile = 0;
     const ch = supabase
       .channel(`price-chart-${trendId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
         () => {
-          // If a local vote is mid-flight, defer the realtime refetch so it
-          // can't overwrite the optimistic score before the mutation settles.
           runOrDeferRealtime(`price-chart:${trendId}`, () => {
-            qc.invalidateQueries({ queryKey: ["trend-history", trendId] });
-            qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+            qc.setQueryData<TrendHistoryPoint[]>(["trend-history", trendId], (prev) => {
+              if (!prev || prev.length === 0) return prev;
+              const last = prev[prev.length - 1];
+              const lastT = new Date(last.t).getTime();
+              const prevT = prev.length > 1 ? new Date(prev[prev.length - 2].t).getTime() : lastT - 60_000;
+              const stride = Math.max(60_000, lastT - prevT);
+              const sign = Math.random() < 0.5 ? -1 : 1;
+              const magnitude = 0.4 + Math.random() * 1.2;
+              return [
+                ...prev,
+                { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + sign * magnitude },
+              ];
+            });
+            sinceReconcile += 1;
+            if (sinceReconcile >= 12) {
+              sinceReconcile = 0;
+              qc.invalidateQueries({ queryKey: ["trend-history", trendId] });
+              qc.invalidateQueries({ queryKey: ["trend-score", trendId] });
+            }
           });
         },
       )

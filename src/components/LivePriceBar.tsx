@@ -88,18 +88,6 @@ export function LivePriceBar({
   const high = Math.max(...liveSeries);
   const low = Math.min(...liveSeries);
 
-  const w = 120;
-  const h = 28;
-  const yRange = high - low || 1;
-  const path = liveSeries
-    .map((price, i) => {
-      const x = (i / Math.max(1, liveSeries.length - 1)) * w;
-      const y = h - ((price - low) / yRange) * h;
-      return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
-  const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
-
   return (
     <div className="glass glass-sheen border border-ink/25 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
       <div className="flex items-center gap-2 min-w-0">
@@ -131,25 +119,6 @@ export function LivePriceBar({
           {changePct.toFixed(2)}%)
         </span>
       </div>
-
-      {liveSeries.length > 1 && (
-        <svg
-          viewBox={`0 0 ${w} ${h}`}
-          width={w}
-          height={h}
-          className="shrink-0"
-          preserveAspectRatio="none"
-        >
-          <path
-            d={path}
-            fill="none"
-            stroke={stroke}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        </svg>
-      )}
 
       <div className="ml-auto ui small-caps text-[10px] text-muted-foreground tabular-nums">
         Live range{" "}
