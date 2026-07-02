@@ -49,7 +49,7 @@ export function LivePriceBar({
       return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(" ");
-  const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
+  const stroke = dayUp ? "var(--ticker-up)" : "var(--ticker-down)";
 
   return (
     <div className="glass glass-sheen border border-ink/25 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
