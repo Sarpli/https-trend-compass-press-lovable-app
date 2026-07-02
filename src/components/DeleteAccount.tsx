@@ -23,7 +23,7 @@ export function DeleteAccount() {
     }
     setBusy(true);
     try {
-      await run({ data: {} });
+      await run();
       await supabase.auth.signOut();
       toast.success("Account deleted.");
       navigate({ to: "/", replace: true });
