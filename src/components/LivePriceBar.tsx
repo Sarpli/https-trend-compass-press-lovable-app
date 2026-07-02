@@ -103,15 +103,9 @@ export function LivePriceBar({
       )}
 
       <div className="ml-auto ui small-caps text-[10px] text-muted-foreground tabular-nums">
-        Since launch{" "}
-        <span
-          className={`font-semibold ${
-            up ? "text-ticker-up" : "text-ticker-down"
-          }`}
-        >
-          {up ? "+" : ""}
-          {total.toFixed(2)} ({up ? "+" : ""}
-          {totalPct.toFixed(2)}%)
+        Day range{" "}
+        <span className="font-semibold text-foreground">
+          {low.toFixed(2)} – {high.toFixed(2)}
         </span>
       </div>
     </div>
