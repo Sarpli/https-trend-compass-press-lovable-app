@@ -22,7 +22,10 @@ export const trendHistoryQueryOptions = (trendId: string) =>
     // and avoids re-firing the fetch on every remount / focus.
     staleTime: 60_000,
     gcTime: 5 * 60_000,
-    refetchInterval: 10000,
+    // RPC is deterministic per-day; live vote deltas are merged into the
+    // cache optimistically by VoteButtons. Frequent refetches would wipe
+    // those live ticks, so we let the query stay warm until stale.
+    refetchOnWindowFocus: false,
   });
 
 export function getTrendHistoryStats(series: TrendHistoryPoint[] | undefined, basePrice: number) {
