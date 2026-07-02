@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { getTrendHistoryStats, trendHistoryQueryOptions } from "@/lib/trend-history";
+import { trendHistoryQueryOptions } from "@/lib/trend-history";
 
 export function LivePriceBar({
   trendId,
@@ -20,13 +20,21 @@ export function LivePriceBar({
     return () => clearInterval(id);
   }, []);
 
-  const series = data ?? [];
-  const { last, open, day, dayPct, total, totalPct } = getTrendHistoryStats(series, Number(basePrice));
+  const fullSeries = data ?? [];
+  // Only show today's data (last 24 hours).
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const todaySeries = fullSeries.filter((p) => new Date(p.t).getTime() >= cutoff);
+  const series = todaySeries.length > 1 ? todaySeries : fullSeries.slice(-2);
+  const fallback = Number(basePrice);
+  const last = series[series.length - 1]?.price ?? fallback;
+  const open = series[0]?.price ?? fallback;
+  const day = last - open;
+  const dayPct = open ? (day / open) * 100 : 0;
+  const high = series.length ? Math.max(...series.map((p) => p.price)) : last;
+  const low = series.length ? Math.min(...series.map((p) => p.price)) : last;
   const dayUp = dayPct >= 0;
-  const up = dayUp;
 
-  // Mini sparkline (last 24 points or all of them).
-  const tail = series.slice(-24);
+  const tail = series;
   const w = 120;
   const h = 28;
   const xs = tail.map((_, i) => i);
@@ -41,7 +49,7 @@ export function LivePriceBar({
       return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(" ");
-  const stroke = up ? "var(--ticker-up)" : "var(--ticker-down)";
+  const stroke = dayUp ? "var(--ticker-up)" : "var(--ticker-down)";
 
   return (
     <div className="glass glass-sheen border border-ink/25 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
@@ -95,15 +103,9 @@ export function LivePriceBar({
       )}
 
       <div className="ml-auto ui small-caps text-[10px] text-muted-foreground tabular-nums">
-        Since launch{" "}
-        <span
-          className={`font-semibold ${
-            up ? "text-ticker-up" : "text-ticker-down"
-          }`}
-        >
-          {up ? "+" : ""}
-          {total.toFixed(2)} ({up ? "+" : ""}
-          {totalPct.toFixed(2)}%)
+        Day range{" "}
+        <span className="font-semibold text-foreground">
+          {low.toFixed(2)} – {high.toFixed(2)}
         </span>
       </div>
     </div>
