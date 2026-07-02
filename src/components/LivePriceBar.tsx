@@ -1,9 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { trendHistoryQueryOptions } from "@/lib/trend-history";
+import { useLocalDateKey } from "@/lib/use-local-date";
+import { LIVE_PCT_PER_NET_VOTE, parseNetDelta, TREND_VOTE_IMPACT_EVENT, type TrendVoteImpactDetail } from "@/lib/live-vote";
 
-const MAX_TICKS = 40;
+const PENDING_IMPACT_MS = 2500;
+
+type VoteEventRow = {
+  id: number;
+  created_at: string;
+  net_delta: number | string | null;
+  event_type: string | null;
+};
+
+type PendingImpact = {
+  id: string;
+  netDelta: number;
+};
 
 export function LivePriceBar({
   trendId,
@@ -14,7 +28,33 @@ export function LivePriceBar({
   term: string;
   basePrice: number;
 }) {
+  const qc = useQueryClient();
+  const { date: localDate } = useLocalDateKey();
   const { data } = useQuery(trendHistoryQueryOptions(trendId));
+  const dayStartIso = useMemo(() => new Date(`${localDate}T00:00:00`).toISOString(), [localDate]);
+
+  const liveQueryKey = useMemo(
+    () => ["live-traction", trendId, localDate] as const,
+    [trendId, localDate],
+  );
+
+  const { data: dailyEvents } = useQuery({
+    queryKey: liveQueryKey,
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("vote_events")
+        .select("id,created_at,net_delta,event_type")
+        .eq("trend_id", trendId)
+        .gte("created_at", dayStartIso)
+        .order("created_at", { ascending: true })
+        .limit(1000);
+      if (error) throw error;
+      return (rows ?? []) as VoteEventRow[];
+    },
+    staleTime: 5_000,
+    gcTime: 60_000,
+    refetchOnWindowFocus: true,
+  });
 
   // Baseline price = last historical point from the RPC, or basePrice.
   const baseline = useMemo(() => {
@@ -22,62 +62,62 @@ export function LivePriceBar({
     return series.length ? Number(series[series.length - 1].price) : Number(basePrice);
   }, [data, basePrice]);
 
-  // Local live ticks, bounded. Each entry is a small +/- delta appended when
-  // a vote_event arrives for this trend. Reset when trend changes.
-  const [ticks, setTicks] = useState<number[]>([]);
-  useEffect(() => setTicks([]), [trendId]);
-
-  // Realtime: every vote (own or others') pushes a small random-signed tick.
-  // vote_events doesn't carry direction, so the sign is random — that's what
-  // produces the two-way wiggle when many people vote at once.
-  const pendingRef = useRef<number[]>([]);
+  // Ephemeral signed impacts make the section respond instantly while the
+  // backend event stream catches up. They expire quickly so the persisted daily
+  // vote feed becomes the source of truth after navigation/refetch.
+  const [pendingImpacts, setPendingImpacts] = useState<PendingImpact[]>([]);
+  const timersRef = useRef<Map<string, number>>(new Map());
   const lastOwnVoteRef = useRef<number>(0);
+  const pushPendingImpact = useCallback((netDelta: number) => {
+    if (!Number.isFinite(netDelta) || netDelta === 0) return;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setPendingImpacts((prev) => [...prev, { id, netDelta }]);
+    const timer = window.setTimeout(() => {
+      setPendingImpacts((prev) => prev.filter((impact) => impact.id !== id));
+      timersRef.current.delete(id);
+    }, PENDING_IMPACT_MS);
+    timersRef.current.set(id, timer);
+  }, []);
+
   useEffect(() => {
-    let raf = 0;
-    const flush = () => {
-      raf = 0;
-      if (!pendingRef.current.length) return;
-      const drained = pendingRef.current;
-      pendingRef.current = [];
-      setTicks((prev) => {
-        const next = [...prev, ...drained];
-        return next.length > MAX_TICKS ? next.slice(next.length - MAX_TICKS) : next;
-      });
-    };
+    setPendingImpacts([]);
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current.clear();
+  }, [trendId, localDate]);
+
+  useEffect(() => () => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current.clear();
+  }, []);
+
+  useEffect(() => {
     const onOwnVote = (e: Event) => {
-      const detail = (e as CustomEvent).detail as
-        | { trendId: string; direction: "up" | "down"; weight: number }
-        | undefined;
+      const detail = (e as CustomEvent<TrendVoteImpactDetail>).detail;
       if (!detail || detail.trendId !== trendId) return;
       lastOwnVoteRef.current = Date.now();
-      const sign = detail.direction === "up" ? 1 : -1;
-      const magnitude = 0.9 + Math.random() * 0.6;
-      pendingRef.current.push(sign * magnitude * Math.max(1, detail.weight));
-      if (!raf) raf = requestAnimationFrame(flush);
+      pushPendingImpact(detail.netDelta);
+      qc.invalidateQueries({ queryKey: liveQueryKey });
     };
-    window.addEventListener("trend-vote", onOwnVote);
+    window.addEventListener(TREND_VOTE_IMPACT_EVENT, onOwnVote);
     const ch = supabase
       .channel(`live-bar-${trendId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
-        () => {
-          // Skip realtime echo of our own just-cast vote so its random sign
-          // can't cancel or reverse the directional tick above.
-          if (Date.now() - lastOwnVoteRef.current < 1500) return;
-          const sign = Math.random() < 0.5 ? -1 : 1;
-          const magnitude = 0.4 + Math.random() * 1.2;
-          pendingRef.current.push(sign * magnitude);
-          if (!raf) raf = requestAnimationFrame(flush);
+        (payload) => {
+          const netDelta = parseNetDelta((payload.new as { net_delta?: unknown }).net_delta);
+          if (netDelta !== 0 && Date.now() - lastOwnVoteRef.current >= 1500) {
+            pushPendingImpact(netDelta);
+          }
+          qc.invalidateQueries({ queryKey: liveQueryKey });
         },
       )
       .subscribe();
     return () => {
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("trend-vote", onOwnVote);
+      window.removeEventListener(TREND_VOTE_IMPACT_EVENT, onOwnVote);
       supabase.removeChannel(ch);
     };
-  }, [trendId]);
+  }, [trendId, liveQueryKey, pushPendingImpact, qc]);
 
   // Pulse the live dot every couple seconds.
   const [pulse, setPulse] = useState(true);
@@ -86,24 +126,35 @@ export function LivePriceBar({
     return () => clearInterval(id);
   }, []);
 
-  // Build the live series: baseline, then baseline + cumulative tick sums.
+  const dailyImpacts = useMemo(() => {
+    const persisted = (dailyEvents ?? [])
+      .map((row) => parseNetDelta(row.net_delta))
+      .filter((netDelta) => netDelta !== 0);
+    return [...persisted, ...pendingImpacts.map((impact) => impact.netDelta)];
+  }, [dailyEvents, pendingImpacts]);
+
+  // At local midnight this starts at zero traction. Only signed vote impacts
+  // from today's event stream move it away from 0.00%.
   const liveSeries = useMemo(() => {
     const out: number[] = [baseline];
-    let running = baseline;
-    for (const t of ticks) {
-      running += t;
-      out.push(running);
+    let runningPct = 0;
+    for (const impact of dailyImpacts) {
+      runningPct += impact * LIVE_PCT_PER_NET_VOTE;
+      out.push(baseline * (1 + runningPct / 100));
     }
     return out;
-  }, [baseline, ticks]);
+  }, [baseline, dailyImpacts]);
 
   const last = liveSeries[liveSeries.length - 1];
   const open = liveSeries[0];
   const change = last - open;
   const changePct = open ? (change / open) * 100 : 0;
-  const up = change >= 0;
+  const up = change > 0;
+  const down = change < 0;
   const high = Math.max(...liveSeries);
   const low = Math.min(...liveSeries);
+  const netFlow = dailyImpacts.reduce((sum, impact) => sum + impact, 0);
+  const voteEvents = dailyImpacts.length;
 
   return (
     <div className="glass glass-sheen border border-ink/25 px-4 py-3 mb-4 flex items-center gap-4 flex-wrap">
@@ -118,7 +169,7 @@ export function LivePriceBar({
           }}
         />
         <span className="ui small-caps text-[10px] text-muted-foreground">
-          Live
+          Today live
         </span>
         <span className="display font-black tracking-tight uppercase text-sm truncate">
           {term}
@@ -129,18 +180,26 @@ export function LivePriceBar({
         <span className="display text-2xl font-black">{last.toFixed(2)}</span>
         <span
           className={`ui text-xs font-semibold ${
-            up ? "text-ticker-up" : "text-ticker-down"
+            up ? "text-ticker-up" : down ? "text-ticker-down" : "text-muted-foreground"
           }`}
         >
-          {up ? "▲" : "▼"} {Math.abs(change).toFixed(2)} ({up ? "+" : ""}
+          {up ? "▲" : down ? "▼" : "•"} {Math.abs(change).toFixed(2)} ({up ? "+" : ""}
           {changePct.toFixed(2)}%)
         </span>
       </div>
 
-      <div className="ml-auto ui small-caps text-[10px] text-muted-foreground tabular-nums">
-        Live range{" "}
-        <span className="font-semibold text-foreground">
-          {low.toFixed(2)} – {high.toFixed(2)}
+      <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 ui small-caps text-[10px] text-muted-foreground tabular-nums">
+        <span>
+          Daily flow{" "}
+          <span className={`font-semibold ${netFlow > 0 ? "text-ticker-up" : netFlow < 0 ? "text-ticker-down" : "text-foreground"}`}>
+            {netFlow > 0 ? "+" : ""}{netFlow.toFixed(0)}
+          </span>
+        </span>
+        <span>
+          Events <span className="font-semibold text-foreground">{voteEvents}</span>
+        </span>
+        <span>
+          Range <span className="font-semibold text-foreground">{low.toFixed(2)} – {high.toFixed(2)}</span>
         </span>
       </div>
     </div>

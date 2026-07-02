@@ -8,6 +8,7 @@ import { currentPeriodKey, CATEGORY_LABEL } from "@/lib/period";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 import { beginVoteMutation, endVoteMutation } from "@/lib/vote-reconcile";
+import { TREND_VOTE_IMPACT_EVENT, type TrendVoteImpactDetail } from "@/lib/live-vote";
 
 type Category = "week" | "month" | "year" | "oat";
 
@@ -34,7 +35,7 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("votes")
-        .select("id,direction")
+        .select("id,direction,weight")
         .eq("trend_id", trendId)
         .eq("category", category)
         .eq("period_key", periodKey)
@@ -66,25 +67,34 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
     onMutate: async (direction: "up" | "down") => {
       beginVoteMutation();
       const weight = isAnnual ? 2 : 1;
-      // Signal own vote direction to live UI (LivePriceBar) so its tick
-      // moves the correct way instead of randomly.
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("trend-vote", { detail: { trendId, direction, weight } }),
-        );
-      }
       // Compute the net-vote delta this click produces.
+      const previousWeight = Number(myVote?.weight ?? weight);
       let delta = 0;
+      let eventType: TrendVoteImpactDetail["eventType"] = "insert";
       if (myVote) {
         if (myVote.direction === direction) {
           // Toggling off: remove previous contribution.
-          delta = myVote.direction === "up" ? -weight : weight;
+          delta = myVote.direction === "up" ? -previousWeight : previousWeight;
+          eventType = "delete";
         } else {
-          // Flipping sides: remove old + add new.
-          delta = direction === "up" ? 2 * weight : -2 * weight;
+          // Flipping sides: remove old + add new, preserving the old stored weight.
+          const oldSigned = myVote.direction === "up" ? previousWeight : -previousWeight;
+          const newSigned = direction === "up" ? weight : -weight;
+          delta = newSigned - oldSigned;
+          eventType = "update";
         }
       } else {
         delta = direction === "up" ? weight : -weight;
+      }
+
+      // Signal the actual signed impact, not just the clicked arrow. This keeps
+      // the individual-term Live section correct for vote removal/toggles.
+      if (typeof window !== "undefined" && delta !== 0) {
+        window.dispatchEvent(
+          new CustomEvent<TrendVoteImpactDetail>(TREND_VOTE_IMPACT_EVENT, {
+            detail: { trendId, direction, weight, netDelta: delta, eventType },
+          }),
+        );
       }
 
       await qc.cancelQueries({ queryKey: ["ticker"] });
@@ -122,8 +132,8 @@ export function VoteButtons({ trendId, category, compact, wide }: Props) {
       const nextMy = myVote
         ? myVote.direction === direction
           ? null
-          : { ...myVote, direction }
-        : { id: "optimistic", direction };
+          : { ...myVote, direction, weight }
+        : { id: "optimistic", direction, weight };
       qc.setQueryData(myKey, nextMy);
 
       const prevScore = qc.getQueryData<{ price: number; net_votes: number } | undefined>(scoreKey);

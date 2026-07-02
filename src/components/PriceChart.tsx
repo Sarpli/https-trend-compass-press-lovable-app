@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { runOrDeferRealtime } from "@/lib/vote-reconcile";
 import { type TrendHistoryPoint, trendHistoryQueryOptions } from "@/lib/trend-history";
+import { parseNetDelta } from "@/lib/live-vote";
 
 export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice: number }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -25,19 +26,19 @@ export function PriceChart({ trendId, basePrice }: { trendId: string; basePrice:
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "vote_events", filter: `trend_id=eq.${trendId}` },
-        () => {
+        (payload) => {
+          const netDelta = parseNetDelta((payload.new as { net_delta?: unknown }).net_delta);
+          if (netDelta === 0) return;
           runOrDeferRealtime(`price-chart:${trendId}`, () => {
             qc.setQueryData<TrendHistoryPoint[]>(["trend-history", trendId], (prev) => {
               if (!prev || prev.length === 0) return prev;
               const last = prev[prev.length - 1];
               const lastT = new Date(last.t).getTime();
               const prevT = prev.length > 1 ? new Date(prev[prev.length - 2].t).getTime() : lastT - 60_000;
-              const stride = Math.max(60_000, lastT - prevT);
-              const sign = Math.random() < 0.5 ? -1 : 1;
-              const magnitude = 0.4 + Math.random() * 1.2;
+              const stride = Math.max(60_000, Math.min(14 * 24 * 60 * 60_000, lastT - prevT));
               return [
                 ...prev,
-                { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + sign * magnitude },
+                { t: new Date(lastT + stride).toISOString(), price: Number(last.price) + netDelta },
               ];
             });
             sinceReconcile += 1;
