@@ -383,6 +383,8 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [safety, setSafety] = useState(trend.safety_tips ?? "");
+  const [savingSafety, setSavingSafety] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const importFromUrl = useServerFn(importTrendImageFromUrl);
   const preview = value.trim() || trendImage(trend);
@@ -480,6 +482,26 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
     await save(signed.signedUrl);
   }
 
+  async function saveSafety() {
+    const next = safety.trim();
+    if (!next) {
+      toast.error("Safety tips can't be empty");
+      return;
+    }
+    setSavingSafety(true);
+    const { error } = await supabase
+      .from("trends")
+      .update({ safety_tips: next })
+      .eq("id", trend.id);
+    setSavingSafety(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Safety tips updated");
+    onSaved();
+  }
+
   return (
     <div className="grid grid-cols-[120px_1fr] gap-4 border border-ink/20 p-3 bg-background">
       <img src={preview} alt={trend.term} className="w-[120px] h-[90px] object-cover border border-ink/20" />
@@ -550,6 +572,36 @@ function Row({ trend, onSaved }: { trend: TrendRow; onSaved: () => void }) {
               Reset
             </button>
           )}
+        </div>
+        <div className="mt-2 pt-3 border-t border-ink/20 flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="text-[10px] ui small-caps text-accent-red">Safety tips · cultural & usage warnings</div>
+            {safety.trim() !== (trend.safety_tips ?? "").trim() && (
+              <button
+                type="button"
+                onClick={() => setSafety(trend.safety_tips ?? "")}
+                className="text-[10px] ui small-caps underline text-muted-foreground"
+              >
+                Revert
+              </button>
+            )}
+          </div>
+          <textarea
+            value={safety}
+            onChange={(e) => setSafety(e.target.value)}
+            rows={4}
+            placeholder="Who shouldn't say this, in what settings it lands wrong, common misuses, etc."
+            className="w-full border border-ink/40 bg-background px-2 py-1 text-xs leading-snug font-serif"
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={saveSafety}
+              disabled={savingSafety || safety.trim() === (trend.safety_tips ?? "").trim()}
+              className="bg-accent-red text-accent-foreground px-3 py-1 text-xs ui small-caps disabled:opacity-50"
+            >
+              {savingSafety ? "Saving…" : "Save safety tips"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
