@@ -7,6 +7,9 @@ import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
 import { DeleteAccount } from "@/components/DeleteAccount";
+import { createPortalSession } from "@/utils/payments.functions";
+import { getStripeEnvironment, isPaymentsConfigured } from "@/lib/stripe";
+import { useState } from "react";
 
 
 
@@ -19,6 +22,24 @@ function Account() {
   const { user, tier, isPro, isAnnual, signOut, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  const openPortal = async () => {
+    setPortalError(null);
+    setPortalLoading(true);
+    try {
+      const result = await createPortalSession({
+        data: { environment: getStripeEnvironment(), returnUrl: window.location.href },
+      });
+      if ("error" in result) throw new Error(result.error);
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setPortalError(e instanceof Error ? e.message : "Failed to open subscription portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -126,6 +147,15 @@ function Account() {
             Upgrade to Pro
           </Link>
         )}
+        {isPro && isPaymentsConfigured() && (
+          <button
+            onClick={openPortal}
+            disabled={portalLoading}
+            className="ui small-caps text-xs bg-accent-red text-accent-foreground px-4 py-2 disabled:opacity-50"
+          >
+            {portalLoading ? "Opening…" : "Manage subscription"}
+          </button>
+        )}
         {isAdmin && (
           <Link to="/admin/trends" className="ui small-caps text-xs border border-ink/40 px-4 py-2 hover:bg-ink hover:text-newsprint">
             Editor's desk
@@ -135,6 +165,9 @@ function Account() {
           Sign out
         </button>
       </div>
+      {portalError && (
+        <p className="mt-3 text-xs text-accent-red ui">{portalError}</p>
+      )}
 
       <ChangePassword />
 
