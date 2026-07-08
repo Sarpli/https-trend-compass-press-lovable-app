@@ -46,7 +46,7 @@ function AdminTrends() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trends")
-        .select("id,slug,term,category,image_url")
+        .select("id,slug,term,category,image_url,safety_tips")
         .order("term");
       if (error) throw error;
       return data ?? [];
@@ -107,7 +107,7 @@ function AdminTrends() {
   );
 }
 
-type TrendRow = { id: string; slug: string; term: string; category: string | null; image_url: string | null };
+type TrendRow = { id: string; slug: string; term: string; category: string | null; image_url: string | null; safety_tips: string };
 
 function StreakOverride() {
   const { user } = useAuth();
