@@ -1,5 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, Star } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Check, Star, X } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { isPaymentsConfigured } from "@/lib/stripe";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -36,8 +40,23 @@ const ANNUAL_BONUS = [
 ];
 
 function Pricing() {
+  const { user, isPro, tier } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
+
+  const handleSubscribe = (priceId: "pro_monthly" | "pro_annual") => {
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (!isPaymentsConfigured()) return;
+    openCheckout({ priceId });
+  };
+
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
+    <>
+      <PaymentTestModeBanner />
+      <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="text-center mb-12">
         <div className="text-xs ui small-caps text-accent-red mb-2">Subscriber Services</div>
         <h1 className="display text-5xl md:text-6xl font-black mb-3">Subscribe to Trenslate.</h1>
@@ -47,27 +66,58 @@ function Pricing() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <Tier name="Free" price="$0" period="forever" features={FREE} cta="Sign up" />
+        <Tier
+          name="Free" price="$0" period="forever" features={FREE}
+          cta={user ? "Current plan" : "Sign up"}
+          onCta={() => { if (!user) navigate({ to: "/auth" }); }}
+          disabled={!!user && tier === "free"}
+        />
         <Tier
           name="Pro Monthly" price="$4.99" period="per month" features={PRO}
-          cta="Subscribe" highlight
+          cta={tier === "pro_monthly" ? "Current plan" : "Subscribe"}
+          onCta={() => handleSubscribe("pro_monthly")}
+          disabled={tier === "pro_monthly"}
+          highlight
         />
         <Tier
           name="Pro Annual" price="$39.99" period="per year"
-          features={[...PRO, "—", ...ANNUAL_BONUS]} cta="Subscribe annually"
+          features={[...PRO, "—", ...ANNUAL_BONUS]}
+          cta={tier === "pro_annual" ? "Current plan" : "Subscribe annually"}
+          onCta={() => handleSubscribe("pro_annual")}
+          disabled={tier === "pro_annual"}
           badge="Founding voter"
         />
       </div>
 
-      <p className="text-center mt-10 text-xs text-muted-foreground ui">
-        Payments coming online shortly. <Link to="/auth" className="underline">Create an account</Link> to lock in your Pro spot.
-      </p>
-    </div>
+      {isPro && (
+        <p className="text-center mt-10 text-xs text-muted-foreground ui">
+          You're already a Pro subscriber. Manage your subscription from your{" "}
+          <Link to="/account" className="underline">account page</Link>.
+        </p>
+      )}
+      </div>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center overflow-y-auto p-4">
+          <div className="bg-newsprint w-full max-w-2xl mt-8 relative border border-ink/40">
+            <button
+              onClick={closeCheckout}
+              className="absolute top-2 right-2 z-10 p-2 hover:bg-ink/10"
+              aria-label="Close checkout"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="p-2">{checkoutElement}</div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-function Tier({ name, price, period, features, cta, highlight, badge }: {
-  name: string; price: string; period: string; features: string[]; cta: string; highlight?: boolean; badge?: string;
+function Tier({ name, price, period, features, cta, onCta, disabled, highlight, badge }: {
+  name: string; price: string; period: string; features: string[]; cta: string;
+  onCta?: () => void; disabled?: boolean; highlight?: boolean; badge?: string;
 }) {
   return (
     <div className={`border ${highlight ? "border-accent-red border-2" : "border-ink/30"} p-6 bg-card`}>
@@ -93,14 +143,15 @@ function Tier({ name, price, period, features, cta, highlight, badge }: {
             )
         ))}
       </ul>
-      <Link
-        to="/auth"
-        className={`mt-6 block text-center ui small-caps text-xs py-3 transition-colors ${
+      <button
+        onClick={onCta}
+        disabled={disabled}
+        className={`mt-6 block w-full text-center ui small-caps text-xs py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           highlight ? "bg-accent-red text-accent-foreground hover:bg-ink" : "bg-ink text-newsprint hover:bg-accent-red"
         }`}
       >
         {cta}
-      </Link>
+      </button>
     </div>
   );
 }
