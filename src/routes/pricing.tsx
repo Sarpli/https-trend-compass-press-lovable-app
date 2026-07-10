@@ -1,9 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Check, Star, X } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
-import { isPaymentsConfigured } from "@/lib/stripe";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -42,20 +39,17 @@ const ANNUAL_BONUS = [
 function Pricing() {
   const { user, isPro, tier } = useAuth();
   const navigate = useNavigate();
-  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
-  const handleSubscribe = (priceId: "pro_monthly" | "pro_annual") => {
+  const handleSubscribe = (_priceId: "pro_monthly" | "pro_annual") => {
     if (!user) {
       navigate({ to: "/auth" });
       return;
     }
-    if (!isPaymentsConfigured()) return;
-    openCheckout({ priceId });
+    // Paid subscriptions are temporarily unavailable.
   };
 
   return (
     <>
-      <PaymentTestModeBanner />
       <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="text-center mb-12">
         <div className="text-xs ui small-caps text-accent-red mb-2">Subscriber Services</div>
@@ -96,21 +90,6 @@ function Pricing() {
         </p>
       )}
       </div>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center overflow-y-auto p-4">
-          <div className="bg-newsprint w-full max-w-2xl mt-8 relative border border-ink/40">
-            <button
-              onClick={closeCheckout}
-              className="absolute top-2 right-2 z-10 p-2 hover:bg-ink/10"
-              aria-label="Close checkout"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="p-2">{checkoutElement}</div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
