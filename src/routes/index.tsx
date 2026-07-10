@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
       { title: "Trenslate — The Daily Edition of Internet Culture" },
       { name: "description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
       { property: "og:title", content: "Trenslate — The Daily Edition of Internet Culture" },
-      { property: "og:description", content: "Decode internet culture. Trade trends like stocks." },
+      { property: "og:description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
     ],
   }),
   component: Index,
