@@ -42,9 +42,9 @@ function Privacy() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Third parties</h2>
           <p>
-            Trenslate uses Supabase for authentication and database hosting, Stripe for
-            subscription billing (Pro users only), and Lovable AI for semantic archive search.
-            Each processor handles data under its own terms.
+            Trenslate uses Supabase for authentication and database hosting and
+            Lovable AI for semantic archive search. Each processor handles data
+            under its own terms.
           </p>
         </section>
 
