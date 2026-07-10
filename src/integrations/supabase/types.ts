@@ -930,6 +930,7 @@ export type Database = {
         Returns: boolean
       }
       is_annual: { Args: { _user_id: string }; Returns: boolean }
+      is_annual_self: { Args: never; Returns: boolean }
       is_pro: { Args: { _user_id: string }; Returns: boolean }
       is_pro_self: { Args: never; Returns: boolean }
       mark_trend_learned: {
