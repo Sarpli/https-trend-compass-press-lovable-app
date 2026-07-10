@@ -11,8 +11,20 @@ export const Route = createFileRoute("/api/public/hooks/perf-regression-check")(
       POST: async () => {
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!url || !key) {
+        const cronSecret = process.env.PERF_CRON_SECRET;
+        if (!url || !key || !cronSecret) {
           return new Response(JSON.stringify({ error: "missing_env" }), { status: 500 });
+        }
+        // Require a shared secret to prevent unauthenticated callers from
+        // triggering privileged RPCs and pruning.
+        const { getRequest } = await import("@tanstack/react-start/server");
+        const req = getRequest();
+        const provided =
+          req?.headers.get("x-cron-secret") ??
+          req?.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+          "";
+        if (provided.length !== cronSecret.length || provided !== cronSecret) {
+          return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
         }
         const admin = createClient<Database>(url, key, {
           auth: { persistSession: false, autoRefreshToken: false },
