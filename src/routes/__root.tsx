@@ -105,8 +105,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Trenslate" },
       { name: "twitter:title", content: "Trenslate — The Daily Edition of Internet Culture" },
       { name: "twitter:description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f311ce70-cdb4-47f0-9f2f-7a77e5d51429/id-preview-89553b41--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783647161521.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f311ce70-cdb4-47f0-9f2f-7a77e5d51429/id-preview-89553b41--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783647161521.png" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de97bef8-4908-42b7-b9a3-cf039c3fe924/id-preview-f2e9c4d5--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783903668456.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de97bef8-4908-42b7-b9a3-cf039c3fe924/id-preview-f2e9c4d5--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783903668456.png" },
     ],
     links: [
       {
