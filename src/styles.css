@@ -354,10 +354,14 @@
     letter-spacing: var(--heading-tracking);
     line-height: var(--heading-line-height);
   }
+  .dark .display.text-2xl,
+  .dark .display.text-3xl,
   .dark .display.text-4xl,
   .dark .display.text-5xl,
   .dark .display.text-6xl,
   .dark .display.text-7xl,
+  .dark .display.md\:text-2xl,
+  .dark .display.md\:text-3xl,
   .dark .display.md\:text-5xl,
   .dark .display.md\:text-6xl,
   .dark .display.md\:text-7xl {
