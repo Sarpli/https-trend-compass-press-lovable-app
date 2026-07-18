@@ -251,68 +251,65 @@
 .dark {
   --glass-edge: color-mix(in oklab, white 16%, transparent);
   --glass-edge-bottom: color-mix(in oklab, black 60%, transparent);
-  --glass-glow: color-mix(in oklab, var(--brass) 38%, transparent);
+  --glass-glow: color-mix(in oklab, var(--brass) 28%, transparent);
   --skeleton-shine: color-mix(in oklab, var(--foreground) 25%, transparent);
   /*
-   * "After Hours" — Midnight Broadsheet.
-   * Deep indigo-navy page with an ink-blue undertone, layered obsidian
-   * surfaces, soft moonlit cream ink (never harsh), warm antique brass
-   * accent, and a muted ember terracotta live indicator. Tuned for low
-   * eye strain and a cinematic, aurora-glass feel.
+   * "After Hours" — Midnight Broadsheet, refined.
+   * A cleaner, near-neutral slate palette: charcoal page, softly layered
+   * graphite surfaces, warm off-white ink, muted brass accent, and a
+   * calm sage/ember indicator pair. Low chroma across the board keeps
+   * the UI easy on the eye for long reading sessions.
    */
-  --ink: oklch(0.93 0.014 82);          /* moonlit cream */
-  --newsprint: oklch(0.155 0.022 264);  /* midnight indigo */
-  --rule: oklch(1 0 0 / 9%);            /* hair-thin white rule */
-  --ticker-up: oklch(0.84 0.17 158);    /* luminous mint */
-  --ticker-down: oklch(0.74 0.19 28);   /* ember terracotta */
-  --accent-red: oklch(0.70 0.16 30);    /* warm ember indicator */
-  --brass: oklch(0.82 0.11 82);         /* polished antique brass */
-  --background: oklch(0.135 0.024 264); /* deep midnight page */
+  --ink: oklch(0.92 0.008 85);          /* warm off-white */
+  --newsprint: oklch(0.16 0.006 260);   /* deep charcoal */
+  --rule: oklch(1 0 0 / 7%);            /* hair-thin rule */
+  --ticker-up: oklch(0.80 0.10 158);    /* muted sage */
+  --ticker-down: oklch(0.72 0.12 28);   /* muted ember */
+  --accent-red: oklch(0.68 0.11 30);    /* calm ember indicator */
+  --brass: oklch(0.80 0.07 82);         /* soft brushed brass */
+  --background: oklch(0.145 0.006 260); /* charcoal page */
   --foreground: var(--ink);
-  --card: oklch(0.19 0.022 262);        /* obsidian surface */
+  --card: oklch(0.195 0.006 260);       /* graphite surface */
   --card-foreground: var(--ink);
-  --popover: oklch(0.22 0.024 262);     /* elevated layer */
+  --popover: oklch(0.225 0.006 260);    /* elevated layer */
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--newsprint);
-  --secondary: oklch(0.22 0.022 262);
+  --secondary: oklch(0.22 0.006 260);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.205 0.02 262);
-  --muted-foreground: oklch(0.74 0.02 78);
+  --muted: oklch(0.205 0.005 260);
+  --muted-foreground: oklch(0.72 0.01 85);
   --accent: var(--brass);
-  --accent-foreground: oklch(0.15 0.022 264);
+  --accent-foreground: oklch(0.16 0.006 260);
   --destructive: var(--ticker-down);
   --destructive-foreground: oklch(0.96 0.01 80);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 11%);
-  --ring: oklch(0.82 0.11 82);
-  --chart-1: oklch(0.82 0.11 82);
-  --chart-2: oklch(0.80 0.14 158);
-  --chart-3: oklch(0.74 0.14 250);
-  --chart-4: oklch(0.77 0.15 50);
-  --chart-5: oklch(0.72 0.15 25);
-  --sidebar: oklch(0.19 0.022 262);
+  --border: oklch(1 0 0 / 7%);
+  --input: oklch(1 0 0 / 9%);
+  --ring: oklch(0.80 0.07 82);
+  --chart-1: oklch(0.80 0.07 82);
+  --chart-2: oklch(0.78 0.09 158);
+  --chart-3: oklch(0.72 0.08 250);
+  --chart-4: oklch(0.75 0.10 50);
+  --chart-5: oklch(0.70 0.10 25);
+  --sidebar: oklch(0.195 0.006 260);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--brass);
-  --sidebar-primary-foreground: oklch(0.15 0.022 264);
-  --sidebar-accent: oklch(0.24 0.024 262);
+  --sidebar-primary-foreground: oklch(0.16 0.006 260);
+  --sidebar-accent: oklch(0.235 0.006 260);
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.82 0.11 82);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.80 0.07 82);
 }
 
-/* Cinematic midnight backdrop: subtle aurora wash + vignette on the page. */
+/* Calm midnight backdrop: a whisper of warmth, no heavy aurora. */
 .dark body {
   background-image:
     radial-gradient(ellipse 80% 60% at 15% -10%,
-      color-mix(in oklab, var(--brass) 12%, transparent) 0%,
-      transparent 60%),
-    radial-gradient(ellipse 70% 55% at 95% 8%,
-      color-mix(in oklab, oklch(0.55 0.16 268) 16%, transparent) 0%,
+      color-mix(in oklab, var(--brass) 6%, transparent) 0%,
       transparent 65%),
-    radial-gradient(ellipse 90% 60% at 50% 110%,
-      color-mix(in oklab, var(--accent-red) 10%, transparent) 0%,
-      transparent 60%);
+    radial-gradient(ellipse 90% 60% at 85% 110%,
+      color-mix(in oklab, oklch(0.55 0.05 260) 10%, transparent) 0%,
+      transparent 70%);
   background-attachment: fixed;
 }
 
