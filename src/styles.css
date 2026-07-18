@@ -919,8 +919,8 @@ button[data-slot="button"]:not([data-variant="link"]) {
  * invisible on the slate glass ticker.
  */
 .dark .ticker-bar {
-  color: var(--color-foreground);
+  color: var(--color-ink);
 }
 .dark .ticker-bar .text-newsprint {
-  color: var(--color-foreground);
+  color: var(--color-ink);
 }
