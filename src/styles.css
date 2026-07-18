@@ -349,8 +349,10 @@
   }
   .dark p, .dark li, .dark blockquote {
     line-height: 1.75;
+    color: var(--color-foreground);
   }
   .dark h1, .dark h2, .dark h3, .dark h4, .dark .display {
+    color: var(--color-ink);
     font-weight: var(--heading-weight);
     letter-spacing: var(--heading-tracking);
     line-height: var(--heading-line-height);
@@ -366,6 +368,7 @@
   .dark .display.md\:text-5xl,
   .dark .display.md\:text-6xl,
   .dark .display.md\:text-7xl {
+    color: var(--color-ink);
     font-weight: var(--display-weight);
     letter-spacing: var(--display-tracking);
     line-height: var(--display-line-height);
