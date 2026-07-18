@@ -334,6 +334,37 @@
   }
   h1, h2, h3, h4, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
   .ui { font-family: var(--font-sans); }
+
+  /*
+   * After Hours typography — refined for readability and less visual noise.
+   * Heavy weights bloom on dark backgrounds; large headings step down from
+   * 900 to 700, secondary headings to 600, and body copy gets a taller
+   * line-height for easier long-form reading.
+   */
+  .dark body {
+    line-height: var(--body-line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .dark p, .dark li, .dark blockquote {
+    line-height: 1.75;
+  }
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark .display {
+    font-weight: var(--heading-weight);
+    letter-spacing: var(--heading-tracking);
+    line-height: var(--heading-line-height);
+  }
+  .dark .display.text-4xl,
+  .dark .display.text-5xl,
+  .dark .display.text-6xl,
+  .dark .display.text-7xl,
+  .dark .display.md\:text-5xl,
+  .dark .display.md\:text-6xl,
+  .dark .display.md\:text-7xl {
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    line-height: var(--display-line-height);
+  }
 }
 
 @utility rule-top { border-top: 1px solid var(--rule); }
