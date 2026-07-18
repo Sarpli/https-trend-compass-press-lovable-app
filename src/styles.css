@@ -260,15 +260,16 @@
    * calm sage/ember indicator pair. Low chroma across the board keeps
    * the UI easy on the eye for long reading sessions.
    */
-  --ink: oklch(0.92 0.008 85);          /* warm off-white */
+  --ink: oklch(0.95 0.005 85);          /* warm candle-white for high-emphasis */
+  --body-foreground: oklch(0.82 0.008 85); /* soft warm grey for body copy */
   --newsprint: oklch(0.16 0.006 260);   /* deep charcoal */
   --rule: oklch(1 0 0 / 7%);            /* hair-thin rule */
   --ticker-up: oklch(0.80 0.10 158);    /* muted sage */
   --ticker-down: oklch(0.72 0.12 28);   /* muted ember */
-  --accent-red: oklch(0.68 0.11 30);    /* calm ember indicator */
-  --brass: oklch(0.80 0.07 82);         /* soft brushed brass */
+  --accent-red: oklch(0.72 0.11 30);    /* warm ember indicator */
+  --brass: oklch(0.82 0.06 82);         /* soft brushed brass */
   --background: oklch(0.145 0.006 260); /* charcoal page */
-  --foreground: var(--ink);
+  --foreground: var(--body-foreground);
   --card: oklch(0.195 0.006 260);       /* graphite surface */
   --card-foreground: var(--ink);
   --popover: oklch(0.225 0.006 260);    /* elevated layer */
