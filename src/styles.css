@@ -373,6 +373,19 @@
     letter-spacing: var(--display-tracking);
     line-height: var(--display-line-height);
   }
+
+  /*
+   * Light-on-dark exceptions: some surfaces (e.g., the Pro card) deliberately
+   * use a paper-colored glass background even in After Hours. Preserve their
+   * dark text on light surface instead of forcing the bright ink heading color.
+   */
+  .dark .text-newsprint h1,
+  .dark .text-newsprint h2,
+  .dark .text-newsprint h3,
+  .dark .text-newsprint h4,
+  .dark .text-newsprint .display {
+    color: var(--color-newsprint);
+  }
 }
 
 @utility rule-top { border-top: 1px solid var(--rule); }
