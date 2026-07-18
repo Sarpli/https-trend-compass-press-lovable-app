@@ -468,8 +468,8 @@
   );
   animation: liquid-drift-b 36s ease-in-out infinite alternate;
 }
-.dark .liquid-ambient::before { opacity: 0.42; }
-.dark .liquid-ambient::after  { opacity: 0.32; }
+.dark .liquid-ambient::before { opacity: 0.55; }
+.dark .liquid-ambient::after  { opacity: 0.42; }
 
 @keyframes liquid-drift-a {
   0%   { transform: translate3d(0, 0, 0) scale(1); }
