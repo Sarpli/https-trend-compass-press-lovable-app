@@ -754,7 +754,9 @@ nav[data-slot="navigation-menu"] {
 }
 .dark .text-accent-red,
 .dark .text-ticker-up,
-.dark .text-ticker-down {
+.dark .text-ticker-down,
+.dark .text-brass,
+.dark .text-accent {
   text-shadow: 0 0 14px color-mix(in oklab, currentColor 35%, transparent);
 }
 
