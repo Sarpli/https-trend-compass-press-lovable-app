@@ -374,6 +374,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_hits: {
+        Row: {
+          bucket: string
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       saved_glossary: {
         Row: {
           created_at: string
@@ -883,6 +904,18 @@ export type Database = {
           surface: string
         }[]
       }
+      check_rate_limit: {
+        Args: {
+          _bucket: string
+          _key: string
+          _max: number
+          _window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          retry_after: number
+        }[]
+      }
       detect_pro_upgrade_intent_anomalies: { Args: never; Returns: number }
       get_category_vote_history: {
         Args: {
@@ -939,6 +972,7 @@ export type Database = {
       }
       prune_perf_events: { Args: never; Returns: undefined }
       prune_pro_upgrade_intents: { Args: never; Returns: number }
+      prune_rate_limit_hits: { Args: never; Returns: number }
       prune_synthetic_pulse_history: { Args: never; Returns: number }
       tick_synthetic_pulses: { Args: never; Returns: number }
     }
