@@ -22,6 +22,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
 import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
+import { Route as AuthenticatedCheckoutPriceIdRouteImport } from './routes/_authenticated/checkout.$priceId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksPerfRegressionCheckRouteImport } from './routes/api/public/hooks/perf-regression-check'
 
@@ -90,6 +91,12 @@ const AdminTrendsRoute = AdminTrendsRouteImport.update({
   path: '/admin/trends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCheckoutPriceIdRoute =
+  AuthenticatedCheckoutPriceIdRouteImport.update({
+    id: '/_authenticated/checkout/$priceId',
+    path: '/checkout/$priceId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -134,6 +142,7 @@ export interface FileRoutesByTo {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -152,6 +161,7 @@ export interface FileRoutesById {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
+  '/_authenticated/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   id:
@@ -205,6 +217,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/trends/$slug'
+    | '/_authenticated/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -223,6 +236,7 @@ export interface RootRouteChildren {
   VoteRoute: typeof VoteRoute
   AdminTrendsRoute: typeof AdminTrendsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
+  AuthenticatedCheckoutPriceIdRoute: typeof AuthenticatedCheckoutPriceIdRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -320,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTrendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/checkout/$priceId': {
+      id: '/_authenticated/checkout/$priceId'
+      path: '/checkout/$priceId'
+      fullPath: '/checkout/$priceId'
+      preLoaderRoute: typeof AuthenticatedCheckoutPriceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -351,6 +372,7 @@ const rootRouteChildren: RootRouteChildren = {
   VoteRoute: VoteRoute,
   AdminTrendsRoute: AdminTrendsRoute,
   TrendsSlugRoute: TrendsSlugRoute,
+  AuthenticatedCheckoutPriceIdRoute: AuthenticatedCheckoutPriceIdRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
     ApiPublicHooksPerfRegressionCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
