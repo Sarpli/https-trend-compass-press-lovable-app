@@ -22,6 +22,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
 import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksPerfRegressionCheckRouteImport } from './routes/api/public/hooks/perf-regression-check'
 
 const VoteRoute = VoteRouteImport.update({
@@ -89,6 +90,12 @@ const AdminTrendsRoute = AdminTrendsRouteImport.update({
   path: '/admin/trends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksPerfRegressionCheckRoute =
   ApiPublicHooksPerfRegressionCheckRouteImport.update({
     id: '/api/public/hooks/perf-regression-check',
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/admin/trends': typeof AdminTrendsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/admin/trends'
     | '/trends/$slug'
     | '/api/public/hooks/perf-regression-check'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin/trends'
     | '/trends/$slug'
     | '/api/public/hooks/perf-regression-check'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -194,6 +206,7 @@ export interface FileRouteTypes {
     | '/admin/trends'
     | '/trends/$slug'
     | '/api/public/hooks/perf-regression-check'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +224,7 @@ export interface RootRouteChildren {
   AdminTrendsRoute: typeof AdminTrendsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -306,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTrendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/perf-regression-check': {
       id: '/api/public/hooks/perf-regression-check'
       path: '/api/public/hooks/perf-regression-check'
@@ -332,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrendsSlugRoute: TrendsSlugRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
     ApiPublicHooksPerfRegressionCheckRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
