@@ -86,12 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const tier: Tier = (sub?.tier as Tier) ?? "free";
   const now = new Date();
   const endInFuture = !sub?.current_period_end || new Date(sub.current_period_end) > now;
-  const isActive =
+  const endStrictlyInFuture = !!sub?.current_period_end && new Date(sub.current_period_end) > now;
+  const isActive: boolean =
     (["active", "trialing", "past_due"].includes(sub?.status ?? "") && endInFuture) ||
-    (sub?.status === "canceled" && sub?.current_period_end && new Date(sub.current_period_end) > now);
-  const isPro = (tier === "pro_monthly" || tier === "pro_annual") && isActive;
-  const isAnnual = tier === "pro_annual" && isActive;
-  const isPastDue = sub?.status === "past_due" && isPro;
+    (sub?.status === "canceled" && endStrictlyInFuture);
+  const isPro: boolean = (tier === "pro_monthly" || tier === "pro_annual") && isActive;
+  const isAnnual: boolean = tier === "pro_annual" && isActive;
+  const isPastDue: boolean = sub?.status === "past_due" && isPro;
 
   return (
     <AuthCtx.Provider
