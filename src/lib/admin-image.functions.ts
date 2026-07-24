@@ -14,6 +14,13 @@ export const importTrendImageFromUrl = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    const { enforceRateLimit, getClientIp } = await import("./rate-limit.server");
+    // Admin-only, but still cap: 30/min per user, 60/min per IP.
+    await enforceRateLimit([
+      { bucket: "admin_image:user", key: userId, max: 30, windowSeconds: 60 },
+      { bucket: "admin_image:ip", key: getClientIp(), max: 60, windowSeconds: 60 },
+    ]);
+
     // Authorize: must be admin (RLS-safe via has_role security definer fn).
     const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
       _user_id: userId,
