@@ -16,6 +16,8 @@ import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { WelcomeAuthModal } from "../components/WelcomeAuthModal";
 import { ScrollMemory } from "../lib/scroll-memory";
+import { PastDueBanner } from "../components/PastDueBanner";
+import { ProWelcomeToast } from "../components/ProWelcomeToast";
 import { AuthProvider } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
 import { SettingsProvider } from "../lib/settings";
