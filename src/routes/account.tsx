@@ -187,15 +187,6 @@ function ManageBillingButton() {
   );
 }
 
-function _StatOriginal({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="ui small-caps text-xs text-muted-foreground">{label}</dt>
-      <dd className="display text-xl font-bold">{value}</dd>
-    </div>
-  );
-}
-
 function StreakSection({ streak, lastActive, completedToday = false }: { streak: number; lastActive?: string | null; completedToday?: boolean }) {
   const active = streak > 0;
   const bumping = useBump(streak, { bumpOnInitial: completedToday });
