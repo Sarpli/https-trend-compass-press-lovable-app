@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="mt-16 rule-top">
       <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8 text-sm">
         <div>
-          <div className="display text-2xl font-black">Trenslate</div>
+          <div className="display text-2xl font-black">Trendslated</div>
           <p className="text-muted-foreground mt-2">
             A field guide to internet culture. Read it like a newspaper, vote like a stock market.
           </p>
@@ -30,7 +30,7 @@ export function SiteFooter() {
       </div>
       <div className="rule-top">
         <div className="max-w-7xl mx-auto px-6 py-4 text-xs text-muted-foreground ui flex justify-between">
-          <span>© {new Date().getFullYear()} Trenslate</span>
+          <span>© {new Date().getFullYear()} Trendslated</span>
           <span className="small-caps">All Trends, All The Time</span>
         </div>
       </div>

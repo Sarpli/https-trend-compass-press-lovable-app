@@ -19,7 +19,7 @@ const getBuildVersion = (): string => {
 
 const getClientId = (): string => {
   try {
-    const KEY = "trenslate-client-id";
+    const KEY = "trendslated-client-id";
     let id = localStorage.getItem(KEY);
     if (!id) {
       id =
@@ -50,9 +50,9 @@ export const isChunkError = (msg: unknown): boolean => {
   );
 };
 
-const RELOAD_KEY = "trenslate-chunk-reload";
-const REPORT_PREFIX = "trenslate-chunk-reported:";
-const RETRY_PENDING_KEY = "trenslate-chunk-retry-pending";
+const RELOAD_KEY = "trendslated-chunk-reload";
+const REPORT_PREFIX = "trendslated-chunk-reported:";
+const RETRY_PENDING_KEY = "trendslated-chunk-retry-pending";
 const REPORT_TTL_MS = 10 * 60 * 1000;
 const MAX_REPORTS_PER_SESSION = 5;
 

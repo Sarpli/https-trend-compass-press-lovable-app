@@ -82,7 +82,7 @@ export function PushNotificationsToggle() {
         setEnabled(true);
         await persist({ push_enabled: true });
         try {
-          new Notification("Trenslate notifications on", {
+          new Notification("Trendslated notifications on", {
             body: "We'll remind you to keep your streak alive.",
           });
         } catch {}
@@ -124,7 +124,7 @@ export function PushNotificationsToggle() {
 
       {!supported && (
         <div className="ui text-xs text-muted-foreground border-l-2 border-ink/30 pl-3">
-          Your browser doesn't support notifications. Install Trenslate to your home screen on iOS, or use Chrome/Safari on desktop.
+          Your browser doesn't support notifications. Install Trendslated to your home screen on iOS, or use Chrome/Safari on desktop.
         </div>
       )}
       {supported && permission === "denied" && (

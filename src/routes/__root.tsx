@@ -95,15 +95,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Trenslate — The Daily Edition of Internet Culture" },
+      { title: "Trendslated — The Daily Edition of Internet Culture" },
       { name: "description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
-      { name: "author", content: "Trenslate" },
-      { property: "og:title", content: "Trenslate — The Daily Edition of Internet Culture" },
+      { name: "author", content: "Trendslated" },
+      { property: "og:title", content: "Trendslated — The Daily Edition of Internet Culture" },
       { property: "og:description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Trenslate" },
-      { name: "twitter:title", content: "Trenslate — The Daily Edition of Internet Culture" },
+      { name: "twitter:site", content: "@Trendslated" },
+      { name: "twitter:title", content: "Trendslated — The Daily Edition of Internet Culture" },
       { name: "twitter:description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de97bef8-4908-42b7-b9a3-cf039c3fe924/id-preview-f2e9c4d5--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783903668456.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de97bef8-4908-42b7-b9a3-cf039c3fe924/id-preview-f2e9c4d5--fcedb4de-7e34-4e63-b291-8b8352a0117b.lovable.app-1783903668456.png" },
@@ -147,9 +147,9 @@ function RootComponent() {
 
   useEffect(() => {
     try {
-      if (!window.sessionStorage.getItem("trenslate-intro-played")) {
+      if (!window.sessionStorage.getItem("trendslated-intro-played")) {
         setIntroPlayed(false);
-        window.sessionStorage.setItem("trenslate-intro-played", "1");
+        window.sessionStorage.setItem("trendslated-intro-played", "1");
         const t = window.setTimeout(() => setIntroPlayed(true), 1600);
         return () => window.clearTimeout(t);
       }

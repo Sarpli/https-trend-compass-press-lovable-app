@@ -58,7 +58,7 @@ export function SiteHeader() {
                 The Daily Edition of Internet Culture
               </div>
               <h1 className="display text-[2.25rem] xs:text-[2.5rem] font-black tracking-tight leading-[0.95] mt-0.5">
-                Trenslate
+                Trendslated
               </h1>
               <div className="display italic text-xs mt-0.5 text-foreground/75">
                 "Finally in the loop."
@@ -73,7 +73,7 @@ export function SiteHeader() {
             </div>
             <Link to="/" className="text-center min-w-0">
               <h1 className="display text-5xl font-black tracking-tight leading-none">
-                Trenslate
+                Trendslated
               </h1>
               <div className="text-[9px] ui small-caps mt-0.5 text-muted-foreground">
                 The Daily Edition of Internet Culture

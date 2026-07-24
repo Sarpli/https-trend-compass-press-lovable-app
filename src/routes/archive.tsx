@@ -11,7 +11,7 @@ import { LearnedFlag } from "@/components/LearnedFlag";
 import { aiSearchTrends } from "@/lib/ai-search.functions";
 
 export const Route = createFileRoute("/archive")({
-  head: () => ({ meta: [{ title: "Trend Archive — Trenslate" }] }),
+  head: () => ({ meta: [{ title: "Trend Archive — Trendslated" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   component: Archive,
 });
@@ -119,7 +119,7 @@ function Archive() {
       <div className="text-xs ui small-caps text-accent-red mb-1">The Archive</div>
       <h1 className="display text-5xl font-black mb-3">Every trend, on file.</h1>
       <p className="text-muted-foreground mb-6">
-        Search the Trenslate archive. {!isPro && user && (
+        Search the Trendslated archive. {!isPro && user && (
           <span className="ui text-xs ml-2">
             ({searchCount}/{DAILY_LIMIT} searches today — <Link to="/pricing" className="underline">go Pro</Link> for unlimited)
           </span>

@@ -13,9 +13,9 @@ import { useLocalDateKey } from "@/lib/use-local-date";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Trenslate — The Daily Edition of Internet Culture" },
+      { title: "Trendslated — The Daily Edition of Internet Culture" },
       { name: "description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
-      { property: "og:title", content: "Trenslate — The Daily Edition of Internet Culture" },
+      { property: "og:title", content: "Trendslated — The Daily Edition of Internet Culture" },
       { property: "og:description", content: "A newspaper-style field guide to slang, memes, and trends. Vote them up or down on a live cultural ticker." },
     ],
   }),
@@ -284,7 +284,7 @@ function Index() {
           <section className="glass-dark glass-sheen text-newsprint p-5 rounded-sm">
             <div className="ui small-caps text-xs text-accent-red mb-1">Subscribe</div>
             <h3 className="display text-2xl font-bold leading-tight mb-2">
-              Become a Trenslate Pro.
+              Become a Trendslated Pro.
             </h3>
             <p className="text-sm text-newsprint/80 mb-3">
               Unlimited search. Vote in Trend of the Year and All Time. Save your personal glossary.

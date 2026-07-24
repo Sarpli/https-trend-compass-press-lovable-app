@@ -1,10 +1,10 @@
-# Trenslate — full rebuild prompt
+# Trendslated — full rebuild prompt
 
-Paste everything below into another AI app generator to build a 1:1 replica of Trenslate.
+Paste everything below into another AI app generator to build a 1:1 replica of Trendslated.
 
 ---
 
-You are building a web app called **Trenslate**. It is a **cultural fluency newspaper** for internet slang, styled like the Wall Street Journal, where each slang term is traded like a stock: it has a live price, a price-history chart, and up/down votes. Free readers get limited daily searches and only week/month voting. Pro readers get unlimited search, year + all-time voting (2× vote weight on `pro_annual`), a saved glossary, After Hours dark mode, and archive access.
+You are building a web app called **Trendslated**. It is a **cultural fluency newspaper** for internet slang, styled like the Wall Street Journal, where each slang term is traded like a stock: it has a live price, a price-history chart, and up/down votes. Free readers get limited daily searches and only week/month voting. Pro readers get unlimited search, year + all-time voting (2× vote weight on `pro_annual`), a saved glossary, After Hours dark mode, and archive access.
 
 ## 1. Tech stack (non-negotiable)
 
@@ -99,7 +99,7 @@ Tables:
 
 ## 6. Routes (`src/routes/`)
 
-Root: `__root.tsx` renders masthead + `TickerBar` + `<Outlet />` + `SiteFooter`, sets Trenslate `head()` (title, description, og:*), and wires a single `supabase.auth.onAuthStateChange` listener filtered to `SIGNED_IN | SIGNED_OUT | USER_UPDATED` that calls `router.invalidate()` and (unless `SIGNED_OUT`) `queryClient.invalidateQueries()`.
+Root: `__root.tsx` renders masthead + `TickerBar` + `<Outlet />` + `SiteFooter`, sets Trendslated `head()` (title, description, og:*), and wires a single `supabase.auth.onAuthStateChange` listener filtered to `SIGNED_IN | SIGNED_OUT | USER_UPDATED` that calls `router.invalidate()` and (unless `SIGNED_OUT`) `queryClient.invalidateQueries()`.
 
 Public routes: `index.tsx`, `trends.$slug.tsx`, `vote.tsx`, `pricing.tsx`, `auth.tsx`, `glossary.tsx`, `settings.tsx`, `recommended.tsx`, `privacy.tsx`, `terms.tsx`.
 
@@ -205,7 +205,7 @@ Layout, top to bottom:
 
 ## 17. Head metadata
 
-- `__root.tsx` sets a real Trenslate title + description + og:title/og:description/og:type/twitter:card. Never the placeholders "Lovable App" or "Lovable Generated Project".
+- `__root.tsx` sets a real Trendslated title + description + og:title/og:description/og:type/twitter:card. Never the placeholders "Lovable App" or "Lovable Generated Project".
 - Every leaf route sets its own unique title + description. `og:image` ONLY on leaf routes with a meaningful hero — derive from loader data on `trends.$slug.tsx`. Never put `og:image` on `__root.tsx`.
 - Single `<h1>` per route. Semantic HTML. Responsive viewport (Vite default). Lazy-load below-the-fold images. Add JSON-LD to trend detail if practical.
 

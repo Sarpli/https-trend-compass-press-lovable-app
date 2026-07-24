@@ -10,7 +10,7 @@ import { Lock } from "lucide-react";
 export const Route = createFileRoute("/vote")({
   head: () => ({
     meta: [
-      { title: "Voting Floor — Trenslate" },
+      { title: "Voting Floor — Trendslated" },
       { name: "description", content: "Vote up or down on internet trends across four time horizons." },
     ],
   }),

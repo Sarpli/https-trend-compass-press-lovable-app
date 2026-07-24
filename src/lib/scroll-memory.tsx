@@ -15,7 +15,7 @@ export function ScrollMemory() {
       window.history.scrollRestoration = "manual";
     }
 
-    const KEY = "trenslate-scroll-memory";
+    const KEY = "trendslated-scroll-memory";
     const read = (): Record<string, number> => {
       try {
         return JSON.parse(window.sessionStorage.getItem(KEY) || "{}");
