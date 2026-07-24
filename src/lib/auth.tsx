@@ -12,6 +12,9 @@ interface AuthState {
   tier: Tier;
   isPro: boolean;
   isAnnual: boolean;
+  subStatus: string | null;
+  isPastDue: boolean;
+  proWelcomedAt: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -73,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("subscriptions")
-        .select("tier,status,current_period_end")
+        .select("tier,status,current_period_end,pro_welcomed_at")
         .eq("user_id", userId!)
         .maybeSingle();
       return data;
@@ -81,10 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const tier: Tier = (sub?.tier as Tier) ?? "free";
-  const isActive = sub?.status === "active" &&
-    (!sub?.current_period_end || new Date(sub.current_period_end) > new Date());
+  const now = new Date();
+  const endInFuture = !sub?.current_period_end || new Date(sub.current_period_end) > now;
+  const isActive =
+    (["active", "trialing", "past_due"].includes(sub?.status ?? "") && endInFuture) ||
+    (sub?.status === "canceled" && sub?.current_period_end && new Date(sub.current_period_end) > now);
   const isPro = (tier === "pro_monthly" || tier === "pro_annual") && isActive;
   const isAnnual = tier === "pro_annual" && isActive;
+  const isPastDue = sub?.status === "past_due" && isPro;
 
   return (
     <AuthCtx.Provider
@@ -95,6 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         tier,
         isPro,
         isAnnual,
+        subStatus: sub?.status ?? null,
+        isPastDue,
+        proWelcomedAt: (sub as { pro_welcomed_at?: string | null })?.pro_welcomed_at ?? null,
         signOut: async () => { await supabase.auth.signOut(); },
       }}
     >
