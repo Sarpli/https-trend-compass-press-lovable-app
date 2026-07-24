@@ -43,7 +43,7 @@ AS $function$
         CASE WHEN origin_year IS NOT NULL
              THEN make_timestamptz(origin_year, 1, 1, 0, 0, 0)
         END,
-        -- 2) Fallback: the year this trend was added to Trenslate
+        -- 2) Fallback: the year this trend was added to Trendslated
         date_trunc('year', created_at),
         -- 3) Final safety net: today (should never trigger)
         date_trunc('year', now())

@@ -5,7 +5,7 @@ Space, and assert no `/rest/v1/votes` write fires.
 
 Covers two surfaces in the same run:
 
-1. The top ticker bar (`#trenslate-ticker`) — for each ticker item that
+1. The top ticker bar (`#trendslated-ticker`) — for each ticker item that
    references a trend that appears in Year or OAT, focus it and fan out
    arrow-key / Enter / Space presses. Ticker items navigate to the trend
    page; we intercept the navigation so the gated boards stay mounted.
