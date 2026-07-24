@@ -519,6 +519,7 @@ export type Database = {
           current_period_start: string | null
           environment: string
           price_id: string | null
+          pro_welcomed_at: string | null
           status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -532,6 +533,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           price_id?: string | null
+          pro_welcomed_at?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -545,6 +547,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           price_id?: string | null
+          pro_welcomed_at?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
