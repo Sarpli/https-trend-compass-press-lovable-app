@@ -21,6 +21,7 @@ import { Route as ArchiveRouteImport } from './routes/archive'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
 import { Route as AuthenticatedCheckoutPriceIdRouteImport } from './routes/_authenticated/checkout.$priceId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -86,6 +87,11 @@ const TrendsSlugRoute = TrendsSlugRouteImport.update({
   path: '/trends/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTrendsRoute = AdminTrendsRouteImport.update({
   id: '/admin/trends',
   path: '/admin/trends',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/_authenticated/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/vote'
     | '/admin/trends'
+    | '/checkout/return'
     | '/trends/$slug'
     | '/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/vote'
     | '/admin/trends'
+    | '/checkout/return'
     | '/trends/$slug'
     | '/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/vote'
     | '/admin/trends'
+    | '/checkout/return'
     | '/trends/$slug'
     | '/_authenticated/checkout/$priceId'
     | '/api/public/hooks/perf-regression-check'
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   VoteRoute: typeof VoteRoute
   AdminTrendsRoute: typeof AdminTrendsRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
   AuthenticatedCheckoutPriceIdRoute: typeof AuthenticatedCheckoutPriceIdRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
@@ -327,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrendsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/trends': {
       id: '/admin/trends'
       path: '/admin/trends'
@@ -371,6 +391,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   VoteRoute: VoteRoute,
   AdminTrendsRoute: AdminTrendsRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   TrendsSlugRoute: TrendsSlugRoute,
   AuthenticatedCheckoutPriceIdRoute: AuthenticatedCheckoutPriceIdRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
