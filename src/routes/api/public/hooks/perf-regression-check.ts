@@ -15,10 +15,27 @@ export const Route = createFileRoute("/api/public/hooks/perf-regression-check")(
         if (!url || !key || !cronSecret) {
           return new Response(JSON.stringify({ error: "missing_env" }), { status: 500 });
         }
-        // Require a shared secret to prevent unauthenticated callers from
-        // triggering privileged RPCs and pruning.
+        // Rate-limit by IP before any auth check so unauthenticated brute-force
+        // callers can't spin the CPU trying secrets.
+        const {
+          enforceRateLimit,
+          getClientIp,
+          RateLimitError,
+          rateLimitResponse,
+        } = await import("@/lib/rate-limit.server");
         const { getRequest } = await import("@tanstack/react-start/server");
         const req = getRequest();
+        const ip = getClientIp(req);
+        try {
+          await enforceRateLimit([
+            { bucket: "perf_cron:ip", key: ip, max: 30, windowSeconds: 60 },
+          ]);
+        } catch (e) {
+          if (e instanceof RateLimitError) return rateLimitResponse(e);
+          throw e;
+        }
+        // Require a shared secret to prevent unauthenticated callers from
+        // triggering privileged RPCs and pruning.
         const provided =
           req?.headers.get("x-cron-secret") ??
           req?.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
