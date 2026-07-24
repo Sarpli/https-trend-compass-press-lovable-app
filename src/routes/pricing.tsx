@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check, Star } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/pricing")({
@@ -36,16 +37,50 @@ const ANNUAL_BONUS = [
   "Personalized year-in-trends recap",
 ];
 
+type PlanId = "pro_monthly" | "pro_annual";
+
+const PLAN_DETAILS: Record<PlanId, {
+  name: string;
+  price: string;
+  cadence: string;
+  perDay: string;
+  renewalCopy: string;
+}> = {
+  pro_monthly: {
+    name: "Pro Monthly",
+    price: "$4.99 USD",
+    cadence: "billed monthly",
+    perDay: "≈ $0.16 / day",
+    renewalCopy: "Renews automatically every month at $4.99 USD until canceled.",
+  },
+  pro_annual: {
+    name: "Pro Annual",
+    price: "$39.99 USD",
+    cadence: "billed once per year",
+    perDay: "≈ $0.11 / day · save 33% vs. monthly",
+    renewalCopy: "Renews automatically every 12 months at $39.99 USD until canceled.",
+  },
+};
+
 function Pricing() {
   const { user, isPro, tier } = useAuth();
   const navigate = useNavigate();
+  const [confirmPlan, setConfirmPlan] = useState<PlanId | null>(null);
 
-  const handleSubscribe = (_priceId: "pro_monthly" | "pro_annual") => {
+  const handleSubscribe = (planId: PlanId) => {
     if (!user) {
       navigate({ to: "/auth" });
       return;
     }
-    // Paid subscriptions are temporarily unavailable.
+    // Show the price disclosure modal before starting any checkout.
+    setConfirmPlan(planId);
+  };
+
+  const proceedToCheckout = (_planId: PlanId) => {
+    // Paid subscriptions are temporarily unavailable — checkout will be
+    // wired up when the payment provider is enabled. The disclosure step
+    // above is the mandatory pre-checkout screen once it is.
+    setConfirmPlan(null);
   };
 
   return (
@@ -90,7 +125,103 @@ function Pricing() {
         </p>
       )}
       </div>
+      {confirmPlan && (
+        <PriceDisclosureModal
+          plan={PLAN_DETAILS[confirmPlan]}
+          onCancel={() => setConfirmPlan(null)}
+          onConfirm={() => proceedToCheckout(confirmPlan)}
+        />
+      )}
     </>
+  );
+}
+
+function PriceDisclosureModal({
+  plan,
+  onCancel,
+  onConfirm,
+}: {
+  plan: (typeof PLAN_DETAILS)[PlanId];
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="price-disclosure-title"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/60 backdrop-blur-sm p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-card border border-ink/30 max-w-md w-full p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="ui small-caps text-[10px] text-accent-red mb-2">
+          Order Confirmation
+        </div>
+        <h2 id="price-disclosure-title" className="display text-2xl font-bold mb-1">
+          Confirm your subscription
+        </h2>
+        <p className="text-sm text-muted-foreground mb-5">
+          Please review before continuing to checkout.
+        </p>
+
+        <dl className="border border-ink/20 divide-y divide-ink/15 mb-4 text-sm">
+          <div className="flex justify-between p-3">
+            <dt className="ui small-caps text-[11px] text-muted-foreground">Plan</dt>
+            <dd className="font-medium">{plan.name}</dd>
+          </div>
+          <div className="flex justify-between p-3">
+            <dt className="ui small-caps text-[11px] text-muted-foreground">Amount due today</dt>
+            <dd className="font-medium">{plan.price}</dd>
+          </div>
+          <div className="flex justify-between p-3">
+            <dt className="ui small-caps text-[11px] text-muted-foreground">Billing</dt>
+            <dd className="text-right">{plan.cadence}</dd>
+          </div>
+          <div className="flex justify-between p-3">
+            <dt className="ui small-caps text-[11px] text-muted-foreground">Effective rate</dt>
+            <dd className="text-right text-muted-foreground">{plan.perDay}</dd>
+          </div>
+        </dl>
+
+        <ul className="text-xs text-muted-foreground space-y-1.5 mb-6 leading-relaxed">
+          <li>• {plan.renewalCopy}</li>
+          <li>
+            • Applicable sales tax or VAT may be added at checkout based on your billing
+            location.
+          </li>
+          <li>
+            • Cancel anytime from your{" "}
+            <Link to="/account" className="underline">account page</Link>. You keep Pro
+            access through the end of the paid period.
+          </li>
+          <li>
+            • By continuing, you agree to the{" "}
+            <Link to="/terms" className="underline">Terms</Link> and acknowledge the{" "}
+            <Link to="/privacy" className="underline">Privacy Policy</Link>.
+          </li>
+        </ul>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 ui small-caps text-xs py-3 border border-ink/40 hover:bg-ink/5 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 ui small-caps text-xs py-3 bg-accent-red text-accent-foreground hover:bg-ink transition-colors"
+          >
+            Agree & continue
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
