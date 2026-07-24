@@ -125,6 +125,7 @@ function Account() {
             Upgrade to Pro
           </Link>
         )}
+        {isPro && <ManageBillingButton />}
         {isAdmin && (
           <Link to="/admin/trends" className="ui small-caps text-xs border border-ink/40 px-4 py-2 hover:bg-ink hover:text-newsprint">
             Editor's desk
