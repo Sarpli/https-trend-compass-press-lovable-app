@@ -7,6 +7,13 @@ const Input = z.object({ query: z.string().min(1).max(200) });
 export const aiSearchTrends = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data }) => {
+    const { enforceRateLimit, getClientIp } = await import("./rate-limit.server");
+    // Unauthenticated endpoint — key by IP. 10/min, plus a slower 60/hour burst cap.
+    const ip = getClientIp();
+    await enforceRateLimit([
+      { bucket: "ai_search:ip", key: ip, max: 10, windowSeconds: 60 },
+      { bucket: "ai_search:ip:hour", key: ip, max: 60, windowSeconds: 3600 },
+    ]);
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
