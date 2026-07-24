@@ -1,4 +1,4 @@
-# Trenslate — 1-Page Build Spec
+# Trendslated — 1-Page Build Spec
 
 ## Product
 WSJ-style "cultural fluency newspaper" for internet slang. Terms trade like stocks: live prices, price-history charts, up/down votes. Free tier = limited; Pro = unlimited + extras.

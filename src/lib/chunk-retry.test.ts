@@ -83,11 +83,11 @@ describe("chunk-retry integration", () => {
     api.maybeReload(chunkErr);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
     expect(toastError).not.toHaveBeenCalled();
-    expect(sessionStorage.getItem("trenslate-chunk-reload")).toBeTruthy();
+    expect(sessionStorage.getItem("trendslated-chunk-reload")).toBeTruthy();
   });
 
   it("second chunk error in same session shows the retry toast (non-escalated)", () => {
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
     api.maybeReload(chunkErr);
     expect(reloadSpy).not.toHaveBeenCalled();
     expect(toastError).toHaveBeenCalledTimes(1);
@@ -97,20 +97,20 @@ describe("chunk-retry integration", () => {
   });
 
   it("after a pending retry that still failed, shows the escalated toast", () => {
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
-    sessionStorage.setItem("trenslate-chunk-retry-pending", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-retry-pending", "1");
     api.maybeReload(chunkErr);
     const [msg, opts] = toastError.mock.calls[0] as [string, { action: { label: string } }];
     expect(msg).toBe("Retry didn't work");
     expect(opts.action.label).toBe("Try again");
     // The pending flag is consumed so the next cycle starts non-escalated.
-    expect(sessionStorage.getItem("trenslate-chunk-retry-pending")).toBeNull();
+    expect(sessionStorage.getItem("trendslated-chunk-retry-pending")).toBeNull();
   });
 
   it("runRetry success: swaps to loading toast, fetches no-store, hard-replaces", async () => {
     await api.runRetry("toast-1");
-    expect(sessionStorage.getItem("trenslate-chunk-retry-pending")).toBe("1");
-    expect(sessionStorage.getItem("trenslate-chunk-reload")).toBeNull();
+    expect(sessionStorage.getItem("trendslated-chunk-retry-pending")).toBe("1");
+    expect(sessionStorage.getItem("trendslated-chunk-reload")).toBeNull();
     expect(toastLoading).toHaveBeenCalledWith(
       "Refreshing app…",
       expect.objectContaining({ id: "toast-1", duration: Infinity }),
@@ -148,7 +148,7 @@ describe("chunk-retry integration", () => {
 
   it("dedupes report inserts by fingerprint within the cooldown window", () => {
     api.maybeReload(chunkErr); // first → reload + 1 insert
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
     api.maybeReload(chunkErr); // second of same fingerprint → no new insert
     expect(insertMock).toHaveBeenCalledTimes(1);
   });
@@ -247,7 +247,7 @@ describe("chunk-retry report-issue button", () => {
   });
 
   it("retry toast includes a Report issue cancel button", () => {
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
     api.maybeReload(chunkErr);
     const [, opts] = toastError.mock.calls[0] as [string, { cancel: { label: string; onClick: () => void } }];
     expect(opts.cancel.label).toBe("Report issue");
@@ -256,7 +256,7 @@ describe("chunk-retry report-issue button", () => {
 
   it("submitReport inserts into chunk_error_reports with route, message, retry state", async () => {
     // Seed last-error context by going through one error cycle.
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
     api.maybeReload(chunkErr);
     fromMock.mockClear();
     insertMock.mockClear();
@@ -282,7 +282,7 @@ describe("chunk-retry report-issue button", () => {
   it("submitReport carries the current retry attempt count and last toast state", async () => {
     // Drive the toast into the offline/escalated state with attempts > 0.
     fetchSpy.mockRejectedValue(new TypeError("Failed to fetch"));
-    sessionStorage.setItem("trenslate-chunk-reload", "1");
+    sessionStorage.setItem("trendslated-chunk-reload", "1");
     api.maybeReload(chunkErr);
     await api.runRetry("toast-1"); // attempt 1 fails → retryAttempt = 1, lastToastState = "offline"
 

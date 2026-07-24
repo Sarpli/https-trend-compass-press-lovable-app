@@ -1,10 +1,10 @@
-# Trenslate — full rebuild prompt
+# Trendslated — full rebuild prompt
 
-Paste everything below into another AI app generator to build a 1:1 replica of Trenslate.
+Paste everything below into another AI app generator to build a 1:1 replica of Trendslated.
 
 ---
 
-You are building a web app called **Trenslate**. It is a **cultural fluency newspaper** for internet slang, styled like the Wall Street Journal, where each slang term is traded like a stock: it has a live price, a price-history chart, and up/down votes. Free readers get limited daily searches and only week/month voting. Pro readers get unlimited search, year + all-time voting (2× vote weight on `pro_annual`), a saved glossary, After Hours dark mode, and archive access.
+You are building a web app called **Trendslated**. It is a **cultural fluency newspaper** for internet slang, styled like the Wall Street Journal, where each slang term is traded like a stock: it has a live price, a price-history chart, and up/down votes. Free readers get limited daily searches and only week/month voting. Pro readers get unlimited search, year + all-time voting (2× vote weight on `pro_annual`), a saved glossary, After Hours dark mode, and archive access.
 
 ## 1. Tech stack (non-negotiable)
 
@@ -99,7 +99,7 @@ Tables:
 
 ## 6. Routes (`src/routes/`)
 
-Root: `__root.tsx` renders masthead + `TickerBar` + `<Outlet />` + `SiteFooter`, sets Trenslate `head()` (title, description, og:*), and wires a single `supabase.auth.onAuthStateChange` listener filtered to `SIGNED_IN | SIGNED_OUT | USER_UPDATED` that calls `router.invalidate()` and (unless `SIGNED_OUT`) `queryClient.invalidateQueries()`.
+Root: `__root.tsx` renders masthead + `TickerBar` + `<Outlet />` + `SiteFooter`, sets Trendslated `head()` (title, description, og:*), and wires a single `supabase.auth.onAuthStateChange` listener filtered to `SIGNED_IN | SIGNED_OUT | USER_UPDATED` that calls `router.invalidate()` and (unless `SIGNED_OUT`) `queryClient.invalidateQueries()`.
 
 Public routes: `index.tsx`, `trends.$slug.tsx`, `vote.tsx`, `pricing.tsx`, `auth.tsx`, `glossary.tsx`, `settings.tsx`, `recommended.tsx`, `privacy.tsx`, `terms.tsx`.
 
@@ -116,7 +116,7 @@ Root sets `defaultErrorComponent`, `defaultNotFoundComponent`, `defaultPendingCo
 Deterministic per **local calendar date** using `src/lib/use-local-date.ts` — handles DST spring-forward (skipped hour), DST fall-back (repeated hour), and Kiritimati (UTC+14) edge cases.
 
 Layout, top to bottom:
-1. **Red masthead stripe** — "TRENSLATE" wordmark centered, tagline `The paper of record for internet culture`, `Vol. I No. N` metadata, weekday + local date.
+1. **Red masthead stripe** — "TRENDSLATED" wordmark centered, tagline `The paper of record for internet culture`, `Vol. I No. N` metadata, weekday + local date.
 2. **TickerBar** — sticky horizontal marquee of all trends. Each cell: symbol · price (tabular-nums) · day % change (green up, red down). Hover pauses; touch scrubs; keyboard-focusable. Speed weighted by popularity. Subscribes to `vote_events` realtime channel and refetches `get_trend_scores` on debounce.
 3. **Trend Spotlight** — full-width cover image via `<TrendCover>` (AVIF/WebP/JPG responsive srcset, `object-cover`, dilute gradient overlay, never crops the term text). Selected by `spotlight_pins` override if present for today's local date, otherwise deterministic hash of `local_date + eligible trend ids`. Smaller on mobile.
 4. **The Daily Briefing** — 6 story cards (2×3 desktop, 1-col mobile) linking to `/trends/$slug`. Each card shows a `LearnedFlag` (🎓) if the current user has learned it.
@@ -205,7 +205,7 @@ Layout, top to bottom:
 
 ## 17. Head metadata
 
-- `__root.tsx` sets a real Trenslate title + description + og:title/og:description/og:type/twitter:card. Never the placeholders "Lovable App" or "Lovable Generated Project".
+- `__root.tsx` sets a real Trendslated title + description + og:title/og:description/og:type/twitter:card. Never the placeholders "Lovable App" or "Lovable Generated Project".
 - Every leaf route sets its own unique title + description. `og:image` ONLY on leaf routes with a meaningful hero — derive from loader data on `trends.$slug.tsx`. Never put `og:image` on `__root.tsx`.
 - Single `<h1>` per route. Semantic HTML. Responsive viewport (Vite default). Lazy-load below-the-fold images. Add JSON-LD to trend detail if practical.
 

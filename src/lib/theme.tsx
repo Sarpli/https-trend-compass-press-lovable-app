@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 type Theme = "light" | "dark";
-const KEY = "trenslate-theme";
+const KEY = "trendslated-theme";
 
 const ThemeCtx = createContext<{ theme: Theme; setTheme: (t: Theme) => void; toggle: () => void } | null>(null);
 

@@ -3,10 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Trenslate" },
-      { name: "description", content: "How Trenslate collects, uses, and protects your personal information." },
-      { property: "og:title", content: "Privacy Policy — Trenslate" },
-      { property: "og:description", content: "How Trenslate collects, uses, and protects your personal information." },
+      { title: "Privacy Policy — Trendslated" },
+      { name: "description", content: "How Trendslated collects, uses, and protects your personal information." },
+      { property: "og:title", content: "Privacy Policy — Trendslated" },
+      { property: "og:description", content: "How Trendslated collects, uses, and protects your personal information." },
     ],
   }),
   component: Privacy,
@@ -42,7 +42,7 @@ function Privacy() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Third parties</h2>
           <p>
-            Trenslate uses Supabase for authentication and database hosting and
+            Trendslated uses Supabase for authentication and database hosting and
             Lovable AI for semantic archive search. Each processor handles data
             under its own terms.
           </p>
@@ -61,7 +61,7 @@ function Privacy() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Children</h2>
           <p>
-            Trenslate is not directed to children under 13. If we learn we have collected personal
+            Trendslated is not directed to children under 13. If we learn we have collected personal
             information from a child under 13, we will delete it.
           </p>
         </section>
@@ -69,7 +69,7 @@ function Privacy() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Contact</h2>
           <p>
-            Questions about this policy: <a className="underline" href="mailto:privacy@trenslate.app">privacy@trenslate.app</a>.
+            Questions about this policy: <a className="underline" href="mailto:privacy@trendslated.app">privacy@trendslated.app</a>.
           </p>
         </section>
       </div>

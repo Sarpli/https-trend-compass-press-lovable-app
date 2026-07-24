@@ -8,8 +8,8 @@ import { PushNotificationsToggle } from "@/components/PushNotificationsToggle";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Trenslate" },
-      { name: "description", content: "App preferences for Trenslate." },
+      { title: "Settings — Trendslated" },
+      { name: "description", content: "App preferences for Trendslated." },
     ],
   }),
   component: SettingsPage,

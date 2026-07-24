@@ -11,7 +11,7 @@ import { DeleteAccount } from "@/components/DeleteAccount";
 
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "Account — Trenslate" }] }),
+  head: () => ({ meta: [{ title: "Account — Trendslated" }] }),
   component: Account,
 });
 

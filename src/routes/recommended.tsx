@@ -8,10 +8,10 @@ import { Loader2 } from "lucide-react";
 export const Route = createFileRoute("/recommended")({
   head: () => ({
     meta: [
-      { title: "Recommended terms — Trenslate" },
+      { title: "Recommended terms — Trendslated" },
       {
         name: "description",
-        content: "Hand-picked trends to learn today and start your streak on Trenslate.",
+        content: "Hand-picked trends to learn today and start your streak on Trendslated.",
       },
     ],
   }),

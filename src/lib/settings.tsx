@@ -19,7 +19,7 @@ type Ctx = Settings & {
   motionReduced: boolean;
 };
 
-const KEY = "trenslate-settings-v1";
+const KEY = "trendslated-settings-v1";
 const DEFAULTS: Settings = {
   reducedMotion: "auto",
   tickerSpeed: 1,

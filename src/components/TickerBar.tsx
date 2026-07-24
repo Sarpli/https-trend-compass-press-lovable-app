@@ -56,7 +56,7 @@ function TickerBarInner() {
   const restoredRef = useRef(false);
   const offsetRef = useRef(0);
   const pointerRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false });
-  const STORAGE_KEY = "trenslate.ticker.scrollLeft";
+  const STORAGE_KEY = "trendslated.ticker.scrollLeft";
 
   // Ensure the scrolling track is always at least 2.5× the viewport width so
   // the ticker never runs out of content and there is no empty strip on the

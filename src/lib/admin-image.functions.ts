@@ -24,7 +24,7 @@ export const importTrendImageFromUrl = createServerFn({ method: "POST" })
 
     // Fetch remote image server-side (bypasses browser CORS).
     const res = await fetch(data.url, {
-      headers: { "User-Agent": "TrenslateBot/1.0" },
+      headers: { "User-Agent": "TrendslatedBot/1.0" },
       redirect: "follow",
     });
     if (!res.ok) throw new Error(`Source returned ${res.status}`);

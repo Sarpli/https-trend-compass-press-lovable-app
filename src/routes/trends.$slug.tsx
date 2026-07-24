@@ -32,9 +32,9 @@ export const Route = createFileRoute("/trends/$slug")({
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.trend.term} — Trenslate` },
+          { title: `${loaderData.trend.term} — Trendslated` },
           { name: "description", content: loaderData.trend.plain_language },
-          { property: "og:title", content: `${loaderData.trend.term} — Trenslate` },
+          { property: "og:title", content: `${loaderData.trend.term} — Trendslated` },
           { property: "og:description", content: loaderData.trend.plain_language },
         ]
       : [],

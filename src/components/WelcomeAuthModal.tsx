@@ -51,7 +51,7 @@ export function WelcomeAuthModal() {
           },
         });
         if (error) throw error;
-        toast.success("Welcome to Trenslate.");
+        toast.success("Welcome to Trendslated.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -166,7 +166,7 @@ export function WelcomeAuthModal() {
           <Link to="/terms" className="underline">Terms &amp; Community Guidelines</Link>{" "}
           and{" "}
           <Link to="/privacy" className="underline">Privacy Policy</Link>.
-          Trenslate has zero tolerance for objectionable content or abusive users.
+          Trendslated has zero tolerance for objectionable content or abusive users.
         </p>
       </div>
     </div>

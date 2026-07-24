@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/glossary")({
-  head: () => ({ meta: [{ title: "My Glossary — Trenslate" }] }),
+  head: () => ({ meta: [{ title: "My Glossary — Trendslated" }] }),
   component: Glossary,
 });
 

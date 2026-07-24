@@ -12,7 +12,7 @@ import { importTrendImageFromUrl } from "@/lib/admin-image.functions";
 import { todayLocalISO, deviceTimezone } from "@/lib/timezone";
 
 export const Route = createFileRoute("/admin/trends")({
-  head: () => ({ meta: [{ title: "Editor — Trenslate" }] }),
+  head: () => ({ meta: [{ title: "Editor — Trendslated" }] }),
   component: AdminTrends,
 });
 

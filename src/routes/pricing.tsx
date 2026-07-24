@@ -5,8 +5,8 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Subscribe — Trenslate" },
-      { name: "description", content: "Trenslate Pro: unlimited search, full voting, personal glossary, early access." },
+      { title: "Subscribe — Trendslated" },
+      { name: "description", content: "Trendslated Pro: unlimited search, full voting, personal glossary, early access." },
     ],
   }),
   component: Pricing,
@@ -53,7 +53,7 @@ function Pricing() {
       <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="text-center mb-12">
         <div className="text-xs ui small-caps text-accent-red mb-2">Subscriber Services</div>
-        <h1 className="display text-5xl md:text-6xl font-black mb-3">Subscribe to Trenslate.</h1>
+        <h1 className="display text-5xl md:text-6xl font-black mb-3">Subscribe to Trendslated.</h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
           Choose the edition that fits how you read culture.
         </p>

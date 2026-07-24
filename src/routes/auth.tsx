@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Trenslate" },
+      { title: "Sign in — Trendslated" },
       { name: "description", content: "Sign in or create an account to vote on trends and save your personal glossary." },
     ],
   }),
@@ -68,7 +68,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Welcome to Trenslate.");
+        toast.success("Account created. Welcome to Trendslated.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

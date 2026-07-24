@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Use — Trenslate" },
-      { name: "description", content: "The rules for using Trenslate, including community guidelines for user-generated content." },
-      { property: "og:title", content: "Terms of Use — Trenslate" },
-      { property: "og:description", content: "The rules for using Trenslate, including community guidelines for user-generated content." },
+      { title: "Terms of Use — Trendslated" },
+      { name: "description", content: "The rules for using Trendslated, including community guidelines for user-generated content." },
+      { property: "og:title", content: "Terms of Use — Trendslated" },
+      { property: "og:description", content: "The rules for using Trendslated, including community guidelines for user-generated content." },
     ],
   }),
   component: Terms,
@@ -23,7 +23,7 @@ function Terms() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Accepting these terms</h2>
           <p>
-            By creating an account or using Trenslate you agree to these Terms and to our
+            By creating an account or using Trendslated you agree to these Terms and to our
             Privacy Policy. You must be at least 13 years old to use the app.
           </p>
         </section>
@@ -31,7 +31,7 @@ function Terms() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Community guidelines (EULA)</h2>
           <p>
-            Trenslate is a shared cultural reference. We do not tolerate objectionable content
+            Trendslated is a shared cultural reference. We do not tolerate objectionable content
             or abusive behavior. This includes:
           </p>
           <ul className="list-disc pl-6 space-y-1">
@@ -54,7 +54,7 @@ function Terms() {
             control. Our editors review flagged content within 24 hours and remove anything that
             violates these guidelines. You may also block an abusive user by tapping the block
             control on their profile once we introduce user pages; until then, contact us at{" "}
-            <a className="underline" href="mailto:abuse@trenslate.app">abuse@trenslate.app</a>{" "}
+            <a className="underline" href="mailto:abuse@trendslated.app">abuse@trendslated.app</a>{" "}
             and we will act within 24 hours.
           </p>
         </section>
@@ -80,7 +80,7 @@ function Terms() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Content ownership</h2>
           <p>
-            Definitions and editorial content on Trenslate are © Trenslate. Your votes and
+            Definitions and editorial content on Trendslated are © Trendslated. Your votes and
             learned-term records are yours; we hold them under license to run the service.
           </p>
         </section>
@@ -88,7 +88,7 @@ function Terms() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Disclaimer</h2>
           <p>
-            Trenslate is provided "as is" without warranties of any kind. We are not liable for
+            Trendslated is provided "as is" without warranties of any kind. We are not liable for
             indirect or consequential damages arising from your use of the service.
           </p>
         </section>
@@ -96,7 +96,7 @@ function Terms() {
         <section>
           <h2 className="display text-xl font-bold mb-2">Contact</h2>
           <p>
-            <a className="underline" href="mailto:hello@trenslate.app">hello@trenslate.app</a>
+            <a className="underline" href="mailto:hello@trendslated.app">hello@trendslated.app</a>
           </p>
         </section>
       </div>
