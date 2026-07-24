@@ -19,6 +19,7 @@ import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ArchiveRouteImport } from './routes/archive'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
@@ -77,6 +78,10 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -99,9 +104,9 @@ const AdminTrendsRoute = AdminTrendsRouteImport.update({
 } as any)
 const AuthenticatedCheckoutPriceIdRoute =
   AuthenticatedCheckoutPriceIdRouteImport.update({
-    id: '/_authenticated/checkout/$priceId',
+    id: '/checkout/$priceId',
     path: '/checkout/$priceId',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -157,6 +162,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/account': typeof AccountRoute
   '/archive': typeof ArchiveRoute
   '/auth': typeof AuthRoute
@@ -216,6 +222,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/account'
     | '/archive'
     | '/auth'
@@ -236,6 +243,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AccountRoute: typeof AccountRoute
   ArchiveRoute: typeof ArchiveRoute
   AuthRoute: typeof AuthRoute
@@ -249,7 +257,6 @@ export interface RootRouteChildren {
   AdminTrendsRoute: typeof AdminTrendsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
-  AuthenticatedCheckoutPriceIdRoute: typeof AuthenticatedCheckoutPriceIdRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -326,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -359,7 +373,7 @@ declare module '@tanstack/react-router' {
       path: '/checkout/$priceId'
       fullPath: '/checkout/$priceId'
       preLoaderRoute: typeof AuthenticatedCheckoutPriceIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -378,8 +392,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCheckoutPriceIdRoute: typeof AuthenticatedCheckoutPriceIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCheckoutPriceIdRoute: AuthenticatedCheckoutPriceIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AccountRoute: AccountRoute,
   ArchiveRoute: ArchiveRoute,
   AuthRoute: AuthRoute,
@@ -393,7 +419,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTrendsRoute: AdminTrendsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   TrendsSlugRoute: TrendsSlugRoute,
-  AuthenticatedCheckoutPriceIdRoute: AuthenticatedCheckoutPriceIdRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
     ApiPublicHooksPerfRegressionCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

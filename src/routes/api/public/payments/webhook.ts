@@ -39,9 +39,26 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
   const priceId = resolvePriceId(item);
   const periodStart = item?.current_period_start ?? subscription.current_period_start;
   const periodEnd = item?.current_period_end ?? subscription.current_period_end;
-  const tier = subscription.status === 'active' || subscription.status === 'trialing'
-    ? tierFromPriceId(priceId)
-    : 'free';
+  const nowSec = Math.floor(Date.now() / 1000);
+  // Grant Pro during active/trialing/past_due, and until period end after cancellation.
+  const grantPro =
+    ['active', 'trialing', 'past_due'].includes(subscription.status) ||
+    (subscription.status === 'canceled' && periodEnd && periodEnd > nowSec);
+  const tier = grantPro ? tierFromPriceId(priceId) : 'free';
+
+  // Mark the moment this user's subscription first becomes Pro-active,
+  // so the client can show a one-time welcome toast on the next visit.
+  // Only set on transitions into an active/trialing state.
+  const shouldMarkWelcome =
+    subscription.status === 'active' || subscription.status === 'trialing';
+  const existing = await getSupabase()
+    .from('subscriptions')
+    .select('pro_welcomed_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+  const proWelcomedAt = shouldMarkWelcome && !existing.data?.pro_welcomed_at
+    ? new Date().toISOString()
+    : existing.data?.pro_welcomed_at ?? null;
 
   await getSupabase().from('subscriptions').upsert(
     {
@@ -55,6 +72,7 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
       current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       cancel_at_period_end: subscription.cancel_at_period_end || false,
       environment: env,
+      pro_welcomed_at: proWelcomedAt,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },

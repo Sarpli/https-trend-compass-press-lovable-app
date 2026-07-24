@@ -16,6 +16,8 @@ import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { WelcomeAuthModal } from "../components/WelcomeAuthModal";
 import { ScrollMemory } from "../lib/scroll-memory";
+import { PastDueBanner } from "../components/PastDueBanner";
+import { ProWelcomeToast } from "../components/ProWelcomeToast";
 import { AuthProvider } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
 import { SettingsProvider } from "../lib/settings";
@@ -222,6 +224,7 @@ function RootComponent() {
             <div className="liquid-blob-3" />
           </div>
           <div className="relative z-10 flex flex-1 flex-col">
+            <PastDueBanner />
             <SiteHeader />
             <main className="flex-1">
               <RouteTransition />
@@ -231,6 +234,7 @@ function RootComponent() {
         </div>
         <WelcomeAuthModal />
         <ScrollMemory />
+        <ProWelcomeToast />
         <Toaster />
         </SettingsProvider>
         </ThemeProvider>
