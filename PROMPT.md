@@ -116,7 +116,7 @@ Root sets `defaultErrorComponent`, `defaultNotFoundComponent`, `defaultPendingCo
 Deterministic per **local calendar date** using `src/lib/use-local-date.ts` — handles DST spring-forward (skipped hour), DST fall-back (repeated hour), and Kiritimati (UTC+14) edge cases.
 
 Layout, top to bottom:
-1. **Red masthead stripe** — "TRENSLATE" wordmark centered, tagline `The paper of record for internet culture`, `Vol. I No. N` metadata, weekday + local date.
+1. **Red masthead stripe** — "TRENDSLATED" wordmark centered, tagline `The paper of record for internet culture`, `Vol. I No. N` metadata, weekday + local date.
 2. **TickerBar** — sticky horizontal marquee of all trends. Each cell: symbol · price (tabular-nums) · day % change (green up, red down). Hover pauses; touch scrubs; keyboard-focusable. Speed weighted by popularity. Subscribes to `vote_events` realtime channel and refetches `get_trend_scores` on debounce.
 3. **Trend Spotlight** — full-width cover image via `<TrendCover>` (AVIF/WebP/JPG responsive srcset, `object-cover`, dilute gradient overlay, never crops the term text). Selected by `spotlight_pins` override if present for today's local date, otherwise deterministic hash of `local_date + eligible trend ids`. Smaller on mobile.
 4. **The Daily Briefing** — 6 story cards (2×3 desktop, 1-col mobile) linking to `/trends/$slug`. Each card shows a `LearnedFlag` (🎓) if the current user has learned it.
