@@ -76,11 +76,9 @@ function Pricing() {
     setConfirmPlan(planId);
   };
 
-  const proceedToCheckout = (_planId: PlanId) => {
-    // Paid subscriptions are temporarily unavailable — checkout will be
-    // wired up when the payment provider is enabled. The disclosure step
-    // above is the mandatory pre-checkout screen once it is.
+  const proceedToCheckout = (planId: PlanId) => {
     setConfirmPlan(null);
+    navigate({ to: '/checkout/$priceId', params: { priceId: planId } });
   };
 
   return (
