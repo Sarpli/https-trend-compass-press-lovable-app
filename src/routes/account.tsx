@@ -7,6 +7,10 @@ import { todayLocalISO, yesterdayLocalISO } from "@/lib/timezone";
 import { useBump } from "@/lib/use-bump";
 import { ChangePassword } from "@/components/ChangePassword";
 import { DeleteAccount } from "@/components/DeleteAccount";
+import { useState } from "react";
+import { createPortalSession } from "@/lib/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { toast } from "sonner";
 
 
 
@@ -145,6 +149,45 @@ function Account() {
 
 
 function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="ui small-caps text-xs text-muted-foreground">{label}</dt>
+      <dd className="display text-xl font-bold">{value}</dd>
+    </div>
+  );
+}
+
+function ManageBillingButton() {
+  const [loading, setLoading] = useState(false);
+  const openPortal = async () => {
+    setLoading(true);
+    try {
+      const result = await createPortalSession({
+        data: {
+          environment: getStripeEnvironment(),
+          returnUrl: `${window.location.origin}/account`,
+        },
+      });
+      if ('error' in result) throw new Error(result.error);
+      window.open(result.url, '_blank');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not open billing portal');
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <button
+      onClick={openPortal}
+      disabled={loading}
+      className="ui small-caps text-xs border border-ink/40 px-4 py-2 hover:bg-ink hover:text-newsprint disabled:opacity-50"
+    >
+      {loading ? 'Opening…' : 'Manage billing'}
+    </button>
+  );
+}
+
+function _StatOriginal({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="ui small-caps text-xs text-muted-foreground">{label}</dt>
