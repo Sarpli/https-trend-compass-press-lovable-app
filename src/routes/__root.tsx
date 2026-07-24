@@ -222,6 +222,7 @@ function RootComponent() {
             <div className="liquid-blob-3" />
           </div>
           <div className="relative z-10 flex flex-1 flex-col">
+            <PastDueBanner />
             <SiteHeader />
             <main className="flex-1">
               <RouteTransition />
@@ -231,6 +232,7 @@ function RootComponent() {
         </div>
         <WelcomeAuthModal />
         <ScrollMemory />
+        <ProWelcomeToast />
         <Toaster />
         </SettingsProvider>
         </ThemeProvider>
