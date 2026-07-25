@@ -90,6 +90,8 @@ function AdminTrends() {
 
       <StreakOverride />
 
+      <ViewerVotes />
+
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
