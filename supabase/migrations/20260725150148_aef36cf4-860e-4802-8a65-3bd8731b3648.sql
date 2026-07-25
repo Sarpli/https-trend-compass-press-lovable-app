@@ -1,0 +1,1 @@
+CREATE POLICY "votes admin read" ON public.votes FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
