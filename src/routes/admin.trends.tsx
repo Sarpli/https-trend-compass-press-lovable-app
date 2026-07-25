@@ -111,6 +111,145 @@ function AdminTrends() {
 
 type TrendRow = { id: string; slug: string; term: string; category: string | null; image_url: string | null; safety_tips: string };
 
+function ViewerVotes() {
+  const [limit, setLimit] = useState(50);
+  const [filter, setFilter] = useState("");
+  const [dir, setDir] = useState<"all" | "up" | "down">("all");
+
+  const { data: rows, isLoading } = useQuery({
+    queryKey: ["admin-viewer-votes", limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("votes")
+        .select("id, direction, weight, category, period_key, created_at, user_id, trend_id, trends:trend_id(term, slug)")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return data ?? [];
+    },
+    refetchInterval: 15_000,
+  });
+
+  const userIds = Array.from(new Set((rows ?? []).map((r) => r.user_id)));
+  const { data: profiles } = useQuery({
+    queryKey: ["admin-viewer-profiles", userIds.sort().join(",")],
+    enabled: userIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, display_name")
+        .in("id", userIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  const filtered = (rows ?? []).filter((r) => {
+    if (dir !== "all" && r.direction !== dir) return false;
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    const p = profileById.get(r.user_id);
+    return (
+      r.trends?.term?.toLowerCase().includes(q) ||
+      r.trends?.slug?.includes(q) ||
+      p?.email?.toLowerCase().includes(q) ||
+      p?.display_name?.toLowerCase().includes(q) ||
+      r.user_id.startsWith(q)
+    );
+  });
+
+  return (
+    <section className="border border-ink/40 bg-background p-4 mb-6">
+      <div className="text-[10px] ui small-caps text-accent-red mb-1">Viewer Activity</div>
+      <h2 className="display text-2xl font-black mb-1">Recent viewer votes</h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Live feed of every vote cast across the app. Refreshes every 15 seconds.
+      </p>
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter by term, email, name…"
+          className="flex-1 min-w-[200px] border border-ink/40 bg-background px-2 py-1 text-xs"
+        />
+        <select
+          value={dir}
+          onChange={(e) => setDir(e.target.value as "all" | "up" | "down")}
+          className="border border-ink/40 bg-background px-2 py-1 text-xs"
+        >
+          <option value="all">All directions</option>
+          <option value="up">Up only</option>
+          <option value="down">Down only</option>
+        </select>
+        <select
+          value={limit}
+          onChange={(e) => setLimit(Number(e.target.value))}
+          className="border border-ink/40 bg-background px-2 py-1 text-xs"
+        >
+          <option value={50}>Last 50</option>
+          <option value={200}>Last 200</option>
+          <option value={500}>Last 500</option>
+        </select>
+      </div>
+      {isLoading ? (
+        <div className="text-xs text-muted-foreground">Loading votes…</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-xs text-muted-foreground">No votes match.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="text-left border-b border-ink/40 ui small-caps text-[10px] text-muted-foreground">
+                <th className="py-1 pr-3">When</th>
+                <th className="py-1 pr-3">Viewer</th>
+                <th className="py-1 pr-3">Trend</th>
+                <th className="py-1 pr-3">Dir</th>
+                <th className="py-1 pr-3">Weight</th>
+                <th className="py-1 pr-3">Category</th>
+                <th className="py-1 pr-3">Period</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => {
+                const p = profileById.get(r.user_id);
+                return (
+                  <tr key={r.id} className="border-b border-ink/10">
+                    <td className="py-1 pr-3 tabular-nums text-muted-foreground whitespace-nowrap">
+                      {new Date(r.created_at).toLocaleString()}
+                    </td>
+                    <td className="py-1 pr-3">
+                      <div className="font-bold">{p?.display_name ?? p?.email ?? r.user_id.slice(0, 8)}</div>
+                      {p?.email && p?.display_name && (
+                        <div className="text-[10px] text-muted-foreground">{p.email}</div>
+                      )}
+                    </td>
+                    <td className="py-1 pr-3">
+                      {r.trends ? (
+                        <Link to="/trends/$slug" params={{ slug: r.trends.slug }} className="underline">
+                          {r.trends.term}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className={`py-1 pr-3 font-bold ${r.direction === "up" ? "text-accent-green" : "text-accent-red"}`}>
+                      {r.direction === "up" ? "▲ up" : "▼ down"}
+                    </td>
+                    <td className="py-1 pr-3 tabular-nums">{r.weight}</td>
+                    <td className="py-1 pr-3 ui small-caps text-[10px]">{r.category}</td>
+                    <td className="py-1 pr-3 tabular-nums text-muted-foreground">{r.period_key}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StreakOverride() {
   const { user } = useAuth();
   const qc = useQueryClient();
