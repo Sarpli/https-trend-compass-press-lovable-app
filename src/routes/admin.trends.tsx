@@ -137,7 +137,7 @@ function ViewerVotes() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, display_name")
+        .select("id, display_name, username")
         .in("id", userIds);
       if (error) throw error;
       return data ?? [];
@@ -153,8 +153,8 @@ function ViewerVotes() {
     return (
       r.trends?.term?.toLowerCase().includes(q) ||
       r.trends?.slug?.includes(q) ||
-      p?.email?.toLowerCase().includes(q) ||
       p?.display_name?.toLowerCase().includes(q) ||
+      p?.username?.toLowerCase().includes(q) ||
       r.user_id.startsWith(q)
     );
   });
@@ -219,9 +219,9 @@ function ViewerVotes() {
                       {new Date(r.created_at).toLocaleString()}
                     </td>
                     <td className="py-1 pr-3">
-                      <div className="font-bold">{p?.display_name ?? p?.email ?? r.user_id.slice(0, 8)}</div>
-                      {p?.email && p?.display_name && (
-                        <div className="text-[10px] text-muted-foreground">{p.email}</div>
+                      <div className="font-bold">{p?.display_name ?? p?.username ?? r.user_id.slice(0, 8)}</div>
+                      {p?.username && p?.display_name && (
+                        <div className="text-[10px] text-muted-foreground">@{p.username}</div>
                       )}
                     </td>
                     <td className="py-1 pr-3">
