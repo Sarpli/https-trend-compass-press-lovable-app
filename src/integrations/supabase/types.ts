@@ -374,6 +374,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_events: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: string
+          ip: string | null
+          key_hash: string | null
+          limit_max: number
+          retry_after: number
+          route: string
+          user_agent: string | null
+          user_id: string | null
+          window_seconds: number
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          key_hash?: string | null
+          limit_max: number
+          retry_after: number
+          route: string
+          user_agent?: string | null
+          user_id?: string | null
+          window_seconds: number
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          key_hash?: string | null
+          limit_max?: number
+          retry_after?: number
+          route?: string
+          user_agent?: string | null
+          user_id?: string | null
+          window_seconds?: number
+        }
+        Relationships: []
+      }
       rate_limit_hits: {
         Row: {
           bucket: string
@@ -975,6 +1017,7 @@ export type Database = {
       }
       prune_perf_events: { Args: never; Returns: undefined }
       prune_pro_upgrade_intents: { Args: never; Returns: number }
+      prune_rate_limit_events: { Args: never; Returns: number }
       prune_rate_limit_hits: { Args: never; Returns: number }
       prune_synthetic_pulse_history: { Args: never; Returns: number }
       tick_synthetic_pulses: { Args: never; Returns: number }
