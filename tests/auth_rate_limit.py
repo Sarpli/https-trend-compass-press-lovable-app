@@ -92,8 +92,9 @@ async def ui_countdown_toast(errors: list[str]) -> None:
         )
         page = await ctx.new_page()
         await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-        await page.get_by_label("Email").fill("burst-ui@example.test")
-        await page.get_by_label("Password").fill("Abcd1768!")
+        # Labels aren't associated via htmlFor, target inputs by type.
+        await page.locator('input[type="email"]').fill("burst-ui@example.test")
+        await page.locator('input[type="password"]').fill("Abcd1768!")
         await page.get_by_role("button", name="Sign in", exact=True).click()
         # Sonner renders a toast; wait for the countdown copy.
         try:
