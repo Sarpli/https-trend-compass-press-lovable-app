@@ -91,19 +91,19 @@ async def ui_countdown_toast(errors: list[str]) -> None:
             extra_http_headers={"x-forwarded-for": ip},
         )
         page = await ctx.new_page()
-        await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-        # WelcomeAuthModal auto-opens ~600ms after load and covers the page.
-        # Dismiss it, then submit the /auth form.
+        # The WelcomeAuthModal auto-opens on any unauthenticated page and
+        # is itself gated. Drive it directly to test the same toast path.
+        await page.goto(BASE_URL, wait_until="domcontentloaded")
+        modal_email = page.locator('input[placeholder="you@example.com"]')
+        await modal_email.wait_for(timeout=8000)
+        # Modal opens in signup mode; flip to sign in.
         try:
-            close_btn = page.get_by_role("button", name="Close")
-            await close_btn.wait_for(timeout=3000)
-            await close_btn.click()
+            await page.get_by_role("button", name="Already a subscriber? Sign in").click(timeout=2000)
         except Exception:
             pass
-        form = page.locator("form").first
-        await form.locator('input[type="email"]').fill("burst-ui@example.test")
-        await form.locator('input[type="password"]').fill("Abcd1768!")
-        await form.get_by_role("button", name="Sign in", exact=True).click()
+        await modal_email.fill("burst-ui@example.test")
+        await page.locator('input[placeholder="Password (min 8 chars)"]').fill("Abcd1768!")
+        await page.get_by_role("button", name="Sign in", exact=True).click()
         # Sonner renders a toast; wait for the countdown copy.
         try:
             await page.wait_for_selector("text=/Too many attempts\\. Try again in \\d+s\\./", timeout=8000)
