@@ -47,20 +47,21 @@ RATE_LIMIT_BODY = (
 
 
 async def sign_in(page):
-    await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-    # The WelcomeAuthModal auto-opens after ~600ms and intercepts pointer
-    # events on the underlying /auth form. Close it before typing.
-    await page.wait_for_timeout(900)
-    close_btn = page.locator('[aria-label="Close"], button:has(svg.lucide-x)').first
-    try:
-        if await close_btn.is_visible():
-            await close_btn.click()
-            await page.wait_for_timeout(500)
-    except Exception:
-        pass
-    await page.locator('input[type="email"]').first.fill(EMAIL)
-    await page.locator('input[type="password"]').first.fill(PASSWORD)
-    await page.get_by_role("button", name="Sign in", exact=False).first.click()
+    # Sign in via the WelcomeAuthModal that auto-opens on any route.
+    # It's the topmost interactive surface, so it's the simplest place
+    # to authenticate without racing with route-level forms.
+    await page.goto(f"{BASE_URL}/", wait_until="domcontentloaded")
+    await page.wait_for_timeout(1200)
+    # Flip modal to "Sign in" mode.
+    switch = page.get_by_role(
+        "button", name="Already a subscriber? Sign in", exact=False
+    )
+    await switch.wait_for(state="visible", timeout=8000)
+    await switch.click()
+    modal_email = page.get_by_placeholder("you@example.com").first
+    await modal_email.fill(EMAIL)
+    await page.get_by_placeholder("Password", exact=False).first.fill(PASSWORD)
+    await page.get_by_role("button", name="Sign in", exact=True).first.click()
     for _ in range(40):
         await page.wait_for_timeout(300)
         signed_in = await page.evaluate(
