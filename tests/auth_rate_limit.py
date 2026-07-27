@@ -143,15 +143,19 @@ async def ui_countdown_toast_flow(
         )
         page = await ctx.new_page()
         await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-        # Dismiss the welcome modal if it appears (600ms delay + 380ms exit anim).
+        # WelcomeAuthModal auto-opens after ~600ms on any unauthenticated
+        # page and covers the auth form. Give it time to mount, then close
+        # it and wait for the overlay to fully unmount so it stops
+        # intercepting pointer events.
         close_btn = page.locator('button[aria-label="Close"]')
         try:
-            await close_btn.wait_for(timeout=3000)
+            await close_btn.wait_for(state="visible", timeout=8000)
             await close_btn.click()
-            # Wait for the modal overlay to fully unmount so it stops
-            # intercepting pointer events on the auth page.
+        except Exception:
+            pass
+        try:
             await page.wait_for_selector(
-                'button[aria-label="Close"]', state="detached", timeout=3000
+                'button[aria-label="Close"]', state="detached", timeout=6000
             )
         except Exception:
             pass
