@@ -92,12 +92,14 @@ async def ui_countdown_toast(errors: list[str]) -> None:
         )
         page = await ctx.new_page()
         await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-        # Dismiss the WelcomeAuthModal overlay if it appears.
+        # WelcomeAuthModal auto-opens ~600ms after load and covers the page.
+        # Dismiss it, then submit the /auth form.
         try:
-            await page.locator("div.fixed.inset-0.z-\\[100\\]").first.click(timeout=1500)
+            close_btn = page.get_by_role("button", name="Close")
+            await close_btn.wait_for(timeout=3000)
+            await close_btn.click()
         except Exception:
             pass
-        # Labels aren't associated via htmlFor, target inputs by type.
         form = page.locator("form").first
         await form.locator('input[type="email"]').fill("burst-ui@example.test")
         await form.locator('input[type="password"]').fill("Abcd1768!")
