@@ -98,9 +98,10 @@ async def ui_countdown_toast(errors: list[str]) -> None:
         except Exception:
             pass
         # Labels aren't associated via htmlFor, target inputs by type.
-        await page.locator('input[type="email"]').fill("burst-ui@example.test")
-        await page.locator('input[type="password"]').fill("Abcd1768!")
-        await page.get_by_role("button", name="Sign in", exact=True).click()
+        form = page.locator("form").first
+        await form.locator('input[type="email"]').fill("burst-ui@example.test")
+        await form.locator('input[type="password"]').fill("Abcd1768!")
+        await form.get_by_role("button", name="Sign in", exact=True).click()
         # Sonner renders a toast; wait for the countdown copy.
         try:
             await page.wait_for_selector("text=/Too many attempts\\. Try again in \\d+s\\./", timeout=8000)
