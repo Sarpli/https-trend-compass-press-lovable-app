@@ -51,8 +51,8 @@ async def sign_in(page):
     # Dismiss the WelcomeAuthModal if it's obscuring the form.
     await page.evaluate("() => localStorage.setItem('welcomeAuthDismissed', '1')")
     await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-    await page.get_by_label("Email", exact=False).first.fill(EMAIL)
-    await page.get_by_label("Password", exact=False).first.fill(PASSWORD)
+    await page.locator('input[type="email"]').first.fill(EMAIL)
+    await page.locator('input[type="password"]').first.fill(PASSWORD)
     await page.get_by_role("button", name="Sign in", exact=False).first.click()
     # Wait for the auth cookie/localStorage session to settle.
     for _ in range(30):
