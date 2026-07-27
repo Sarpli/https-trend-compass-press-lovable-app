@@ -24,6 +24,7 @@ import concurrent.futures as cf
 import json
 import os
 import sys
+import time
 import urllib.request
 import urllib.error
 import uuid
@@ -33,17 +34,23 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8080")
 
 def post_gate(mode: str, email: str, ip: str) -> tuple[int, dict, str]:
     body = json.dumps({"mode": mode, "email": email}).encode()
-    req = urllib.request.Request(
-        f"{BASE_URL}/api/public/auth/gate",
-        method="POST",
-        data=body,
-        headers={"Content-Type": "application/json", "x-forwarded-for": ip},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return r.status, dict(r.headers), r.read().decode("utf-8", "replace")
-    except urllib.error.HTTPError as e:
-        return e.code, dict(e.headers), e.read().decode("utf-8", "replace")
+    last_exc: Exception | None = None
+    for attempt in range(4):
+        req = urllib.request.Request(
+            f"{BASE_URL}/api/public/auth/gate",
+            method="POST",
+            data=body,
+            headers={"Content-Type": "application/json", "x-forwarded-for": ip},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.status, dict(r.headers), r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            return e.code, dict(e.headers), e.read().decode("utf-8", "replace")
+        except (ConnectionResetError, urllib.error.URLError, OSError) as e:
+            last_exc = e
+            time.sleep(0.15 * (attempt + 1))
+    raise last_exc  # type: ignore[misc]
 
 
 def run_concurrent(calls: list[tuple[str, str, str]]) -> list[tuple[int, dict, str]]:
