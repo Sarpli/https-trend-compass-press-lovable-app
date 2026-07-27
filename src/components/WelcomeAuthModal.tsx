@@ -43,6 +43,18 @@ export function WelcomeAuthModal() {
     e.preventDefault();
     setBusy(true);
     try {
+      const gate = await fetch("/api/public/auth/gate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, email: email.trim().toLowerCase() }),
+      });
+      if (gate.status === 429) {
+        const retry = Number(gate.headers.get("Retry-After") ?? "60");
+        toast.error(`Too many attempts. Try again in ${retry}s.`);
+        setBusy(false);
+        return;
+      }
+      if (!gate.ok) throw new Error("Could not verify request. Please try again.");
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
