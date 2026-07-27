@@ -143,12 +143,18 @@ async def ui_countdown_toast_flow(
         )
         page = await ctx.new_page()
         await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-        # Dismiss the welcome modal if it appears (600ms delay).
+        # Dismiss the welcome modal if it appears (600ms delay + 380ms exit anim).
+        close_btn = page.locator('button[aria-label="Close"]')
         try:
-            await page.get_by_role("button", name="Close").click(timeout=2500)
+            await close_btn.wait_for(timeout=3000)
+            await close_btn.click()
+            # Wait for the modal overlay to fully unmount so it stops
+            # intercepting pointer events on the auth page.
+            await page.wait_for_selector(
+                'button[aria-label="Close"]', state="detached", timeout=3000
+            )
         except Exception:
-            # Fallback: press Escape to close any modal overlay.
-            await page.keyboard.press("Escape")
+            pass
         # /auth defaults to signup — flip to sign-in so the "Forgot password?"
         # / "Resend confirmation email" buttons are the visible ones.
         if trigger_button == "Forgot password?":
