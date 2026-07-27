@@ -114,6 +114,63 @@ function AuthPage() {
     }
   };
 
+  const gate = async (mode: "reset" | "resend", emailValue: string) => {
+    const res = await fetch("/api/public/auth/gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode, email: emailValue }),
+    });
+    if (res.status === 429) {
+      const retry = Number(res.headers.get("Retry-After") ?? "60");
+      toast.error(`Too many attempts. Try again in ${retry}s.`);
+      return false;
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      toast.error(body.error === "invalid_email" ? "Please enter a valid email." : "Could not verify request. Please try again.");
+      return false;
+    }
+    return true;
+  };
+
+  const forgotPassword = async () => {
+    const target = email.trim().toLowerCase();
+    if (!target) return toast.error("Enter your email above first.");
+    setBusy(true);
+    try {
+      if (!(await gate("reset", target))) return;
+      const { error } = await supabase.auth.resetPasswordForEmail(target, {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+      toast.success("Check your inbox for a reset link.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendConfirmation = async () => {
+    const target = email.trim().toLowerCase();
+    if (!target) return toast.error("Enter your email above first.");
+    setBusy(true);
+    try {
+      if (!(await gate("resend", target))) return;
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: target,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      toast.success("Confirmation email sent.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto px-6 py-16">
       <div className="text-xs ui small-caps text-accent-red mb-2 text-center">
@@ -182,13 +239,33 @@ function AuthPage() {
       </button>
       <div className="text-center mt-6 text-sm">
         {mode === "signin" ? (
-          <button onClick={() => setMode("signup")} className="ui small-caps text-xs underline">
-            New subscriber? Create an account
-          </button>
+          <div className="space-y-2">
+            <button onClick={() => setMode("signup")} className="ui small-caps text-xs underline block w-full">
+              New subscriber? Create an account
+            </button>
+            <button
+              type="button"
+              onClick={forgotPassword}
+              disabled={busy}
+              className="ui small-caps text-xs underline text-muted-foreground disabled:opacity-50"
+            >
+              Forgot password?
+            </button>
+          </div>
         ) : (
-          <button onClick={() => setMode("signin")} className="ui small-caps text-xs underline">
-            Already a subscriber? Sign in
-          </button>
+          <div className="space-y-2">
+            <button onClick={() => setMode("signin")} className="ui small-caps text-xs underline block w-full">
+              Already a subscriber? Sign in
+            </button>
+            <button
+              type="button"
+              onClick={resendConfirmation}
+              disabled={busy}
+              className="ui small-caps text-xs underline text-muted-foreground disabled:opacity-50"
+            >
+              Resend confirmation email
+            </button>
+          </div>
         )}
       </div>
       <p className="text-center mt-8 text-xs text-muted-foreground">

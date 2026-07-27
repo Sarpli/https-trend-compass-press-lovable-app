@@ -16,6 +16,18 @@ export function ChangePassword() {
     if (pw !== confirm) return toast.error("Passwords do not match.");
     setBusy(true);
     try {
+      // Rate-limit password changes per IP to blunt session-hijack abuse.
+      const gate = await fetch("/api/public/auth/gate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "password_change" }),
+      });
+      if (gate.status === 429) {
+        const retry = Number(gate.headers.get("Retry-After") ?? "60");
+        toast.error(`Too many attempts. Try again in ${retry}s.`);
+        setBusy(false);
+        return;
+      }
       const { error } = await supabase.auth.updateUser({ password: pw });
       if (error) throw error;
       toast.success("Password updated.");
