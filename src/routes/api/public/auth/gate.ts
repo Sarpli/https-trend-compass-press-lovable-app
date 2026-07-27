@@ -17,9 +17,14 @@ export const Route = createFileRoute("/api/public/auth/gate")({
             headers: { "Content-Type": "application/json" },
           });
         }
-        const mode = body.mode === "signup" ? "signup" : "signin";
+        const allowed = ["signup", "signin", "reset", "resend", "password_change"] as const;
+        const mode = (allowed as readonly string[]).includes(body.mode ?? "")
+          ? (body.mode as (typeof allowed)[number])
+          : "signin";
         const email = (body.email ?? "").trim().toLowerCase();
-        if (!email || email.length > 254 || !email.includes("@")) {
+        // password_change is authenticated and doesn't carry an email;
+        // allow it through with a synthetic key.
+        if (mode !== "password_change" && (!email || email.length > 254 || !email.includes("@"))) {
           return new Response(JSON.stringify({ error: "invalid_email" }), {
             status: 400,
             headers: { "Content-Type": "application/json" },
@@ -34,17 +39,36 @@ export const Route = createFileRoute("/api/public/auth/gate")({
         } = await import("@/lib/rate-limit.server");
         const ip = getClientIp(request);
 
-        const checks =
-          mode === "signup"
-            ? [
-                { bucket: "auth_signup:ip", key: ip, max: 5, windowSeconds: 300 },
-                { bucket: "auth_signup:email", key: email, max: 3, windowSeconds: 3600 },
-              ]
-            : [
-                { bucket: "auth_signin:ip", key: ip, max: 10, windowSeconds: 60 },
-                { bucket: "auth_signin:ip_hour", key: ip, max: 60, windowSeconds: 3600 },
-                { bucket: "auth_signin:email", key: email, max: 5, windowSeconds: 300 },
-              ];
+        let checks: { bucket: string; key: string; max: number; windowSeconds: number }[] = [];
+        if (mode === "signup") {
+          checks = [
+            { bucket: "auth_signup:ip", key: ip, max: 5, windowSeconds: 300 },
+            { bucket: "auth_signup:email", key: email, max: 3, windowSeconds: 3600 },
+          ];
+        } else if (mode === "signin") {
+          checks = [
+            { bucket: "auth_signin:ip", key: ip, max: 10, windowSeconds: 60 },
+            { bucket: "auth_signin:ip_hour", key: ip, max: 60, windowSeconds: 3600 },
+            { bucket: "auth_signin:email", key: email, max: 5, windowSeconds: 300 },
+          ];
+        } else if (mode === "reset") {
+          // Password reset emails — expensive and abusable. Cap tightly.
+          checks = [
+            { bucket: "auth_reset:ip", key: ip, max: 5, windowSeconds: 3600 },
+            { bucket: "auth_reset:email", key: email, max: 3, windowSeconds: 3600 },
+          ];
+        } else if (mode === "resend") {
+          // Resend confirmation / verification email.
+          checks = [
+            { bucket: "auth_resend:ip", key: ip, max: 5, windowSeconds: 3600 },
+            { bucket: "auth_resend:email", key: email, max: 3, windowSeconds: 3600 },
+          ];
+        } else if (mode === "password_change") {
+          // Authenticated password change (no email in body).
+          checks = [
+            { bucket: "auth_pwchange:ip", key: ip, max: 5, windowSeconds: 900 },
+          ];
+        }
 
         try {
           await enforceRateLimit(checks);
