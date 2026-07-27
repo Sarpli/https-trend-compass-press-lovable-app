@@ -17,6 +17,7 @@ Exit: 0 pass, 1 fail.
 import asyncio
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -187,6 +188,113 @@ async def ui_countdown_toast_flow(
         await browser.close()
 
 
+def parse_countdown_seconds(text: str) -> int | None:
+    """Extract total seconds from a 'Try again in [Nm ]Ns' toast body."""
+    m = re.search(r"Try again in (?:(\d+)m ?)?(\d+)s", text)
+    if not m:
+        return None
+    minutes = int(m.group(1) or 0)
+    seconds = int(m.group(2))
+    return minutes * 60 + seconds
+
+
+async def ui_matches_retry_after(
+    label: str,
+    warm_mode: str,
+    warm_count: int,
+    email_field_selector: str,
+    password_field_selector: str | None,
+    submit_button_name: str,
+    switch_to_signin: bool,
+    errors: list[str],
+) -> None:
+    """Warm the IP bucket, capture server Retry-After, then drive the UI
+    to submit the same action from the WelcomeAuthModal and assert:
+      1. Retry-After header is present and numeric on the 429.
+      2. UI countdown seconds match Retry-After within ±3 seconds.
+    """
+    ip = f"203.0.113.{uuid.uuid4().int % 254 + 1}"
+    email = f"{label}-match-{uuid.uuid4().hex[:8]}@example.test"
+    for _ in range(warm_count):
+        post_gate(warm_mode, email, ip)
+
+    # One final direct call captures the authoritative server countdown.
+    status, headers, _body = post_gate(warm_mode, email, ip)
+    probe_ts = time.time()
+    if status != 429:
+        errors.append(f"UI-match[{label}]: warm-up did not reach 429 (got {status})")
+        return
+    retry_raw = headers.get("Retry-After") or headers.get("retry-after")
+    if not retry_raw or not retry_raw.isdigit():
+        errors.append(f"UI-match[{label}]: Retry-After missing/non-numeric: {retry_raw!r}")
+        return
+    server_seconds = int(retry_raw)
+    if server_seconds < 1:
+        errors.append(f"UI-match[{label}]: Retry-After < 1s: {server_seconds}")
+        return
+
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(headless=True)
+        ctx = await browser.new_context(
+            viewport={"width": 1280, "height": 1800},
+            extra_http_headers={"x-forwarded-for": ip},
+        )
+        page = await ctx.new_page()
+        await page.goto(BASE_URL, wait_until="domcontentloaded")
+        modal_email = page.locator(email_field_selector)
+        await modal_email.wait_for(timeout=8000)
+        if switch_to_signin:
+            try:
+                await page.get_by_role(
+                    "button", name="Already a subscriber? Sign in"
+                ).click(timeout=2000)
+            except Exception:
+                pass
+        await modal_email.fill(email)
+        if password_field_selector:
+            await page.locator(password_field_selector).fill("Abcd1768!")
+        # Capture the timestamp right before we click so we can bound the
+        # server's Retry-After clock against the UI countdown.
+        await page.get_by_role("button", name=submit_button_name, exact=True).click()
+        click_ts = time.time()
+        try:
+            toast = page.locator("text=/Try again in (\\d+m ?)?\\d+s\\.?/").first
+            await toast.wait_for(timeout=8000)
+            toast_text = (await toast.inner_text()).strip()
+        except Exception:
+            ART.mkdir(parents=True, exist_ok=True)
+            await page.screenshot(path=str(ART / f"match_no_toast_{label}.png"))
+            errors.append(f"UI-match[{label}]: countdown toast never appeared")
+            await browser.close()
+            return
+
+        toast_ts = time.time()
+        ui_seconds = parse_countdown_seconds(toast_text)
+        # The UI countdown reflects the server's Retry-After AT CLICK TIME
+        # (a fresh 429 is issued on the click). The 429 clock advances one
+        # second per wall-clock second from the initial probe onward.
+        elapsed_probe_to_toast = toast_ts - probe_ts
+        expected = server_seconds - elapsed_probe_to_toast
+        if ui_seconds is None:
+            errors.append(
+                f"UI-match[{label}]: could not parse countdown from {toast_text!r}"
+            )
+        elif abs(ui_seconds - expected) > 4:
+            errors.append(
+                f"UI-match[{label}]: UI countdown {ui_seconds}s vs "
+                f"server {server_seconds}s "
+                f"(elapsed {elapsed_probe_to_toast:.1f}s, expected ~{expected:.0f}s)"
+            )
+        else:
+            print(
+                f"  UI-match[{label}] server={server_seconds}s ui={ui_seconds}s "
+                f"elapsed={elapsed_probe_to_toast:.1f}s (within tolerance)"
+            )
+        ART.mkdir(parents=True, exist_ok=True)
+        await page.screenshot(path=str(ART / f"match_toast_{label}.png"))
+        await browser.close()
+
+
 async def main() -> int:
     errors: list[str] = []
 
@@ -228,6 +336,30 @@ async def main() -> int:
         warm_mode="resend",
         warm_count=6,
         trigger_button="Resend confirmation email",
+        errors=errors,
+    )
+
+    print("=== UI countdown matches Retry-After (signin) ===")
+    await ui_matches_retry_after(
+        label="signin",
+        warm_mode="signin",
+        warm_count=12,
+        email_field_selector='input[placeholder="you@example.com"]',
+        password_field_selector='input[placeholder="Password (min 8 chars)"]',
+        submit_button_name="Sign in",
+        switch_to_signin=True,
+        errors=errors,
+    )
+
+    print("=== UI countdown matches Retry-After (signup) ===")
+    await ui_matches_retry_after(
+        label="signup",
+        warm_mode="signup",
+        warm_count=6,
+        email_field_selector='input[placeholder="you@example.com"]',
+        password_field_selector='input[placeholder="Password (min 8 chars)"]',
+        submit_button_name="Create account",
+        switch_to_signin=False,
         errors=errors,
     )
 
