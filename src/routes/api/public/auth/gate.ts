@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/public/auth/gate")({
         }
 
         try {
-          await enforceRateLimit(checks);
+          await enforceRateLimit(checks, { route: `auth.${mode}` });
         } catch (e) {
           if (e instanceof RateLimitError) return rateLimitResponse(e);
           throw e;

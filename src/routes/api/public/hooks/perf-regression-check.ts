@@ -27,9 +27,10 @@ export const Route = createFileRoute("/api/public/hooks/perf-regression-check")(
         const req = getRequest();
         const ip = getClientIp(req);
         try {
-          await enforceRateLimit([
-            { bucket: "perf_cron:ip", key: ip, max: 30, windowSeconds: 60 },
-          ]);
+          await enforceRateLimit(
+            [{ bucket: "perf_cron:ip", key: ip, max: 30, windowSeconds: 60 }],
+            { route: "perf_cron" },
+          );
         } catch (e) {
           if (e instanceof RateLimitError) return rateLimitResponse(e);
           throw e;

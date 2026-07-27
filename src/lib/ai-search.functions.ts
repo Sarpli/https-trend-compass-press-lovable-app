@@ -11,10 +11,13 @@ export const aiSearchTrends = createServerFn({ method: "POST" })
     // Unauthenticated endpoint — key by IP. 10/min, plus a slower 60/hour burst cap.
     const ip = getClientIp();
     try {
-      await enforceRateLimit([
-        { bucket: "ai_search:ip", key: ip, max: 10, windowSeconds: 60 },
-        { bucket: "ai_search:ip:hour", key: ip, max: 60, windowSeconds: 3600 },
-      ]);
+      await enforceRateLimit(
+        [
+          { bucket: "ai_search:ip", key: ip, max: 10, windowSeconds: 60 },
+          { bucket: "ai_search:ip:hour", key: ip, max: 60, windowSeconds: 3600 },
+        ],
+        { route: "ai_search" },
+      );
     } catch (e) {
       if (e instanceof RateLimitError) {
         throw new Response(

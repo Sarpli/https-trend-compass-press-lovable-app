@@ -17,10 +17,13 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     const { enforceRateLimit, getClientIp, RateLimitError } = await import("./rate-limit.server");
     // Destructive action — very tight cap: 3 attempts per hour, per user and per IP.
     try {
-      await enforceRateLimit([
-        { bucket: "delete_account:user", key: userId, max: 3, windowSeconds: 3600 },
-        { bucket: "delete_account:ip", key: getClientIp(), max: 5, windowSeconds: 3600 },
-      ]);
+      await enforceRateLimit(
+        [
+          { bucket: "delete_account:user", key: userId, max: 3, windowSeconds: 3600 },
+          { bucket: "delete_account:ip", key: getClientIp(), max: 5, windowSeconds: 3600 },
+        ],
+        { route: "delete_account", userId },
+      );
     } catch (e) {
       if (e instanceof RateLimitError) {
         throw new Response(
