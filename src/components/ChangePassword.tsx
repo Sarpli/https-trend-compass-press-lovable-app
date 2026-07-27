@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { showRateLimitToast } from "@/lib/rate-limit-toast";
 
 export function ChangePassword() {
   const [pw, setPw] = useState("");
@@ -23,8 +24,7 @@ export function ChangePassword() {
         body: JSON.stringify({ mode: "password_change" }),
       });
       if (gate.status === 429) {
-        const retry = Number(gate.headers.get("Retry-After") ?? "60");
-        toast.error(`Too many attempts. Try again in ${retry}s.`);
+        showRateLimitToast(gate, "password change");
         setBusy(false);
         return;
       }
