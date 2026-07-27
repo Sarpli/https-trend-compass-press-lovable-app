@@ -155,11 +155,13 @@ async def ui_countdown_toast_flow(
             )
         except Exception:
             pass
-        # /auth defaults to signup — flip to sign-in so the "Forgot password?"
-        # / "Resend confirmation email" buttons are the visible ones.
-        if trigger_button == "Forgot password?":
+        # /auth defaults to sign-in. "Forgot password?" is visible in that
+        # mode; "Resend confirmation email" only renders in signup mode.
+        if trigger_button == "Resend confirmation email":
             try:
-                await page.get_by_role("button", name="Already a subscriber? Sign in").click(timeout=3000)
+                await page.get_by_role(
+                    "button", name="New subscriber? Create an account"
+                ).click(timeout=3000)
             except Exception:
                 pass
         # The auth page's email input has no placeholder match with the modal;
