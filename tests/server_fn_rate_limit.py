@@ -48,17 +48,25 @@ RATE_LIMIT_BODY = (
 
 async def sign_in(page):
     await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
-    # Dismiss the WelcomeAuthModal if it's obscuring the form.
-    await page.evaluate("() => localStorage.setItem('welcomeAuthDismissed', '1')")
-    await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
+    # The WelcomeAuthModal auto-opens after ~600ms and intercepts pointer
+    # events on the underlying /auth form. Close it before typing.
+    await page.wait_for_timeout(900)
+    close_btn = page.locator('[aria-label="Close"], button:has(svg.lucide-x)').first
+    try:
+        if await close_btn.is_visible():
+            await close_btn.click()
+            await page.wait_for_timeout(500)
+    except Exception:
+        pass
     await page.locator('input[type="email"]').first.fill(EMAIL)
     await page.locator('input[type="password"]').first.fill(PASSWORD)
     await page.get_by_role("button", name="Sign in", exact=False).first.click()
-    # Wait for the auth cookie/localStorage session to settle.
-    for _ in range(30):
+    for _ in range(40):
         await page.wait_for_timeout(300)
-        url = page.url
-        if "/auth" not in url:
+        signed_in = await page.evaluate(
+            "() => Object.keys(localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'))"
+        )
+        if signed_in:
             break
     return page.url
 
