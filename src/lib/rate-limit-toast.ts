@@ -1,6 +1,32 @@
 import { toast } from "sonner";
 
 /**
+ * Marker prefix used by server functions to smuggle Retry-After through
+ * TanStack's error serialization. Server functions that call
+ * `enforceRateLimit` catch `RateLimitError` and throw a Response with body
+ * `RATE_LIMITED::<seconds>::<message>` so the message survives round-trip
+ * to the client without any special serialization.
+ */
+export const RATE_LIMIT_ERROR_PREFIX = "RATE_LIMITED::";
+
+/**
+ * Extract the Retry-After seconds from an error thrown by a server function
+ * that hit its rate limit. Returns `null` when the error isn't a rate-limit.
+ */
+export function parseRateLimitedError(err: unknown): number | null {
+  const msg =
+    err instanceof Error
+      ? err.message
+      : typeof err === "string"
+        ? err
+        : "";
+  const m = /^RATE_LIMITED::(\d+)::/.exec(msg);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+/**
  * Show a persistent rate-limit toast with a live countdown and a link to
  * /help/rate-limits explaining why the limit was hit. Reads the exact
  * Retry-After seconds from the response so the number the user sees is
