@@ -14,12 +14,28 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const { enforceRateLimit, getClientIp } = await import("./rate-limit.server");
+    const { enforceRateLimit, getClientIp, RateLimitError } = await import("./rate-limit.server");
     // Destructive action — very tight cap: 3 attempts per hour, per user and per IP.
-    await enforceRateLimit([
-      { bucket: "delete_account:user", key: userId, max: 3, windowSeconds: 3600 },
-      { bucket: "delete_account:ip", key: getClientIp(), max: 5, windowSeconds: 3600 },
-    ]);
+    try {
+      await enforceRateLimit([
+        { bucket: "delete_account:user", key: userId, max: 3, windowSeconds: 3600 },
+        { bucket: "delete_account:ip", key: getClientIp(), max: 5, windowSeconds: 3600 },
+      ]);
+    } catch (e) {
+      if (e instanceof RateLimitError) {
+        throw new Response(
+          `RATE_LIMITED::${e.retryAfter}::${e.message}`,
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "text/plain",
+              "Retry-After": String(e.retryAfter),
+            },
+          },
+        );
+      }
+      throw e;
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Best-effort cleanup of user-owned rows in public schema.
