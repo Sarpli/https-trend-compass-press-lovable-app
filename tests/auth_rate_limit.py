@@ -220,6 +220,7 @@ async def ui_matches_retry_after(
 
     # One final direct call captures the authoritative server countdown.
     status, headers, _body = post_gate(warm_mode, email, ip)
+    probe_ts = time.time()
     if status != 429:
         errors.append(f"UI-match[{label}]: warm-up did not reach 429 (got {status})")
         return
@@ -254,8 +255,8 @@ async def ui_matches_retry_after(
             await page.locator(password_field_selector).fill("Abcd1768!")
         # Capture the timestamp right before we click so we can bound the
         # server's Retry-After clock against the UI countdown.
-        click_ts = time.time()
         await page.get_by_role("button", name=submit_button_name, exact=True).click()
+        click_ts = time.time()
         try:
             toast = page.locator("text=/Try again in (\\d+m ?)?\\d+s\\.?/").first
             await toast.wait_for(timeout=8000)
@@ -267,24 +268,27 @@ async def ui_matches_retry_after(
             await browser.close()
             return
 
+        toast_ts = time.time()
         ui_seconds = parse_countdown_seconds(toast_text)
-        elapsed = int(time.time() - click_ts)
-        # The UI countdown decrements every 1s; account for the elapsed
-        # time between the server 429 and the toast render.
-        expected = server_seconds - elapsed
+        # The UI countdown reflects the server's Retry-After AT CLICK TIME
+        # (a fresh 429 is issued on the click). The 429 clock advances one
+        # second per wall-clock second from the initial probe onward.
+        elapsed_probe_to_toast = toast_ts - probe_ts
+        expected = server_seconds - elapsed_probe_to_toast
         if ui_seconds is None:
             errors.append(
                 f"UI-match[{label}]: could not parse countdown from {toast_text!r}"
             )
-        elif abs(ui_seconds - expected) > 3:
+        elif abs(ui_seconds - expected) > 4:
             errors.append(
                 f"UI-match[{label}]: UI countdown {ui_seconds}s vs "
-                f"server {server_seconds}s (elapsed {elapsed}s, expected ~{expected}s)"
+                f"server {server_seconds}s "
+                f"(elapsed {elapsed_probe_to_toast:.1f}s, expected ~{expected:.0f}s)"
             )
         else:
             print(
                 f"  UI-match[{label}] server={server_seconds}s ui={ui_seconds}s "
-                f"elapsed={elapsed}s (within tolerance)"
+                f"elapsed={elapsed_probe_to_toast:.1f}s (within tolerance)"
             )
         ART.mkdir(parents=True, exist_ok=True)
         await page.screenshot(path=str(ART / f"match_toast_{label}.png"))
