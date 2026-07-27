@@ -106,7 +106,7 @@ async def ui_countdown_toast(errors: list[str]) -> None:
         await page.get_by_role("button", name="Sign in", exact=True).click()
         # Sonner renders a toast; wait for the countdown copy.
         try:
-            await page.wait_for_selector("text=/Too many attempts\\. Try again in \\d+s\\./", timeout=8000)
+            await page.wait_for_selector("text=/Try again in \\d+s\\./", timeout=8000)
         except Exception:
             ART.mkdir(parents=True, exist_ok=True)
             await page.screenshot(path=str(ART / "no_toast.png"))
