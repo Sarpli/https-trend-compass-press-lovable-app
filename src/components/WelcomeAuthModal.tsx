@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { showRateLimitToast } from "@/lib/rate-limit-toast";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -49,8 +50,7 @@ export function WelcomeAuthModal() {
         body: JSON.stringify({ mode, email: email.trim().toLowerCase() }),
       });
       if (gate.status === 429) {
-        const retry = Number(gate.headers.get("Retry-After") ?? "60");
-        toast.error(`Too many attempts. Try again in ${retry}s.`);
+        showRateLimitToast(gate, mode === "signup" ? "sign up" : "sign in");
         setBusy(false);
         return;
       }

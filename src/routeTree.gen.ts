@@ -22,6 +22,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrendsSlugRouteImport } from './routes/trends.$slug'
+import { Route as HelpRateLimitsRouteImport } from './routes/help.rate-limits'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
 import { Route as AuthenticatedCheckoutPriceIdRouteImport } from './routes/_authenticated/checkout.$priceId'
@@ -93,6 +94,11 @@ const TrendsSlugRoute = TrendsSlugRouteImport.update({
   path: '/trends/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRateLimitsRoute = HelpRateLimitsRouteImport.update({
+  id: '/help/rate-limits',
+  path: '/help/rate-limits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/help/rate-limits': typeof HelpRateLimitsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/help/rate-limits': typeof HelpRateLimitsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/vote': typeof VoteRoute
   '/admin/trends': typeof AdminTrendsRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/help/rate-limits': typeof HelpRateLimitsRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/_authenticated/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
   '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/checkout/return'
+    | '/help/rate-limits'
     | '/trends/$slug'
     | '/checkout/$priceId'
     | '/api/public/auth/gate'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/checkout/return'
+    | '/help/rate-limits'
     | '/trends/$slug'
     | '/checkout/$priceId'
     | '/api/public/auth/gate'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/vote'
     | '/admin/trends'
     | '/checkout/return'
+    | '/help/rate-limits'
     | '/trends/$slug'
     | '/_authenticated/checkout/$priceId'
     | '/api/public/auth/gate'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   VoteRoute: typeof VoteRoute
   AdminTrendsRoute: typeof AdminTrendsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  HelpRateLimitsRoute: typeof HelpRateLimitsRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
   ApiPublicAuthGateRoute: typeof ApiPublicAuthGateRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrendsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help/rate-limits': {
+      id: '/help/rate-limits'
+      path: '/help/rate-limits'
+      fullPath: '/help/rate-limits'
+      preLoaderRoute: typeof HelpRateLimitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout/return': {
       id: '/checkout/return'
       path: '/checkout/return'
@@ -438,6 +458,7 @@ const rootRouteChildren: RootRouteChildren = {
   VoteRoute: VoteRoute,
   AdminTrendsRoute: AdminTrendsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  HelpRateLimitsRoute: HelpRateLimitsRoute,
   TrendsSlugRoute: TrendsSlugRoute,
   ApiPublicAuthGateRoute: ApiPublicAuthGateRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
