@@ -27,6 +27,7 @@ import { Route as AdminTrendsRouteImport } from './routes/admin.trends'
 import { Route as AuthenticatedCheckoutPriceIdRouteImport } from './routes/_authenticated/checkout.$priceId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksPerfRegressionCheckRouteImport } from './routes/api/public/hooks/perf-regression-check'
+import { Route as ApiPublicAuthGateRouteImport } from './routes/api/public/auth/gate'
 
 const VoteRoute = VoteRouteImport.update({
   id: '/vote',
@@ -120,6 +121,11 @@ const ApiPublicHooksPerfRegressionCheckRoute =
     path: '/api/public/hooks/perf-regression-check',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAuthGateRoute = ApiPublicAuthGateRouteImport.update({
+  id: '/api/public/auth/gate',
+  path: '/api/public/auth/gate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
+  '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
+  '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/checkout/return': typeof CheckoutReturnRoute
   '/trends/$slug': typeof TrendsSlugRoute
   '/_authenticated/checkout/$priceId': typeof AuthenticatedCheckoutPriceIdRoute
+  '/api/public/auth/gate': typeof ApiPublicAuthGateRoute
   '/api/public/hooks/perf-regression-check': typeof ApiPublicHooksPerfRegressionCheckRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/trends/$slug'
     | '/checkout/$priceId'
+    | '/api/public/auth/gate'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/trends/$slug'
     | '/checkout/$priceId'
+    | '/api/public/auth/gate'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   id:
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/trends/$slug'
     | '/_authenticated/checkout/$priceId'
+    | '/api/public/auth/gate'
     | '/api/public/hooks/perf-regression-check'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   AdminTrendsRoute: typeof AdminTrendsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   TrendsSlugRoute: typeof TrendsSlugRoute
+  ApiPublicAuthGateRoute: typeof ApiPublicAuthGateRoute
   ApiPublicHooksPerfRegressionCheckRoute: typeof ApiPublicHooksPerfRegressionCheckRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPerfRegressionCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auth/gate': {
+      id: '/api/public/auth/gate'
+      path: '/api/public/auth/gate'
+      fullPath: '/api/public/auth/gate'
+      preLoaderRoute: typeof ApiPublicAuthGateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -419,6 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTrendsRoute: AdminTrendsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   TrendsSlugRoute: TrendsSlugRoute,
+  ApiPublicAuthGateRoute: ApiPublicAuthGateRoute,
   ApiPublicHooksPerfRegressionCheckRoute:
     ApiPublicHooksPerfRegressionCheckRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
@@ -426,13 +447,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
