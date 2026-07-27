@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { parseRateLimitedError, showRateLimitToastSeconds } from "@/lib/rate-limit-toast";
 
 /**
  * In-app account deletion. Required by App Store guideline 5.1.1(v).
@@ -28,7 +29,12 @@ export function DeleteAccount() {
       toast.success("Account deleted.");
       navigate({ to: "/", replace: true });
     } catch (err) {
-      toast.error((err as Error).message ?? "Could not delete account.");
+      const retry = parseRateLimitedError(err);
+      if (retry != null) {
+        showRateLimitToastSeconds(retry, "account deletion");
+      } else {
+        toast.error((err as Error).message ?? "Could not delete account.");
+      }
       setBusy(false);
     }
   };
