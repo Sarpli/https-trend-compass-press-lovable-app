@@ -7,13 +7,29 @@ const Input = z.object({ query: z.string().min(1).max(200) });
 export const aiSearchTrends = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data }) => {
-    const { enforceRateLimit, getClientIp } = await import("./rate-limit.server");
+    const { enforceRateLimit, getClientIp, RateLimitError } = await import("./rate-limit.server");
     // Unauthenticated endpoint — key by IP. 10/min, plus a slower 60/hour burst cap.
     const ip = getClientIp();
-    await enforceRateLimit([
-      { bucket: "ai_search:ip", key: ip, max: 10, windowSeconds: 60 },
-      { bucket: "ai_search:ip:hour", key: ip, max: 60, windowSeconds: 3600 },
-    ]);
+    try {
+      await enforceRateLimit([
+        { bucket: "ai_search:ip", key: ip, max: 10, windowSeconds: 60 },
+        { bucket: "ai_search:ip:hour", key: ip, max: 60, windowSeconds: 3600 },
+      ]);
+    } catch (e) {
+      if (e instanceof RateLimitError) {
+        throw new Response(
+          `RATE_LIMITED::${e.retryAfter}::${e.message}`,
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "text/plain",
+              "Retry-After": String(e.retryAfter),
+            },
+          },
+        );
+      }
+      throw e;
+    }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 

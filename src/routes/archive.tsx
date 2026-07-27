@@ -9,6 +9,7 @@ import { Search, Sparkles } from "lucide-react";
 import { TrendCover } from "@/components/TrendCover";
 import { LearnedFlag } from "@/components/LearnedFlag";
 import { aiSearchTrends } from "@/lib/ai-search.functions";
+import { parseRateLimitedError, showRateLimitToastSeconds } from "@/lib/rate-limit-toast";
 
 export const Route = createFileRoute("/archive")({
   head: () => ({ meta: [{ title: "Trend Archive — Trendslated" }] }),
@@ -84,6 +85,13 @@ function Archive() {
           return ordered.filter((t, i, a) => t && a.findIndex((x) => x!.slug === t!.slug) === i) as typeof rows;
         } catch (err) {
           lastErr = err;
+          const retry = parseRateLimitedError(err);
+          if (retry != null) {
+            // Rate-limited — do NOT retry (would just hit the cap again).
+            // Surface the same countdown toast the auth flows use.
+            showRateLimitToastSeconds(retry, "AI search");
+            return keywordHits;
+          }
           const msg = err instanceof Error ? err.message : String(err);
           console.warn(`[archive] AI search attempt ${attempt}/${MAX_ATTEMPTS} failed:`, msg);
           if (attempt < MAX_ATTEMPTS) {
