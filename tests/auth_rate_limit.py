@@ -5,8 +5,10 @@ Verifies:
   1. HTTP burst on /api/public/auth/gate for signin exceeds the 10/min IP
      bucket and returns 429 with a numeric Retry-After header.
   2. HTTP burst for signup exceeds the 5 per 5-min IP bucket the same way.
-  3. The auth UI surfaces a "Try again in Ns" toast countdown when the
-     gate blocks the request.
+  3. HTTP burst for password reset exceeds the 5/hr IP bucket the same way.
+  4. HTTP burst for resend-confirmation exceeds the 5/hr IP bucket.
+  5. The auth UI surfaces a "Try again in Ns" toast countdown for
+     sign-in, forgot-password, and resend-confirmation flows.
 
 Exit: 0 pass, 1 fail.
 
@@ -118,6 +120,73 @@ async def ui_countdown_toast(errors: list[str]) -> None:
         await browser.close()
 
 
+async def ui_countdown_toast_flow(
+    label: str,
+    warm_mode: str,
+    warm_count: int,
+    trigger_button: str,
+    errors: list[str],
+) -> None:
+    """Exhaust the IP bucket for `warm_mode`, open /auth, dismiss the
+    welcome modal, and click the button that triggers the same mode from
+    the sign-in page. Assert the countdown toast appears."""
+    ip = f"203.0.113.{uuid.uuid4().int % 254 + 1}"
+    email = f"{label}-ui@example.test"
+    for _ in range(warm_count):
+        post_gate(warm_mode, email, ip)
+
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch(headless=True)
+        ctx = await browser.new_context(
+            viewport={"width": 1280, "height": 1800},
+            extra_http_headers={"x-forwarded-for": ip},
+        )
+        page = await ctx.new_page()
+        await page.goto(f"{BASE_URL}/auth", wait_until="domcontentloaded")
+        # WelcomeAuthModal auto-opens after ~600ms on any unauthenticated
+        # page and covers the auth form. Give it time to mount, then close
+        # it and wait for the overlay to fully unmount so it stops
+        # intercepting pointer events.
+        close_btn = page.locator('button[aria-label="Close"]')
+        try:
+            await close_btn.wait_for(state="visible", timeout=8000)
+            await close_btn.click()
+        except Exception:
+            pass
+        try:
+            await page.wait_for_selector(
+                'button[aria-label="Close"]', state="detached", timeout=6000
+            )
+        except Exception:
+            pass
+        # /auth defaults to sign-in. "Forgot password?" is visible in that
+        # mode; "Resend confirmation email" only renders in signup mode.
+        if trigger_button == "Resend confirmation email":
+            try:
+                await page.get_by_role(
+                    "button", name="New subscriber? Create an account"
+                ).click(timeout=3000)
+            except Exception:
+                pass
+        # The auth page's email input has no placeholder match with the modal;
+        # target it by role/label.
+        email_input = page.locator('input[type="email"]').first
+        await email_input.wait_for(timeout=6000)
+        await email_input.fill(email)
+        await page.get_by_role("button", name=trigger_button).click()
+        try:
+            await page.wait_for_selector("text=/Try again in (\\d+m ?)?\\d+s?\\.?/", timeout=8000)
+        except Exception:
+            ART.mkdir(parents=True, exist_ok=True)
+            await page.screenshot(path=str(ART / f"no_toast_{label}.png"))
+            errors.append(f"UI[{label}]: expected 'Try again in Ns' toast, none appeared")
+        else:
+            ART.mkdir(parents=True, exist_ok=True)
+            await page.screenshot(path=str(ART / f"toast_{label}.png"))
+            print(f"  UI[{label}] toast rendered with countdown.")
+        await browser.close()
+
+
 async def main() -> int:
     errors: list[str] = []
 
@@ -131,8 +200,36 @@ async def main() -> int:
     signup_results = burst("signup", signup_email, 8)
     assert_burst_429("signup", signup_results, errors)
 
+    print("=== reset burst (limit 5 / 3600s per IP) ===")
+    reset_email = f"reset-{uuid.uuid4().hex[:8]}@example.test"
+    reset_results = burst("reset", reset_email, 8)
+    assert_burst_429("reset", reset_results, errors)
+
+    print("=== resend burst (limit 5 / 3600s per IP) ===")
+    resend_email = f"resend-{uuid.uuid4().hex[:8]}@example.test"
+    resend_results = burst("resend", resend_email, 8)
+    assert_burst_429("resend", resend_results, errors)
+
     print("=== UI countdown toast ===")
     await ui_countdown_toast(errors)
+
+    print("=== UI countdown toast (forgot password) ===")
+    await ui_countdown_toast_flow(
+        label="reset",
+        warm_mode="reset",
+        warm_count=6,
+        trigger_button="Forgot password?",
+        errors=errors,
+    )
+
+    print("=== UI countdown toast (resend confirmation) ===")
+    await ui_countdown_toast_flow(
+        label="resend",
+        warm_mode="resend",
+        warm_count=6,
+        trigger_button="Resend confirmation email",
+        errors=errors,
+    )
 
     if errors:
         print("\nFAIL:")
