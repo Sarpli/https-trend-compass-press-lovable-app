@@ -62,6 +62,8 @@
     "react-hook-form": "^7.71.2",
     "react-resizable-panels": "^4.6.5",
     "recharts": "^2.15.4",
+    "seroval": "^1.6.2",
+    "seroval-plugins": "^1.6.2",
     "sonner": "^2.0.7",
     "stripe": "22.0.2",
     "tailwind-merge": "^3.5.0",
@@ -73,7 +75,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.7.7",
+    "@lovable.dev/vite-tanstack-config": "2.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
@@ -92,5 +94,13 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "seroval": "^1.6.2",
+    "seroval-plugins": "^1.6.2"
+  },
+  "resolutions": {
+    "seroval": "^1.6.2",
+    "seroval-plugins": "^1.6.2"
   }
 }
