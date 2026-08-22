@@ -45,8 +45,9 @@ export function TrendGlyph({
   const seedKey = trend.slug || trend.term || "trend";
   const seed = hash(seedKey);
   const mono = initials(trend.term ?? seedKey);
-  const dotId = `halftone-${seed.toString(36)}`;
   const Symbol = symbolForTrend(trend);
+  const rays = 16;
+  const rot = seed % 22;
 
   return (
     <svg
@@ -56,15 +57,31 @@ export function TrendGlyph({
       preserveAspectRatio="xMidYMid slice"
       className={cn("block w-full h-full", className)}
     >
-      <defs>
-        <pattern id={dotId} width="4" height="4" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="0.6" fill={INK} opacity="0.16" />
-        </pattern>
-      </defs>
       <rect width="160" height="90" fill="var(--newsprint)" />
-      <rect width="160" height="90" fill={`url(#${dotId})`} />
-      <rect x="3" y="3" width="154" height="84" fill="none" stroke={INK} strokeWidth="0.8" opacity="0.35" />
-      <Symbol />
+
+      {/* comic-book action burst behind the mark */}
+      <g transform={`rotate(${rot} 80 42)`} opacity="0.13">
+        {Array.from({ length: rays }, (_, i) => {
+          const a = (i / rays) * Math.PI * 2;
+          const a2 = a + Math.PI / rays / 1.6;
+          const r = 120;
+          return (
+            <path
+              key={i}
+              d={`M80 42 L${80 + Math.cos(a) * r} ${42 + Math.sin(a) * r} L${80 + Math.cos(a2) * r} ${42 + Math.sin(a2) * r} Z`}
+              fill={i % 2 === 0 ? INK : RED}
+            />
+          );
+        })}
+      </g>
+
+      {/* bold comic panel frame with offset drop-shadow */}
+      <rect x="6" y="6" width="150" height="80" fill={INK} opacity="0.22" />
+      <rect x="3" y="3" width="150" height="80" fill="none" stroke={INK} strokeWidth="2.6" />
+
+      <g style={{ filter: "none" }} strokeWidth={3}>
+        <Symbol />
+      </g>
 
       {showLabel && (
         <>
