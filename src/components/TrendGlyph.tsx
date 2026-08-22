@@ -79,11 +79,7 @@ export function TrendGlyph({
       <rect x="6" y="6" width="150" height="80" fill={INK} opacity="0.22" />
       <rect x="3" y="3" width="150" height="80" fill="none" stroke={INK} strokeWidth="2.6" />
 
-      <g transform="translate(78 32) scale(0.86) translate(-80 -42)">
-        {/* chunky comic outline behind the mark */}
-        <g stroke="var(--newsprint)" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" opacity="0.95">
-          <Symbol />
-        </g>
+      <g transform="translate(78 30) scale(0.84) translate(-80 -42)">
         <Symbol />
       </g>
 
