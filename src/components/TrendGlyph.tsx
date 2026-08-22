@@ -85,19 +85,18 @@ export function TrendGlyph({
 
       {showLabel && (
         <>
-          <rect x="10" y="76" width="140" height="0.8" fill={INK} opacity="0.3" />
+          <rect x="3" y="70" width="150" height="13" fill={INK} opacity="0.9" />
           <text
-            x="10"
-            y="84"
-            fill={INK}
-            opacity="0.7"
-            style={{ font: "600 6px var(--font-ui, ui-sans-serif)", letterSpacing: "1.2px" }}
+            x="9"
+            y="79"
+            fill="var(--newsprint)"
+            style={{ font: "800 6px var(--font-ui, ui-sans-serif)", letterSpacing: "1.4px" }}
           >
             {(trend.category ?? "trend").toUpperCase()}
           </text>
           <text
-            x="150"
-            y="84"
+            x="147"
+            y="79"
             textAnchor="end"
             fill={RED}
             style={{ font: "700 7px var(--font-display, ui-serif)", letterSpacing: "0.5px" }}
