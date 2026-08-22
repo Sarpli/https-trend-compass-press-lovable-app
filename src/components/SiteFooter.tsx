@@ -15,7 +15,7 @@ export function SiteFooter() {
           <ul className="space-y-1">
             <li><Link to="/" className="hover:underline">Front Page</Link></li>
             <li><Link to="/vote" className="hover:underline">Voting Floor</Link></li>
-            <li><Link to="/archive" className="hover:underline">Trend Archive</Link></li>
+            <li><Link to="/archive" search={{ q: "" }} className="hover:underline">Trend Archive</Link></li>
           </ul>
         </div>
         <div className="ui">
